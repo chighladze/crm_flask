@@ -1,0 +1,70 @@
+{% extends 'main/base.html' %}
+
+{% block title %}User Create{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class=" col-md-6">
+            <div class="card card-primary">
+                <!-- /.card-header -->
+                <div class="card-header">
+                    <h3 class="card-title">ახალი მომხმარებლის შექმნა</h3>
+                </div>
+                <!-- form start -->
+                <form method="post" enctype="multipart/form-data" class="form-horizontal">
+                    <div class="card-body">
+                        {{ form.csrf_token }}
+
+                        <div class="form-group row">
+                            <label for="inputName" class="col-sm-3 col-form-label">სახელი და გვარი:</label>
+                            <div class="col-sm-9">
+                                {% if form.name.errors %}
+                                    <span class="text-danger">
+                        {% for error in form.name.errors %}
+                            {{ error }}
+                        {% endfor %}
+                        </span>
+                                {% endif %}
+                                {{ form.name(class="form-control", id="inputName", placeholder="შეიყვანეთ სახელი და გვარი") }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="inputEmail" class="col-sm-3 col-form-label">მეილი:</label>
+                            <div class="col-sm-9">
+                                {% if form.email.errors %}
+                                    <span class="text-danger">
+                        {% for error in form.email.errors %}
+                            {{ error }}
+                        {% endfor %}
+                        </span>
+                                {% endif %}
+                                {{ form.email(class="form-control", id="inputEmail", placeholder="მაგ: e.lastname@example.ge") }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="inputPassword" class="col-sm-3 col-form-label">პაროლი:</label>
+                            <div class="col-sm-9">
+                                {{ form.password(class="form-control", id="inputPassword", placeholder="შეიყვანეთ პაროლი") }}
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="inputConfirmPassword" class="col-sm-3 col-form-label">გაიმეორეთ პაროლი:</label>
+                            <div class="col-sm-9">
+                                {{ form.confirm_password(class="form-control", id="inputConfirmPassword", placeholder="გაიმეორეთ პაროლი") }}
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                    <div class="card-footer">
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- /.card -->
+
+{% endblock %}
