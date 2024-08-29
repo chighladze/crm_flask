@@ -5,6 +5,7 @@ from .config import Config
 
 from .routes.dashboard import dashboard
 from .routes.users import users
+from .routes.map import map
 
 
 def create_app(config_class=Config):
@@ -16,6 +17,7 @@ def create_app(config_class=Config):
 
     app.register_blueprint(dashboard)
     app.register_blueprint(users)
+    app.register_blueprint(map)
 
     db.init_app(app)
     migrate.init_app(app, db)

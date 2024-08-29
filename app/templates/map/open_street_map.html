@@ -1,0 +1,42 @@
+{% extends 'main/base.html' %}
+
+{% block title %}
+    Open Street maps
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+    <style>
+        /* Устанавливаем размер контейнера для карты */
+        #map {
+            height: 1000px;
+            width: 100%;
+        }
+    </style>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map and set its view to a chosen geographical coordinates and zoom level
+        var map = L.map('map').setView([41.7151, 44.8271], 7); // Tbilisi, Georgia
+
+        // Load and display the tile layer from OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Optionally, add a marker to the map
+        var marker = L.marker([41.7151, 44.8271]).addTo(map)
+            .bindPopup('Tbilisi, Georgia')
+            .openPopup();
+    </script>
+
+    <!-- Замените YOUR_API_KEY на ваш API ключ от Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUPxFJ_pFpkDnJKnbfMGX6dKmnPL3FdE8&callback=initMap" async defer></script>
+{% endblock %}
