@@ -20,10 +20,10 @@
                             <div class="col-sm-9">
                                 {% if form.name.errors %}
                                     <span class="text-danger">
-                        {% for error in form.name.errors %}
-                            {{ error }}
-                        {% endfor %}
-                        </span>
+                                    {% for error in form.name.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                    </span>
                                 {% endif %}
                                 {{ form.name(class="form-control", id="inputName", placeholder="შეიყვანეთ სახელი და გვარი") }}
                             </div>
