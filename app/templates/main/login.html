@@ -60,7 +60,7 @@
 
 <form action="{{ url_for('users.login') }}" method="post">
     {{ form.hidden_tag() }} <!-- Important for CSRF token -->
-    <div class="input-group mb-3">
+    <div class="input-group mb-4">
         {{ form.email(class="form-control", id="inputEmail", placeholder="მაგ: e.lastname@example.ge", autocomplete="email") }}
         <div class="input-group-append">
             <div class="input-group-text">
@@ -68,7 +68,7 @@
             </div>
         </div>
     </div>
-    <div class="input-group mb-3">
+    <div class="input-group mb-4">
         {{ form.password(class="form-control", id="inputPassword", placeholder="შეიყვანეთ პაროლი", autocomplete="current-password") }}
         <div class="input-group-append">
             <div class="input-group-text">
@@ -78,6 +78,13 @@
                 <span class="fas fa-lock"></span>
             </div>
         </div>
+    </div>
+    <div class="row mt-3">
+        <!-- /.col -->
+        <div class="col-4">
+            <button type="submit" class="btn btn-primary btn-block">შესვლა</button>
+        </div>
+        <!-- /.col -->
     </div>
 </form>
 
