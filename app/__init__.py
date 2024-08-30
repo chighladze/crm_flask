@@ -16,8 +16,8 @@ def create_app(config_class=Config):
 
     app.jinja_env.globals['now'] = datetime.now
 
-    app.register_blueprint(dashboard)
     app.register_blueprint(users)
+    app.register_blueprint(dashboard)
     app.register_blueprint(map)
     app.register_blueprint(error)
 
