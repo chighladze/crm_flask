@@ -40,8 +40,29 @@
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <!-- Add icons to the links using the .nav-icon class
                      with font-awesome or any other icon font library -->
-                <li class="nav-item menu-open">
-                    <a href="#" class="nav-link active">
+
+                <li class="nav-item {% if request.path.startswith(url_for('users.user_create')) %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if request.path == url_for('users.user_create') %}active{% endif %}">
+                        <i class="nav-icon fas fa-user-lock"></i>
+                        <p>
+                            ადმინ პანელი
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ url_for('users.user_create') }}" class="nav-link {% if request.path == url_for('users.user_create') %}active{% endif %}">
+                                <i class="fas fa-user-plus nav-icon"></i>
+                                <p>რეგისტრაცია</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>
                             Dashboard
@@ -50,7 +71,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="./index.html" class="nav-link active">
+                            <a href="./index.html" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Dashboard v1</p>
                             </a>
