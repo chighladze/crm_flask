@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv('.env')
 
 
 class Config(object):
@@ -8,6 +10,7 @@ class Config(object):
     SERVER_PATH = ROOT + UPLOAD_PATH
 
     USER = os.environ.get('MYSQL_USER', 'test')
+    print(USER)
     PASSWORD = os.environ.get('MYSQL_PASSWORD', 'test')
     HOST = os.environ.get('MYSQL_HOST', '127.0.0.1')
     PORT = os.environ.get('MYSQL_PORT', '3306')
