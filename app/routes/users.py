@@ -45,3 +45,10 @@ def user_create():
         return redirect(url_for('dashboard.index'))
 
     return render_template('users/create.html', form=form)
+
+
+@users.route('/logout', methods=['GET', 'POST'])
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('users.login'))
