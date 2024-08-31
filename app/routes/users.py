@@ -43,7 +43,7 @@ def login():
             flash("Вы успешно авторизованы", "success")
             return redirect(next_page) if next_page else redirect(url_for('dashboard.index'))
         else:
-            flash("Ошибка входа. Проверьте логин и пароль.", "danger")
+            flash("ავტორიზაციის შეცდომა. გადაამოწმეთ მეილი და პაროლი.", "danger")
     return render_template('main/login.html', form=form)
 
 

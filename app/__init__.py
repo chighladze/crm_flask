@@ -1,7 +1,7 @@
 from flask import Flask
-from datetime import datetime
 from .extensions import db, migrate, login_manager
 from .config import Config
+from datetime import datetime
 
 from .routes.dashboard import dashboard
 from .routes.users import users

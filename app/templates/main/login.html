@@ -49,6 +49,15 @@
     </style>
 </head>
 <body class="hold-transition login-page dark-mode">
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flashes">
+        <li>{{ messages }}</li>
+        </ul>
+    {% endif %}
+{% endwith %}
+
+{% endwith %}
 <div class="login-box">
     <div class="login-logo">
         <a><b>JiNET</b><span style="color: red">CRM</span></a>
