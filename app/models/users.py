@@ -14,6 +14,7 @@ class Users(db.Model, UserMixin):
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        return Users.query.get(int(user_id))
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Users.query.get(int(user_id))
