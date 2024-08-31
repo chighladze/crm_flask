@@ -41,7 +41,7 @@ def login():
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             flash("Вы успешно авторизованы", "success")
-            return redirect(next_page) if next_page else redirect(url_for('dashboard.index'))
+            return redirect(url_for('dashboard.index'))
         else:
             flash("ავტორიზაციის შეცდომა. გადაამოწმეთ მეილი და პაროლი.", "danger")
     return render_template('main/login.html', form=form)
