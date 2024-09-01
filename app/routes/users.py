@@ -58,7 +58,8 @@ def user_create():
 @users.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
-    session.clear()
+    user_id = current_user.get_id()
+    session.pop('user_id', None)
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for('users.login'))
