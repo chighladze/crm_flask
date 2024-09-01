@@ -1,38 +1,14 @@
-import os
-from dotenv import load_dotenv
 from flask import Flask
 from flask_session import Session
+from .config import Config
 
-# Загрузка переменных окружения из .env файла
-load_dotenv('.env')
-
-# Создание экземпляра приложения Flask
 app = Flask(__name__)
-
-
-class Config(object):
-    APPNAME = 'app'
-    ROOT = os.path.abspath(APPNAME)
-    UPLOAD_PATH = '/static/upload/'
-    SERVER_PATH = os.path.join(ROOT, UPLOAD_PATH)
-
-    USER = os.environ.get('MYSQL_USER', 'test')
-    PASSWORD = os.environ.get('MYSQL_PASSWORD', 'test')
-    HOST = os.environ.get('MYSQL_HOST', '127.0.0.1')
-    PORT = os.environ.get('MYSQL_PORT', '3306')
-    DB = os.environ.get('MYSQL_DB', 'jinetdb')
-
-    SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}'
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'qwerty123456')
-    SESSION_PERMANENT = False
-    SESSION_USE_SIGNER = True
-    SESSION_KEY_PREFIX = 'crm_flask:'
-
-
-# Применение конфигурации к приложению
 app.config.from_object(Config)
+
+# Убедитесь, что SESSION_TYPE задан правильно
+session_type = app.config.get('SESSION_TYPE', 'filesystem')
+if session_type not in ['redis', 'filesystem', 'sqlalchemy', 'memcached', 'mongodb']:
+    raise ValueError(f"Unrecognized value for SESSION_TYPE: {session_type}")
 
 # Инициализация сессии
 Session(app)
-
-# Если у вас есть другие настройки или маршруты, они должны идти после инициализации сессии

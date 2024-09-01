@@ -9,7 +9,7 @@ class Config(object):
     APPNAME = 'app'
     ROOT = os.path.abspath(APPNAME)
     UPLOAD_PATH = '/static/upload/'
-    SERVER_PATH = ROOT + UPLOAD_PATH
+    SERVER_PATH = os.path.join(ROOT, UPLOAD_PATH)
 
     USER = os.environ.get('MYSQL_USER', 'test')
     PASSWORD = os.environ.get('MYSQL_PASSWORD', 'test')
@@ -19,3 +19,7 @@ class Config(object):
 
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}'
     SECRET_KEY = os.environ.get('SECRET_KEY', 'qwerty123456')
+    SESSION_PERMANENT = False
+    SESSION_USE_SIGNER = True
+    SESSION_KEY_PREFIX = 'crm_flask:'
+
