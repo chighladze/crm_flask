@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash
+from flask import Blueprint, request, render_template, redirect, url_for, flash, session
 from flask_login import login_user, login_required, current_user, logout_user
 from ..extensions import db, bcrypt
 from ..forms.users import UserCreateForm, LoginForm
@@ -24,6 +24,10 @@ def login():
             login_user(user, remember=form.remember.data)  # Use remember from the form
             flash("You have successfully logged in.", "success")
             next_page = request.args.get('next')
+
+            session.clear()
+            session['user_id'] = user['id']
+
             if next_page and is_safe_url(next_page):
                 return redirect(next_page)
             return redirect(url_for('dashboard.index'))
@@ -55,6 +59,7 @@ def user_create():
 @users.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
+    session.clear()
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for('users.login'))
