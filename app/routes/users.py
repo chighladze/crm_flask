@@ -10,7 +10,6 @@ users = Blueprint('users', __name__)
 
 
 def is_safe_url(target):
-    from urllib.parse import urlparse, urljoin
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
@@ -22,7 +21,7 @@ def login():
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.passwordHash, form.password.data):
-            login_user(user, remember=True)
+            login_user(user, remember=form.remember.data)  # Use remember from the form
             flash("You have successfully logged in.", "success")
             next_page = request.args.get('next')
             if next_page and is_safe_url(next_page):
@@ -48,7 +47,7 @@ def user_create():
         )
         db.session.add(user)
         db.session.commit()
-        flash('Пользователь успешно создан!', 'success')
+        flash('User created successfully!', 'success')
         return redirect(url_for('dashboard.index'))
     return render_template('users/create.html', form=form)
 
