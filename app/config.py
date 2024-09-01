@@ -1,4 +1,3 @@
-from flask_session import Session
 import os
 from dotenv import load_dotenv
 
@@ -19,7 +18,7 @@ class Config(object):
 
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}'
     SECRET_KEY = os.environ.get('SECRET_KEY', 'qwerty123456')
+    SESSION_TYPE = os.environ.get('SESSION_TYPE', 'filesystem')  # Добавлено значение по умолчанию
     SESSION_PERMANENT = False
     SESSION_USE_SIGNER = True
-    SESSION_KEY_PREFIX = 'crm_flask:'
-
+    SESSION_KEY_PREFIX = 'crm_flask:session'
