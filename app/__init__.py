@@ -33,4 +33,12 @@ def create_app(config_class=Config):
     with app.app_context():
         db.create_all()
 
+    # Disable caching for all routes
+    @app.after_request
+    def add_no_cache_headers(response):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
     return app
