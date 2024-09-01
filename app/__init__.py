@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_session import Session
 from .extensions import db, migrate, login_manager
 from .config import Config
 from datetime import datetime
@@ -13,6 +14,7 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.app_context().push()
     app.config.from_object(config_class)
+    Session(app)
 
     app.jinja_env.globals['now'] = datetime.now
 

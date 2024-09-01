@@ -1,5 +1,7 @@
+from flask_session import Session
 import os
 from dotenv import load_dotenv
+
 load_dotenv('.env')
 
 
@@ -17,6 +19,6 @@ class Config(object):
 
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}'
     SECRET_KEY = os.environ.get('SECRET_KEY', 'qwerty123456')
-    SESSION_COOKIE_SECURE = False  # Установите в True, если используете HTTPS
-    SESSION_COOKIE_HTTPONLY = True
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SESSION_PERMANENT = False
+    SESSION_USE_SIGNER = True
+    SESSION_KEY_PREFIX = 'app:session:'
