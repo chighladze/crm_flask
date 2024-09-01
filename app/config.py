@@ -16,8 +16,7 @@ class Config(object):
     DB = os.environ.get('MYSQL_DB', 'jinetdb')
 
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}'
-    # SECRET_KEY = os.environ.get('SECRET_KEY', 'qwerty123456')
-    SECRET_KEY = os.urandom(24)
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'qwerty123456')
     SESSION_COOKIE_SECURE = False  # Установите в True, если используете HTTPS
     SESSION_COOKIE_HTTPONLY = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
