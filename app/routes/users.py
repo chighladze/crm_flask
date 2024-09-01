@@ -21,18 +21,17 @@ def login():
     if form.validate_on_submit():
         user = Users.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.passwordHash, form.password.data):
-            login_user(user, remember=form.remember.data)  # Use remember from the form
+            login_user(user, remember=form.remember.data)
             flash("You have successfully logged in.", "success")
             next_page = request.args.get('next')
 
-            session.clear()
-            session['user_id'] = user['id']
-
             if next_page and is_safe_url(next_page):
                 return redirect(next_page)
+
             return redirect(url_for('dashboard.index'))
         else:
             flash("Authorization error. Check your email and password.", "danger")
+            return render_template('main/login.html', form=form)
     return render_template('main/login.html', form=form)
 
 
