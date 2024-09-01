@@ -1,38 +1,38 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask
 from flask_session import Session
-from .extensions import db, migrate, login_manager
-from .config import Config
-from datetime import datetime
 
-from .routes.users import users
-from .routes.dashboard import dashboard
-from .routes.map import map
-from .routes.error import error
+# Загрузка переменных окружения из .env файла
+load_dotenv('.env')
+
+# Создание экземпляра приложения Flask
+app = Flask(__name__)
 
 
-def create_app(config_class=Config):
-    app = Flask(__name__)
-    app.app_context().push()
-    app.config.from_object(config_class)
-    Session(app)
+class Config(object):
+    APPNAME = 'app'
+    ROOT = os.path.abspath(APPNAME)
+    UPLOAD_PATH = '/static/upload/'
+    SERVER_PATH = os.path.join(ROOT, UPLOAD_PATH)
 
-    app.jinja_env.globals['now'] = datetime.now
+    USER = os.environ.get('MYSQL_USER', 'test')
+    PASSWORD = os.environ.get('MYSQL_PASSWORD', 'test')
+    HOST = os.environ.get('MYSQL_HOST', '127.0.0.1')
+    PORT = os.environ.get('MYSQL_PORT', '3306')
+    DB = os.environ.get('MYSQL_DB', 'jinetdb')
 
-    app.register_blueprint(users)
-    app.register_blueprint(dashboard)
-    app.register_blueprint(map)
-    app.register_blueprint(error)
+    SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}'
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'qwerty123456')
+    SESSION_PERMANENT = False
+    SESSION_USE_SIGNER = True
+    SESSION_KEY_PREFIX = 'crm_flask:'
 
-    db.init_app(app)
-    migrate.init_app(app, db)
-    login_manager.init_app(app)
 
-    # LOGIN MANAGER
-    login_manager.login_view = 'users.login'
-    login_manager.login_message = "Please login to access this page."
-    login_manager.login_message_category = 'info'
+# Применение конфигурации к приложению
+app.config.from_object(Config)
 
-    with app.app_context():
-        db.create_all()
+# Инициализация сессии
+Session(app)
 
-    return app
+# Если у вас есть другие настройки или маршруты, они должны идти после инициализации сессии

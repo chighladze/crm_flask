@@ -19,6 +19,3 @@ class Config(object):
 
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}'
     SECRET_KEY = os.environ.get('SECRET_KEY', 'qwerty123456')
-    SESSION_PERMANENT = False
-    SESSION_USE_SIGNER = True
-    SESSION_KEY_PREFIX = 'app:session:'
