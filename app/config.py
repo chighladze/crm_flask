@@ -10,7 +10,6 @@ class Config(object):
     SERVER_PATH = ROOT + UPLOAD_PATH
 
     USER = os.environ.get('MYSQL_USER', 'test')
-    print(USER)
     PASSWORD = os.environ.get('MYSQL_PASSWORD', 'test')
     HOST = os.environ.get('MYSQL_HOST', '127.0.0.1')
     PORT = os.environ.get('MYSQL_PORT', '3306')
@@ -18,4 +17,6 @@ class Config(object):
 
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DB}'
     SECRET_KEY = os.environ.get('SECRET_KEY', 'qwerty123456')
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    SESSION_COOKIE_SECURE = False  # Установите в True, если используете HTTPS
+    SESSION_COOKIE_HTTPONLY = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = False

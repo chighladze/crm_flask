@@ -68,58 +68,51 @@
         <div class="card-body login-card-body">
             <p class="login-box-msg">გაიარეთ ავტორიზაცია</p>
 
-<form action="{{ url_for('users.login') }}" method="post">
-    {{ form.hidden_tag() }} <!-- Important for CSRF token -->
-    <div class="col-sm-9">
-        {% if form.email.errors %}
-            <span class="text-danger">
-            {% for error in form.email.errors %}
-                {{ error }}
-            {% endfor %}
-            </span>
-        {% endif %}
-    </div>
-    <div class="input-group mb-4">
-        {{ form.email(class="form-control", id="inputEmail", placeholder="მაგ: e.lastname@example.ge", autocomplete="email") }}
-        <div class="input-group-append">
-            <div class="input-group-text">
-                <span class="fas fa-envelope"></span>
-            </div>
-        </div>
-    </div>
-    <div class="input-group mb-4">
-        {{ form.password(class="form-control", id="inputPassword", placeholder="შეიყვანეთ პაროლი", autocomplete="current-password") }}
-        <div class="input-group-append">
-            <div class="input-group-text">
-                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
-                    <span class="fas fa-eye-slash"></span>
-                </button>
-                <span class="fas fa-lock"></span>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-8">
-            <div class="icheck-primary">
-                <input type="checkbox" name="remember" id="remember" {{ 'checked' if form.remember.data else '' }}>
-                <label for="remember">
-                    დამახსოვრება
-                </label>
-            </div>
-        </div>
-        <!-- /.col -->
-        <div class="col-4">
-            <button type="submit" class="btn btn-primary btn-block">შესვლა</button>
-        </div>
-        <!-- /.col -->
-    </div>
-        <!-- /.col -->
-        <div class="col-4">
-            <button type="submit" class="btn btn-primary btn-block">შესვლა</button>
-        </div>
-        <!-- /.col -->
-    </div>
-</form>
+            <form action="{{ url_for('users.login') }}" method="post">
+                {{ form.hidden_tag() }} <!-- Important for CSRF token -->
+                <div class="col-sm-9">
+                    {% if form.email.errors %}
+                        <span class="text-danger">
+                        {% for error in form.email.errors %}
+                            {{ error }}
+                        {% endfor %}
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="input-group mb-4">
+                    {{ form.email(class="form-control", id="inputEmail", placeholder="მაგ: e.lastname@example.ge", autocomplete="email") }}
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <span class="fas fa-envelope"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-group mb-4">
+                    {{ form.password(class="form-control", id="inputPassword", placeholder="შეიყვანეთ პაროლი", autocomplete="current-password") }}
+                    <div class="input-group-append">
+                        <div class="input-group-text">
+                            <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                <span class="fas fa-eye-slash"></span>
+                            </button>
+                            <span class="fas fa-lock"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-8">
+                        <div class="icheck-primary">
+                            <input type="checkbox" name="remember" id="remember" {{ 'checked' if form.remember.data else '' }}>
+                            <label for="remember">
+                                დამახსოვრება
+                            </label>
+                        </div>
+                    </div>
+                    <!-- /.col -->
+                    <div class="col-4">
+                        <button type="submit" class="btn btn-primary btn-block">შესვლა</button>
+                    </div>
+                    <!-- /.col -->
+            </form>
 
         </div>
         <!-- /.login-card-body -->
