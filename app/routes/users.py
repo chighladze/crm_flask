@@ -59,7 +59,7 @@ def user_create():
 @login_required
 def logout():
     user_id = current_user.get_id()
-    session.pop('user_id', None)
+    session.pop(user_id, None)
     logout_user()
     flash("You have been logged out.", "info")
     return redirect(url_for('users.login'))
