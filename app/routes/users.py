@@ -19,7 +19,6 @@ def is_safe_url(target):
 @users.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        print(1111)
         return redirect(url_for('dashboard.index'))
 
     form = LoginForm()
@@ -27,11 +26,10 @@ def login():
         user = db.session.scalar(sa.select(Users).where(Users.email == form.email.data))
 
         if user is None or not bcrypt.check_password_hash(user.passwordHash, form.password.data):
-            flash('მონაცემები არარის სწორი')
+            flash('მონაცემები არ არის სწორი')
             return redirect(url_for('users.login'))
 
         login_user(user, remember=form.remember.data)
-        print(request.args.get('next'))
         return redirect(request.args.get('next') or url_for('dashboard.index'))
 
     return render_template('main/login.html', form=form)
