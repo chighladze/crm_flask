@@ -136,16 +136,22 @@
                 <i class="fas fa-th-large"></i>
             </a>
         </li>
+
+        <li class="nav-item dropdown user-menu">
+            <a href="#" class="nav-link dropdown-toggle" id="userDropdown" role="button" data-toggle="dropdown">
+                <img src="{{ url_for('static', filename='img/6596121.png') }}" class="user-image img-circle" alt="User Image">
+                <span class="d-none d-md-inline">{{ current_user.name }}</span>
+            </a>
+            <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right dark-mode">
+                <a href="#" class="dropdown-item">
+                    <i class="fas fa-user mr-2"></i> პროფილი
+                    <span class="float-right text-muted text-sm"></span>
+                </a>
+                <a href="{{ url_for('users.logout') }}" class="dropdown-item">
+                    <i class="fas fa-sign-out-alt mr-2"></i> გამოსვლა
+                </a>
+            </div>
+        </li>
     </ul>
-    <div class="dropdown">
-        <a href="#" class="d-block dropdown-toggle" id="userDropdown" role="button" data-toggle="dropdown" style="color: lightgrey"
-           aria-haspopup="true" aria-expanded="false" title="პროფილი">
-            {{ current_user.name }}
-        </a>
-        <div class="dropdown-menu dark-mode" aria-labelledby="userDropdown">
-            <a class="dropdown-item" href="#" title="პროფილი">პროფილი</a>
-            <a class="dropdown-item" href="{{ url_for('users.logout') }}" title="გასვლა">გასვლა</a>
-        </div>
-    </div>
 </nav>
 <!-- /.navbar -->
