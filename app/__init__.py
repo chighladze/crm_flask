@@ -12,7 +12,6 @@ from .routes.error import error
 
 def create_app(config_class=Config):
     app = Flask(__name__)
-    app.app_context().push()
     app.config.from_object(config_class)
 
     # Инициализация сессии
