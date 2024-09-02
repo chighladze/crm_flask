@@ -50,17 +50,18 @@
     </style>
 </head>
 <body class="hold-transition login-page dark-mode">
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
-                <p>{{ message }}</p>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endwith %}
-
 <div class="login-box">
+        {% with messages = get_flashed_messages() %}
+            <div class="login-box-msg">
+                {% if messages %}
+                    <p class="login-box-msg">
+                        {% for message in messages %}
+                            {{ message }}
+                        {% endfor %}
+                    </p>
+                {% endif %}
+            </div>
+        {% endwith %}
     <div class="login-logo">
         <a><b>JiNET</b><span style="color: red">CRM</span></a>
     </div>
@@ -68,7 +69,6 @@
     <div class="card">
         <div class="card-body login-card-body">
             <p class="login-box-msg">გაიარეთ ავტორიზაცია</p>
-
             <form action="{{ url_for('users.login') }}" method="post">
                 {{ form.hidden_tag() }} <!-- Important for CSRF token -->
                 <div class="col-sm-9">
@@ -108,11 +108,10 @@
                             </label>
                         </div>
                     </div>
-                    <!-- /.col -->
                     <div class="col-4">
                         <button type="submit" class="btn btn-primary btn-block">შესვლა</button>
                     </div>
-                    <!-- /.col -->
+                </div>
             </form>
 
         </div>

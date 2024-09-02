@@ -22,11 +22,10 @@ def login():
         return redirect(url_for('dashboard.index'))
     form = LoginForm()
     if form.validate_on_submit():
-        user = db.session.scalar(
-            sa.select(Users).where(Users.email == form.email.data))
+        user = db.session.scalar(sa.select(Users).where(Users.email == form.email.data))
         if user is None or not bcrypt.check_password_hash(user.passwordHash, form.password.data):
-            flash('Invalid username or password')
-            return redirect(url_for('login'))
+            flash('მონაცემები არარის სწორი')
+            return redirect(url_for('users.login'))
         login_user(user, remember=form.remember.data)
         return redirect(url_for('dashboard.index'))
     return render_template('main/login.html', form=form)
@@ -47,7 +46,7 @@ def user_create():
         )
         db.session.add(user)
         db.session.commit()
-        flash('User created successfully!', 'success')
+        flash('ახალი მომხმარებელი წარმატებით შექმნილია!', 'success')
         return redirect(url_for('dashboard.index'))
     return render_template('users/create.html', form=form)
 
@@ -58,5 +57,4 @@ def logout():
     user_id = current_user.get_id()
     session.pop(user_id, None)
     logout_user()
-    flash("You have been logged out.", "info")
     return redirect(url_for('users.login'))

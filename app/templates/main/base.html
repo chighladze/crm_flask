@@ -53,6 +53,15 @@
             <!-- /.content-header -->
             <section class="content">
                 <div class="container-fluid">
+                {% with messages = get_flashed_messages(with_categories=True) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                            {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
                 {% block content %}
 
                 {% endblock %}
