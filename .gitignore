@@ -4,3 +4,4 @@ env/
 migrations/
 .env
 .flaskenv
+flask_session/
