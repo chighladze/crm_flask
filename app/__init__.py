@@ -30,6 +30,7 @@ def create_app(config_class=Config):
 
     # LOGIN MANAGER
     login_manager.login_view = 'users.login'
+    login_manager.login_message = False
 
     with app.app_context():
         db.create_all()
