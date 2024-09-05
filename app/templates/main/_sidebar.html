@@ -27,8 +27,8 @@
                 <!-- Add icons to the links using the .nav-icon class
                      with font-awesome or any other icon font library -->
 
-                <li class="nav-item {% if request.path.startswith(url_for('users.user_create')) %}menu-open{% endif %}">
-                    <a href="#" class="nav-link {% if request.path == url_for('users.user_create') %}active{% endif %}">
+                <li class="nav-item {% if g.active_menu == 'administration' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if g.active_menu == 'administration' %}active{% endif %}">
                         <i class="nav-icon fas fa-user-lock"></i>
                         <p>
                             ადმინისტრაცია
@@ -40,6 +40,14 @@
                             <a href="{{ url_for('users.user_create') }}" class="nav-link {% if request.path == url_for('users.user_create') %}active{% endif %}">
                                 <i class="fas fa-user-plus nav-icon"></i>
                                 <p>რეგისტრაცია</p>
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ url_for('users.users_list') }}" class="nav-link {% if request.path == url_for('users.users_list') %}active{% endif %}">
+                                <i class="fas fa-user-plus nav-icon"></i>
+                                <p>თანამშრომლები</p>
                             </a>
                         </li>
                     </ul>

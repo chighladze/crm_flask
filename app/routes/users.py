@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash, session
+from flask import Blueprint, request, render_template, redirect, url_for, flash, session, g
 from flask_login import login_user, login_required, current_user, logout_user
 import sqlalchemy as sa
 from ..extensions import db, bcrypt
@@ -8,6 +8,11 @@ from datetime import datetime
 from urllib.parse import urlparse, urljoin
 
 users = Blueprint('users', __name__)
+
+
+@users.before_app_request
+def before_request():
+    g.active_menu = 'administration'
 
 
 def is_safe_url(target):
@@ -30,9 +35,33 @@ def login():
             return redirect(url_for('users.login'))
 
         login_user(user, remember=form.remember.data)
+
+        user.lastLogin = datetime.utcnow()
+        db.session.commit()
+
         return redirect(request.args.get('next') or url_for('dashboard.index'))
 
     return render_template('main/login.html', form=form)
+
+
+@users.route('/users/user_list', methods=['GET', 'POST'])
+@login_required
+def users_list():
+    search_query = request.args.get('search', '')
+
+    if search_query:
+        users = db.session.execute(
+            sa.select(Users).filter(
+                sa.or_(
+                    Users.name.ilike(f'%{search_query}%'),
+                    Users.email.ilike(f'%{search_query}%')
+                )
+            )
+        ).scalars().all()
+    else:
+        users = db.session.execute(sa.select(Users)).scalars().all()
+
+    return render_template('users/list.html', users=users)
 
 
 @users.route('/users/create', methods=['GET', 'POST'])

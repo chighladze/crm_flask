@@ -8,6 +8,7 @@ class Users(UserMixin, db.Model):
     name = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     passwordHash = db.Column(db.String(255), nullable=False)
+    status = db.Column(db.Integer, default='1', nullable=False)
     lastLogin = db.Column(db.DateTime, default=datetime.utcnow)
     failedLoginAttempts = db.Column(db.Integer, default=0)
     lockOutUntil = db.Column(db.DateTime, default=datetime.utcnow)
