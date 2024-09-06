@@ -10,11 +10,6 @@ from urllib.parse import urlparse, urljoin
 users = Blueprint('users', __name__)
 
 
-@users.before_app_request
-def before_request():
-    g.active_menu = 'administration'
-
-
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
     test_url = urlparse(urljoin(request.host_url, target))
@@ -61,7 +56,7 @@ def users_list():
     else:
         users = db.session.execute(sa.select(Users)).scalars().all()
 
-    return render_template('users/list.html', users=users)
+    return render_template('users/list.html', users=users, active_menu='administration')
 
 
 @users.route('/users/create', methods=['GET', 'POST'])
@@ -81,7 +76,7 @@ def user_create():
         db.session.commit()
         flash('ახალი მომხმარებელი წარმატებით შექმნილია!', 'success')
         return redirect(url_for('dashboard.index'))
-    return render_template('users/create.html', form=form)
+    return render_template('users/create.html', form=form, active_menu='administration')
 
 
 @users.route('/logout', methods=['GET', 'POST'])
