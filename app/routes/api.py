@@ -6,7 +6,7 @@ api = Blueprint('api', __name__)
 
 UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__))
 
-@api.route('/api/test', methods=['POST'])
+@api.route('/api/test', methods=['POST', 'GET'])
 def save_data():
     if request.method == 'POST':
         data = request.get_json()
