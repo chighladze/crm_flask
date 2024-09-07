@@ -22,13 +22,14 @@ def save_data():
 
         # Сохраняем каждый объект из массива в файл
         try:
-            with open(file_path, 'a') as f:
+            # Открываем файл с указанием кодировки UTF-8
+            with open(file_path, 'a', encoding='utf-8') as f:
                 for item in data:
                     # Проверяем, что каждый объект имеет необходимые поля
                     if not isinstance(item, dict) or 'id' not in item or 'status' not in item:
                         return jsonify({'error': f'Invalid item format: {item}'}), 400
-                    # Записываем данные в файл
-                    f.write(json.dumps(item) + '\n')
+                    # Записываем данные в файл, указав ensure_ascii=False для правильного отображения символов
+                    f.write(json.dumps(item, ensure_ascii=False) + '\n')
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
