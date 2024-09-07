@@ -21,9 +21,16 @@ def save_data():
         file_path = os.path.join(UPLOAD_FOLDER, 'data.json')
 
         # Сохраняем каждый объект из массива в файл
-        with open(file_path, 'a') as f:
-            for item in data:
-                f.write(json.dumps(item) + '\n')
+        try:
+            with open(file_path, 'a') as f:
+                for item in data:
+                    # Проверяем, что каждый объект имеет необходимые поля
+                    if not isinstance(item, dict) or 'id' not in item or 'status' not in item:
+                        return jsonify({'error': f'Invalid item format: {item}'}), 400
+                    # Записываем данные в файл
+                    f.write(json.dumps(item) + '\n')
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
         # Возвращаем успешный ответ
         return jsonify({'success': True}), 200
