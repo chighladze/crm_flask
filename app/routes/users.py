@@ -43,20 +43,60 @@ def login():
 @login_required
 def users_list():
     search_query = request.args.get('search', '')
+    page = request.args.get('page', 1, type=int)  # Номер страницы
+    per_page = request.args.get('per_page', 10, type=int)  # Количество записей на странице, по умолчанию 10
 
-    if search_query:
-        users = db.session.execute(
-            sa.select(Users).filter(
-                sa.or_(
-                    Users.name.ilike(f'%{search_query}%'),
-                    Users.email.ilike(f'%{search_query}%')
-                )
+    # Ограничение допустимых значений для per_page
+    per_page = per_page if per_page in [10, 50, 100] else 10
+
+    # Составляем запрос для поиска пользователей
+    query = sa.select(Users).filter(
+        sa.or_(
+            Users.name.ilike(f'%{search_query}%'),
+            Users.email.ilike(f'%{search_query}%')
+        )
+    )
+
+    # Получаем общее количество пользователей
+    total_count_query = sa.select(sa.func.count()).select_from(
+        sa.select(Users).filter(
+            sa.or_(
+                Users.name.ilike(f'%{search_query}%'),
+                Users.email.ilike(f'%{search_query}%')
             )
-        ).scalars().all()
-    else:
-        users = db.session.execute(sa.select(Users)).scalars().all()
+        )
+    )
+    total_count = db.session.execute(total_count_query).scalar()
 
-    return render_template('users/list.html', users=users, active_menu='administration')
+    # Пагинация
+    offset = (page - 1) * per_page
+    paginated_query = query.limit(per_page).offset(offset)
+
+    # Выполняем запрос с учетом пагинации
+    users_query = db.session.execute(paginated_query)
+    users = users_query.scalars().all()
+
+    # Создаем объект пагинации вручную
+    class Pagination:
+        def __init__(self, total, page, per_page):
+            self.total = total
+            self.page = page
+            self.per_page = per_page
+            self.pages = (total + per_page - 1) // per_page
+            self.has_prev = page > 1
+            self.has_next = page < self.pages
+            self.prev_num = page - 1
+            self.next_num = page + 1
+
+    pagination = Pagination(total_count, page, per_page)
+
+    return render_template(
+        'users/list.html',
+        users=users,
+        active_menu='administration',
+        pagination=pagination,
+        per_page=per_page
+    )
 
 
 @users.route('/users/create', methods=['GET', 'POST'])
