@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash, session, g
+from flask import Blueprint, request, render_template, redirect, url_for, flash, session, send_file
 from flask_login import login_user, login_required, current_user, logout_user
 import sqlalchemy as sa
 from ..extensions import db, bcrypt
@@ -6,6 +6,8 @@ from ..forms.users import UserCreateForm, LoginForm
 from ..models.users import Users
 from datetime import datetime
 from urllib.parse import urlparse, urljoin
+import pandas as pd
+from io import BytesIO
 
 users = Blueprint('users', __name__)
 
@@ -126,3 +128,50 @@ def logout():
     session.pop(user_id, None)
     logout_user()
     return redirect(url_for('users.login'))
+
+
+@users.route('/users/export', methods=['GET'])
+@login_required
+def export_users():
+    # get a list of all users from the database
+    users_query = db.session.execute(sa.select(Users))
+    users = users_query.scalars().all()
+
+    # Convert data to DataFrame
+    user_data = [{
+        "id": user.id,
+        "სახელი": user.name,
+        "meili": user.email,
+        "შექმნის თარიღი": user.createdAt,
+        "ბოლო ვიზიტი": user.lastLogin
+    } for user in users]
+
+    df = pd.DataFrame(user_data)
+
+    # Create an Excel file in memory
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Users')
+
+        # Access to the active sheet
+        worksheet = writer.sheets['Users']
+
+        # Automatically change column widths
+        for col in worksheet.columns:
+            max_length = 0
+            column = col[0].column_letter  # We get the letter designation of the column (for example, 'A')
+
+            for cell in col:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+
+            adjusted_width = max_length + 2  # Adding some space
+            worksheet.column_dimensions[column].width = adjusted_width
+
+    # Move the stream pointer to the beginning of the file
+    output.seek(0)
+
+    # Sending a file
+    return send_file(output, as_attachment=True, download_name="users.xlsx",
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
