@@ -3,15 +3,24 @@
 {% block title %}თანამშრომლები{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"></h3>
+            <div class="card-tools col-md-auto">
+                <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-file-excel"></i>
+                    ექსპორტი
+                </a>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
                 <div class="card-header">
-                    <h3 class="card-title">User List</h3>
                     <div class="card-tools">
-                        <form method="GET" action="{{ url_for('users.users_list') }}">
-                            <div class="input-group input-group-sm" style="width: 150px;">
-                                <input type="text" name="search" class="form-control float-right" placeholder="Search"
+                        <form method="GET" action="{{ url_for('users.users_list') }}"
+                              style="display: flex; justify-content: space-between; align-items: center;">
+                            <!-- Right Side: Search -->
+                            <div class="input-group input-group-sm" style="width: 200px;">
+                                <input type="text" name="search" class="form-control" placeholder="ძიება"
                                        value="{{ request.args.get('search', '') }}">
                                 <div class="input-group-append">
                                     <button type="submit" class="btn btn-default">
@@ -19,9 +28,10 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label for="per_page">Records per page:</label>
-                                <select name="per_page" id="per_page" class="form-control form-control-sm" onchange="this.form.submit()">
+                            <!-- Left Side: Records per page -->
+                            <div class="input-group input-group-sm mr-2 ml-2" style="width: 100px;">
+                                <select name="per_page" id="per_page" class="form-control form-control-sm"
+                                        onchange="this.form.submit()">
                                     <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
                                     <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
                                     <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
@@ -30,7 +40,10 @@
                         </form>
                     </div>
                 </div>
-
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
                 <div class="card-body table-responsive p-0">
                     <table class="table table-hover text-nowrap">
                         <thead>
@@ -58,7 +71,8 @@
                                     <div class="btn-group" role="group" aria-label="">
                                         <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
                                         <a href="#" class="btn btn-warning btn-sm"><i class="fas fa-lock"></i></a>
-                                        <a href="#" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#delete" onclick="delete(168)">
+                                        <a href="#" class="btn btn-danger btn-sm" data-toggle="modal"
+                                           data-target="#delete" onclick="delete(168)">
                                             <i class="fas fa-trash-alt"></i>
                                         </a>
                                     </div>
@@ -71,30 +85,35 @@
 
                 <div class="card-footer">
                     <ul class="pagination">
+                    {% if pagination.pages > 1 %}
                         {% if pagination.has_prev %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('users.users_list', search=request.args.get('search', ''), per_page=per_page, page=pagination.prev_num) }}" aria-label="Previous">
+                                <a class="page-link"
+                                   href="{{ url_for('users.users_list', search=request.args.get('search', ''), per_page=per_page, page=pagination.prev_num) }}"
+                                   aria-label="Previous">
                                     <span aria-hidden="true">&laquo;</span>
                                 </a>
                             </li>
                         {% endif %}
                         {% for page_num in range(1, pagination.pages + 1) %}
                             <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                                <a class="page-link" href="{{ url_for('users.users_list', search=request.args.get('search', ''), per_page=per_page, page=page_num) }}">{{ page_num }}</a>
+                                <a class="page-link"
+                                   href="{{ url_for('users.users_list', search=request.args.get('search', ''), per_page=per_page, page=page_num) }}">{{ page_num }}</a>
                             </li>
                         {% endfor %}
                         {% if pagination.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('users.users_list', search=request.args.get('search', ''), per_page=per_page, page=pagination.next_num) }}" aria-label="Next">
+                                <a class="page-link"
+                                   href="{{ url_for('users.users_list', search=request.args.get('search', ''), per_page=per_page, page=pagination.next_num) }}"
+                                   aria-label="Next">
                                     <span aria-hidden="true">&raquo;</span>
                                 </a>
                             </li>
                         {% endif %}
+                    {% endif %}
                     </ul>
                 </div>
-
             </div>
-
         </div>
     </div>
 {% endblock %}
