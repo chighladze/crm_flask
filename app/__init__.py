@@ -9,6 +9,8 @@ from .routes.dashboard import dashboard
 from .routes.map import map
 from .routes.error import error
 from .routes.api import api
+from .routes.departments import departments
+from .routes.divisions import divisions
 
 
 def create_app(config_class=Config):
@@ -25,6 +27,8 @@ def create_app(config_class=Config):
     app.register_blueprint(map)
     app.register_blueprint(error)
     app.register_blueprint(api)
+    app.register_blueprint(departments)
+    app.register_blueprint(divisions)
 
     db.init_app(app)
     migrate.init_app(app, db)
