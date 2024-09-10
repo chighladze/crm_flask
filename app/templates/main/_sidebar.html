@@ -37,14 +37,6 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('users.user_create') }}" class="nav-link {% if request.path == url_for('users.user_create') %}active{% endif %}">
-                                <i class="fas fa-user-plus nav-icon"></i>
-                                <p>რეგისტრაცია</p>
-                            </a>
-                        </li>
-                    </ul>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
                             <a href="{{ url_for('users.users_list') }}" class="nav-link {% if request.path == url_for('users.users_list') %}active{% endif %}">
                                 <i class="fas fa-users nav-icon"></i>
                                 <p>თანამშრომლები</p>
@@ -53,7 +45,7 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('departments.dep_list') }}" class="nav-link">
+                            <a href="{{ url_for('departments.dep_list') }}" class="nav-link {% if request.path == url_for('departments.dep_list') %}active{% endif %}">
                                 <i class="fas fa-project-diagram nav-icon"></i>
                                 <p>დეპარტამენტები</p>
                             </a>
