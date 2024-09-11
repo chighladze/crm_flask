@@ -10,34 +10,24 @@
         <div class="card-body">
             <form method="POST" action="{{ url_for('divisions.create', dep_id=department.id) }}">
                 {{ form.hidden_tag() }}
-
-                {% for error in form.name.errors %}
-                        <ul>
-                            <li class="text-danger">{{ error }}</li>
-                        </ul>
-                {% endfor %}
                 <div class="form-group">
+                    {% for error in form.name.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
                     {{ form.name.label(class="form-label") }}
                     {{ form.name(class="form-control", required=True) }}
                 </div>
-                {% for error in form.description.errors %}
-                        <ul>
-                            <li class="text-danger">{{ error }}</li>
-                        </ul>
-                {% endfor %}
                 <div class="form-group">
+                    {% for error in form.description.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
                     {{ form.description.label(class="form-label") }}
                     {{ form.description(class="form-control") }}
-                    {% for error in form.description.errors %}
-                        <div class="invalid-feedback">{{ error }}</div>
-                    {% endfor %}
                 </div>
-                {% for error in form.department_id.errors %}
-                        <ul>
-                            <li class="text-danger">{{ error }}</li>
-                        </ul>
-                {% endfor %}
                 <div class="form-group">
+                    {% for error in form.department_id.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
                     {{ form.department_id.label(class="form-label") }}
                     {{ form.department_id(class="form-control", value=department.id) }}
                 </div>

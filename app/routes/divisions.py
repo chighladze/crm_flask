@@ -77,20 +77,18 @@ def div_list(dep_id):
 @divisions.route('/divisions/create/<int:dep_id>', methods=['GET', 'POST'])
 @login_required
 def create(dep_id):
-
     department = Departments.query.get_or_404(dep_id)
-    form = DivisionCreateForm(department_id=dep_id)
-    print(f"Request form: {form.data}")
+    form = DivisionCreateForm(department_id=department.id)
 
     if form.validate_on_submit():
         division = Divisions(
             name=form.name.data,
             description=form.description.data,
-            department_id=form.department_id.data
+            department_id=department.id
         )
         db.session.add(division)
         db.session.commit()
-        flash('განყოფილება დამატებულია!', 'success')
-        return redirect(url_for('divisions.div_list', dep_id=dep_id))
+        flash(f'განყოფილება ({form.name.data}) დამატებულია!', 'success')
+        return redirect(url_for('divisions.div_list', dep_id=department.id))
     else:
         return render_template('division/create.html', form=form, department=department)

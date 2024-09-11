@@ -7,16 +7,17 @@ from ..models.departments import Departments
 
 
 class DivisionCreateForm(FlaskForm):
-    name = StringField('განყოფილების სახელი:', validators=[DataRequired(), Length(min=2, max=100)])
-    description = StringField('განყოფილების აღწერილობა:', validators=[Optional(), Length(max=255)])
-    department_id = SelectField('დეპარტამენტი:', coerce=int, validators=[DataRequired()])
+    name = StringField(label='განყოფილების სახელი:', validators=[DataRequired(), Length(min=2, max=100)])
+    description = StringField(label='განყოფილების აღწერილობა:', validators=[Optional(), Length(max=255)])
+    department_id = SelectField(label='დეპარტამენტი:')
     submit = SubmitField('შენახვა')
 
-    def __init__(self, department_id=None, *args, **kwargs):
+    def __init__(self, department_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Сначала обработаем данные
-        self.process()
+        # # Сначала обработаем данные
+        # self.process()
+        # print(self.name)
 
         # Если передан department_id, устанавливаем только этот департамент в списке выбора
         if department_id is not None:
@@ -28,4 +29,4 @@ class DivisionCreateForm(FlaskForm):
     def validate_name(self, field):
         division = Divisions.query.filter_by(name=field.data).first()
         if division:
-            raise ValidationError(f'განყოფილება ({self.name}) უკვე არსებობს')
+            raise ValidationError(f'განყოფილება ({self.name.data}) უკვე არსებობს')
