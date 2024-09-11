@@ -1,6 +1,6 @@
 from flask import Flask, session
 from flask_session import Session
-from .extensions import db, migrate, login_manager
+from .extensions import db, migrate, login_manager, csrf
 from .config import Config
 from datetime import datetime
 
@@ -16,6 +16,7 @@ from .routes.divisions import divisions
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    csrf.init_app(app)
 
     # Инициализация сессии
     Session(app)
