@@ -23,7 +23,7 @@ def dep_list():
         sa.or_(
             Departments.name.ilike(f'%{search_query}%')
         )
-    )
+    ).order_by(Departments.createdAt.desc())  # Добавляем сортировку по дате создания
 
     # Получаем общее количество департаментов
     total_count_query = sa.select(sa.func.count()).select_from(

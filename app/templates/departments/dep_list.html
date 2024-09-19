@@ -3,7 +3,7 @@
 {% block title %}დეპარტამენტები{% endblock %}
 
 {% block content %}
-    <div class="car mb-5">
+    <div class="car mb-2">
         <a href="{{ url_for('departments.create') }}" class="btn btn-success">დამატება</a>
     </div>
     <div class="card">
@@ -50,13 +50,13 @@
                 <div class="card-body table-responsive p-0">
                     <table class="table table-hover text-nowrap">
                         <thead>
-                        <tr>
-                            <th class="text-center">id</th>
-                            <th class="text-center">სახელი</th>
-                            <th class="text-center">შექმნილი</th>
-                            <th class="text-center">რედქტირებული</th>
-                            <th class="text-center">მოქმედება</th>
-                        </tr>
+                            <tr>
+                                <th class="text-center">id</th>
+                                <th class="text-center">სახელი</th>
+                                <th class="text-center">შექმნილი</th>
+                                <th class="text-center">რედქტირებული</th>
+                                <th class="text-center">მოქმედება</th>
+                            </tr>
                         </thead>
                         <tbody>
                         {% for department in departments %}

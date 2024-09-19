@@ -3,7 +3,7 @@
 {% block title %}{{ department.name }}: განყოფილებები{% endblock %}
 
 {% block content %}
-    <div class="car mb-5">
+    <div class="car mb-2">
         <a href="{{ url_for('divisions.create', dep_id=department.id) }}" class="btn btn-success">დამატება</a>
     </div>
     <div class="card">
@@ -18,64 +18,60 @@
         <div class="row">
             <div class="col-sm-12">
                 <div class="card-header">
-                    <div class="col-sm-12">
-                        <div class="card-header">
-                            <div class="card-tools">
-                                <form method="GET" action="{{ url_for('divisions.div_list', dep_id=department.id) }}"
-                                      style="display: flex; justify-content: space-between; align-items: center;">
-                                    <!-- Поиск -->
-                                    <div class="input-group input-group-sm" style="width: 200px;">
-                                        <input type="text" name="search" class="form-control" placeholder="ძებნა"
-                                               value="{{ request.args.get('search', '') }}">
-                                        <div class="input-group-append">
-                                            <button type="submit" class="btn btn-default">
-                                                <i class="fas fa-search"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <!-- Записи на странице -->
-                                    <div class="input-group input-group-sm mr-2 ml-2" style="width: 100px;">
-                                        <select name="per_page" id="per_page" class="form-control form-control-sm"
-                                                onchange="this.form.submit()">
-                                            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
-                                            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-                                            <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-                                        </select>
-                                    </div>
-                                </form>
+                    <div class="card-tools">
+                        <form method="GET" action="{{ url_for('divisions.div_list', dep_id=department.id) }}"
+                              style="display: flex; justify-content: space-between; align-items: center;">
+                            <!-- Поиск -->
+                            <div class="input-group input-group-sm" style="width: 200px;">
+                                <input type="text" name="search" class="form-control" placeholder="ძებნა"
+                                       value="{{ request.args.get('search', '') }}">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-default">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                            <!-- Записи на странице -->
+                            <div class="input-group input-group-sm mr-2 ml-2" style="width: 100px;">
+                                <select name="per_page" id="per_page" class="form-control form-control-sm"
+                                        onchange="this.form.submit()">
+                                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                                </select>
+                            </div>
+                        </form>
                     </div>
-                    <!-- Пагинация -->
-                    <ul class="pagination">
-                        {% if pagination.pages > 1 %}
-                            {% if pagination.has_prev %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="{{ url_for('divisions.div_list', dep_id=department.id, search=request.args.get('search', ''), per_page=per_page, page=pagination.prev_num) }}"
-                                       aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                            {% endif %}
-                            {% for page_num in range(1, pagination.pages + 1) %}
-                                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                                    <a class="page-link"
-                                       href="{{ url_for('divisions.div_list', dep_id=department.id, search=request.args.get('search', ''), per_page=per_page, page=page_num) }}">{{ page_num }}</a>
-                                </li>
-                            {% endfor %}
-                            {% if pagination.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link"
-                                       href="{{ url_for('divisions.div_list', dep_id=department.id, search=request.args.get('search', ''), per_page=per_page, page=pagination.next_num) }}"
-                                       aria-label="Next">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            {% endif %}
-                        {% endif %}
-                    </ul>
                 </div>
+                <!-- Пагинация -->
+                <ul class="pagination">
+                    {% if pagination.pages > 1 %}
+                        {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="{{ url_for('divisions.div_list', dep_id=department.id, search=request.args.get('search', ''), per_page=per_page, page=pagination.prev_num) }}"
+                                   aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% for page_num in range(1, pagination.pages + 1) %}
+                            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                <a class="page-link"
+                                   href="{{ url_for('divisions.div_list', dep_id=department.id, search=request.args.get('search', ''), per_page=per_page, page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% endfor %}
+                        {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link"
+                                   href="{{ url_for('divisions.div_list', dep_id=department.id, search=request.args.get('search', ''), per_page=per_page, page=pagination.next_num) }}"
+                                   aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
             </div>
         </div>
         <div class="row">
@@ -84,32 +80,29 @@
                     <table class="table table-hover text-nowrap">
                         <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>სახელი</th>
-                            <th>შეიქმნა</th>
-                            <th>დარედაქტირდა</th>
-                            <th>მოქმედება</th>
+                            <th class="text-center">ID</th>
+                            <th class="text-center">სახელი</th>
+                            <th class="text-center">შეიქმნა</th>
+                            <th class="text-center">დარედაქტირდა</th>
+                            <th class="text-center">მოქმედება</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for division in divisions %}
                             <tr>
-                                <td>{{ division.id }}</td>
+                                <td class="text-center">{{ division.id }}</td>
                                 <td>
                                     <span>{{ division.name }}</span>
                                     <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top"
                                        title="{{ division.description }}"></i>
                                 </td>
-                                <td>{{ division.created_at }}</td>
-                                <td>{{ division.updated_at }}</td>
-                                <td>
-                                    {#                                    <div class="btn-group" role="group" aria-label="Actions">#}
-                                    {#                                        <a href="{{ url_for('divisions.edit', id=division.id) }}"#}
-                                    {#                                           class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>#}
-                                    {#                                        <a href="#" class="btn btn-danger btn-sm" data-toggle="modal"#}
-                                    {#                                           data-target="#delete"#}
-                                    {#                                           onclick="deleteDivision({{ division.id }})"><i class="fas fa-trash-alt"></i></a>#}
-                                    {#                                    </div>#}
+                                <td class="text-center">{{ division.created_at }}</td>
+                                <td class="text-center">{{ division.updated_at }}</td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group" aria-label="Actions">
+                                        <a href="{{ url_for('divisions.edit', id=division.id) }}" class="btn btn-primary btn-sm" title="რედაქტირება"><i class="fas fa-edit"></i></a>
+                                        <a href="#" class="btn btn-warning btn-sm"><i class="fas fa-user-tag" title="როლები"></i></a>
+                                    </div>
                                 </td>
                             </tr>
                         {% endfor %}

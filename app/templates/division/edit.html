@@ -1,0 +1,41 @@
+{% extends 'main/base.html' %}
+
+{% block title %}განყოფილების რედაქტირება{% endblock %}
+
+{% block content %}
+    <div class="card col-md-6">
+        <div class="card-header">
+            <h3 class="card-title">განყოფილების რედაქტირება</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('divisions.edit', id=division.id) }}">
+                {{ form.hidden_tag() }}
+                {{ form.csrf_token }}
+                <div class="form-group">
+                    {% for error in form.name.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control", required=True, value=division.name) }}
+                </div>
+                <div class="form-group">
+                    {% for error in form.description.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", value=division.description) }}
+                </div>
+                <div class="form-group">
+                    {% for error in form.department_id.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                    {{ form.department_id.label(class="form-label") }}
+                    {{ form.department_id(class="form-control", value=division.department.id) }}
+                </div>
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

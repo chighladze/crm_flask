@@ -29,7 +29,7 @@ def div_list(dep_id):
     per_page = per_page if per_page in [10, 50, 100] else 10
 
     # Фильтрация подразделений по ID департамента
-    query = sa.select(Divisions).where(Divisions.department_id == dep_id)
+    query = sa.select(Divisions).where(Divisions.department_id == dep_id).order_by(Divisions.created_at.desc())
 
     # Если есть строка поиска, добавляем фильтрацию по названию подразделения
     if search_query:
@@ -70,7 +70,7 @@ def div_list(dep_id):
         active_menu='administration',
         pagination=pagination,
         department=department,  # Теперь это экземпляр Department, а не запрос
-        per_page=per_page
+        per_page=per_page,
     )
 
 
@@ -91,4 +91,27 @@ def create(dep_id):
         flash(f'განყოფილება ({form.name.data}) დამატებულია!', 'success')
         return redirect(url_for('divisions.div_list', dep_id=department.id))
     else:
-        return render_template('division/create.html', form=form, department=department)
+        return render_template('division/create.html', form=form, department=department, active_menu='administration')
+
+
+@divisions.route('/divisions/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit(id):
+    # Получаем подразделение для редактирования
+    division = db.session.execute(sa.select(Divisions).filter_by(id=id)).scalar_one_or_none()
+    if division is None:
+        flash('განყოფილება ვერ მოიძებნა!', 'danger')
+        return redirect(url_for('divisions.div_list'))
+
+    # Создаем форму с текущими данными подразделения
+    form = DivisionCreateForm(department_id=division.department_id)
+
+    if form.validate_on_submit():
+        # Обновляем данные подразделения
+        division.name = form.name.data
+        division.description = form.description.data
+        db.session.commit()
+        flash('განყოფილება წარმატებით განახლდა!', 'success')
+        return redirect(url_for('divisions.div_list', dep_id=division.department_id))
+
+    return render_template('division/edit.html', form=form, division=division, active_menu='administration')
