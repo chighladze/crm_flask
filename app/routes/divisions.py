@@ -9,7 +9,7 @@ from ..models.departments import Departments
 divisions = Blueprint('divisions', __name__)
 
 
-@divisions.route('/divisions/list/<int:dep_id>', methods=['GET'])
+@divisions.route('/departments/<int:dep_id>/divisions/list', methods=['GET'])
 @login_required
 def div_list(dep_id):
     # Получаем данные о департаменте
@@ -74,7 +74,7 @@ def div_list(dep_id):
     )
 
 
-@divisions.route('/divisions/create/<int:dep_id>', methods=['GET', 'POST'])
+@divisions.route('/departments/<int:dep_id>/divisions/create', methods=['GET', 'POST'])
 @login_required
 def create(dep_id):
     department = Departments.query.get_or_404(dep_id)
@@ -94,7 +94,7 @@ def create(dep_id):
         return render_template('division/create.html', form=form, department=department, active_menu='administration')
 
 
-@divisions.route('/divisions/edit/<int:id>', methods=['GET', 'POST'])
+@divisions.route('/departments/divisions/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit(id):
     # Получаем подразделение для редактирования

@@ -76,7 +76,7 @@ def create():
         db.session.commit()
         flash('დეპარტამენტი წარმატებით დაემატა!', 'success')
         return redirect(url_for('departments.dep_list'))
-    return render_template('departments/create.html', form=form)
+    return render_template('departments/create.html', form=form, active_menu='administration')
 
 
 @departments.route('/departments/edit/<int:id>', methods=['GET', 'POST'])
