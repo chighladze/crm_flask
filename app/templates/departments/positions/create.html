@@ -1,6 +1,6 @@
 {% extends 'main/base.html' %}
 
-{% block title %}პოზიციის შექმნა{% endblock %}
+{% block title %}პოზიციის დამატება{% endblock %}
 
 {% block content %}
     <div class="card col-md-6">
@@ -8,7 +8,7 @@
             <h3 class="card-title">პოზიციის შექმნა</h3>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('department_positions.create') }}">
+            <form method="POST" action="{{ url_for('department_positions.create', dep_id=department.id) }}">
                 {{ form.hidden_tag() }}
                 <div class="form-group">
                     {{ form.name.label(class="form-label") }}
@@ -18,15 +18,8 @@
                     {% endfor %}
                 </div>
                 <div class="form-group">
-                    {{ form.description.label(class="form-label") }}
-                    {{ form.description(class="form-control") }}
-                    {% for error in form.description.errors %}
-                        <div class="invalid-feedback">{{ error }}</div>
-                    {% endfor %}
-                </div>
-                <div class="form-group">
                     {{ form.department_id.label(class="form-label") }}
-                    {{ form.department_id(class="form-control") }}
+                    {{ form.department_id(class="form-control", value=department.id) }}
                     {% for error in form.department_id.errors %}
                         <div class="invalid-feedback">{{ error }}</div>
                     {% endfor %}

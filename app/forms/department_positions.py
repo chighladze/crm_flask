@@ -10,11 +10,14 @@ class DepartmentPositionCreateForm(FlaskForm):
     department_id = SelectField(label='დეპარტამენტი:', coerce=int)  # Используем coerce для преобразования значений в int
     submit = SubmitField('შენახვა')
 
-    def __init__(self, department_id=None, *args, **kwargs):
+    def __init__(self, department_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.department_id.choices = [(dept.id, dept.name) for dept in Departments.query.all()]
+
         if department_id is not None:
-            self.department_id.default = department_id
+            department = Departments.query.get(department_id)
+            if department:
+                self.department_id.choices = [(department.id, department.name)]
+                self.department_id.default = department.id
 
     def validate_name(self, field):
         position = DepartmentPositions.query.filter_by(name=field.data).first()

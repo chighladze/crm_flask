@@ -4,6 +4,7 @@ import sqlalchemy as sa
 from ..extensions import db
 from ..forms.department_positions import DepartmentPositionCreateForm
 from ..models.department_positions import DepartmentPositions
+from ..models.departments import Departments
 
 department_positions = Blueprint('department_positions', __name__)
 
@@ -68,15 +69,19 @@ def list(dep_id):
     )
 
 
-@department_positions.route('/positions/create', methods=['GET', 'POST'])
+@department_positions.route('/departments/<int:dep_id>/positions/create', methods=['GET', 'POST'])
 @login_required
-def create():
-    form = DepartmentPositionCreateForm()
+def create(dep_id):
+    department = Departments.query.get_or_404(dep_id)
+    form = DepartmentPositionCreateForm(dep_id)
     if form.validate_on_submit():
-        position = DepartmentPositions(name=form.name.data, description=form.description.data,
-                                       department_id=form.department_id.data)
+        position = DepartmentPositions(name=form.name.data,
+                                       department_id=department.id)
         db.session.add(position)
         db.session.commit()
         flash('პოზიცია წარმატებით დაემატა!', 'success')
         return redirect(url_for('department_positions.list', dep_id=form.department_id.data))
-    return render_template('departments/positions/create.html', form=form, active_menu='administration')
+    return render_template('departments/positions/create.html',
+                           form=form,
+                           department=department,
+                           active_menu='administration')
