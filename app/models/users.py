@@ -10,6 +10,7 @@ class Users(UserMixin, db.Model):
     passwordHash = db.Column(db.String(255), nullable=False)
     status = db.Column(db.Integer, default='1', nullable=False)
     lastLogin = db.Column(db.DateTime, default=datetime.utcnow)
+    last_activity = db.Column(db.DateTime, nullable=True)
     failedLoginAttempts = db.Column(db.Integer, default=0)
     lockOutUntil = db.Column(db.DateTime, default=datetime.utcnow)
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)

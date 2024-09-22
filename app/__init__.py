@@ -1,5 +1,6 @@
 from flask import Flask, session
 from flask_session import Session
+from flask_login import current_user
 from .extensions import db, migrate, login_manager, csrf
 from .config import Config
 from datetime import datetime
@@ -17,6 +18,12 @@ from .routes.divisions import divisions
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    @app.before_request
+    def update_last_activity():
+        if current_user.is_authenticated:
+            current_user.last_activity = datetime.utcnow()
+            db.session.commit()
+
     csrf.init_app(app)
 
     # Инициализация сессии
