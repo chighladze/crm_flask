@@ -1,10 +1,13 @@
 {% extends 'main/base.html' %}
 
-{% block title %}დეპარტამენტები{% endblock %}
+{% block title %}პოზიციები{% endblock %}
 
 {% block content %}
     <div class="car mb-2 btn-group">
-        <a href="{{ url_for('departments.create') }}" class="btn btn-success" title="დეპარტამენტსი დამატება"><i class="fas fa-plus"></i></a>
+        <a href="{{ url_for('department_positions.create', dep_id=dep_id) }}" class="btn btn-success"
+           title="Добавить позицию">
+            <i class="fas fa-plus"></i>
+        </a>
     </div>
     <div class="card">
         <div class="card-header">
@@ -18,9 +21,9 @@
             <div class="col-sm-12">
                 <div class="card-header">
                     <div class="card-tools">
-                        <form method="GET" action="{{ url_for('departments.dep_list') }}"
+                        <form method="GET" action="{{ url_for('department_positions.list', dep_id=dep_id) }}"
                               style="display: flex; justify-content: space-between; align-items: center;">
-                            <!-- Right Side: Search -->
+                            <!-- Поиск -->
                             <div class="input-group input-group-sm">
                                 <input type="text" name="search" class="form-control" placeholder="ძებნა"
                                        value="{{ request.args.get('search', '') }}">
@@ -30,7 +33,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <!-- Left Side: Records per page -->
+                            <!-- Количество записей на странице -->
                             <div class="input-group input-group-sm mr-2 ml-2" style="width: 100px;">
                                 <select name="per_page" id="per_page" class="form-control form-control-sm"
                                         onchange="this.form.submit()">
@@ -49,34 +52,29 @@
                 <div class="card-body table-responsive p-0">
                     <table class="table table-hover text-nowrap">
                         <thead>
-                            <tr>
-                                <th class="text-center">id</th>
-                                <th class="text-center">სახელი</th>
-                                <th class="text-center">შექმნილი</th>
-                                <th class="text-center">რედქტირებული</th>
-                                <th class="text-center">მოქმედება</th>
-                            </tr>
+                        <tr>
+                            <th class="text-center">ID</th>
+                            <th class="text-center">სახელი</th>
+                            <th class="text-center">შექმნილია</th>
+                            <th class="text-center">განახლებულია</th>
+                            <th class="text-center">მოქმედება</th>
+                        </tr>
                         </thead>
                         <tbody>
-                        {% for department in departments %}
+                        {% for position in positions %}
                             <tr>
-                                <td>{{ department.id }}</td>
-                                <td>
-                                    <span>{{ department.name }}</span>
-                                    <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" title="{{ department.description }}"></i>
-                                </td>
-                                <td class="text-center">{{ department.createdAt }}</td>
-                                <td class="text-center">{{ department.updatedAt }}</td>
+                                <td>{{ position.id }}</td>
+                                <td>{{ position.name }}</td>
+                                <td class="text-center">{{ position.created_at }}</td>
+                                <td class="text-center">{{ position.updated_at }}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
-                                        <a href="{{ url_for('departments.edit', id=department.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება">
+                                        <a href="{{ url_for('department_positions.edit', dep_id=dep_id, id=position.id) }}"
+                                           class="btn btn-warning btn-sm" title="რედაქტირება">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="{{ url_for('divisions.div_list', dep_id=department.id) }}" class="btn btn-primary btn-sm" title="განყოფილებები">
-                                            <i class="fas fa-project-diagram"></i>
-                                        </a>
-                                        <a href="{{ url_for('department_positions.list', dep_id=department.id) }}" class="btn btn-success btn-sm" title="პოზიციები">
-                                            <i class="fas fa-user-friends"></i>
+                                        <a href="#" class="btn btn-danger btn-sm" title="წაშლა">
+                                            <i class="fas fa-trash"></i>
                                         </a>
                                     </div>
                                 </td>
@@ -85,14 +83,14 @@
                         </tbody>
                     </table>
                 </div>
-
+                <!-- Пагинация -->
                 <div class="card-footer">
                     <ul class="pagination">
                         {% if pagination.pages > 1 %}
                             {% if pagination.has_prev %}
                                 <li class="page-item">
                                     <a class="page-link"
-                                       href="{{ url_for('departments.dep_list', search=request.args.get('search', ''), per_page=per_page, page=pagination.prev_num) }}"
+                                       href="{{ url_for('department_positions.list', dep_id=dep_id, search=request.args.get('search', ''), per_page=per_page, page=pagination.prev_num) }}"
                                        aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
@@ -101,13 +99,15 @@
                             {% for page_num in range(1, pagination.pages + 1) %}
                                 <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
                                     <a class="page-link"
-                                       href="{{ url_for('departments.dep_list', search=request.args.get('search', ''), per_page=per_page, page=page_num) }}">{{ page_num }}</a>
+                                       href="{{ url_for('department_positions.list', dep_id=dep_id, search=request.args.get('search', ''), per_page=per_page, page=page_num) }}">
+                                        {{ page_num }}
+                                    </a>
                                 </li>
                             {% endfor %}
                             {% if pagination.has_next %}
                                 <li class="page-item">
                                     <a class="page-link"
-                                       href="{{ url_for('departments.dep_list', search=request.args.get('search', ''), per_page=per_page, page=pagination.next_num) }}"
+                                       href="{{ url_for('department_positions.list', dep_id=dep_id, search=request.args.get('search', ''), per_page=per_page, page=pagination.next_num) }}"
                                        aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>

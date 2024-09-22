@@ -24,9 +24,6 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                <!-- Add icons to the links using the .nav-icon class
-                     with font-awesome or any other icon font library -->
-
                 <li class="nav-item {% if active_menu == 'administration' %}menu-open{% endif %}">
                     <a href="#" class="nav-link {% if active_menu == 'administration' %}active{% endif %}">
                         <i class="nav-icon fas fa-user-lock"></i>
@@ -51,8 +48,40 @@
                             </a>
                         </li>
                     </ul>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-check-circle nav-icon"></i>
+                                <p>დაშვებები</p>
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-exclamation-circle nav-icon"></i>
+                                <p>როლები</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-
+                <li class="nav-item {% if active_menu == 'clients' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if active_menu == 'clients' %}active{% endif %}">
+                        <i class="nav-icon far fa-address-card"></i>
+                        <p>
+                            კლიენტები
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link {% if request.path.split('/')[1] == 'client_create' %}active{% endif %}">
+                                <i class="fas fa-user-plus nav-icon"></i>
+                                <p>რეგისტრაცია</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </nav>
         <!-- /.sidebar-menu -->
