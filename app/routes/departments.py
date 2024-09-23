@@ -1,6 +1,8 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash
+from flask import Blueprint, request, render_template, redirect, url_for, flash, send_file
 from flask_login import login_required
 import sqlalchemy as sa
+import pandas as pd
+from io import BytesIO
 from ..extensions import db
 from ..forms.departments import DepartmentCreateForm
 from ..models.departments import Departments
@@ -100,3 +102,49 @@ def edit(id):
         return redirect(url_for('departments.dep_list'))
 
     return render_template('departments/edit.html', form=form, department=department, active_menu='administration')
+
+
+@departments.route('/departments/export', methods=['GET'])
+@login_required
+def export_departments():
+    # Получаем список всех департаментов из базы данных
+    departments_query = db.session.execute(sa.select(Departments))
+    departments = departments_query.scalars().all()
+
+    # Преобразуем данные в список словарей
+    department_data = [{
+        "id": department.id,
+        "სახელი": department.name,
+        "აღწერა": department.description,
+        "შექმნის თარიღი": department.createdAt.strftime('%Y-%m-%d %H:%M:%S'),
+        "განახლების თარიღი": department.updatedAt.strftime('%Y-%m-%d %H:%M:%S')
+    } for department in departments]
+
+    df = pd.DataFrame(department_data)
+
+    # Создаем Excel файл в памяти
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Departments')
+
+        # Доступ к активному листу
+        worksheet = writer.sheets['Departments']
+
+        # Автоматически изменяем ширину столбцов
+        for col in worksheet.columns:
+            max_length = 0
+            column = col[0].column_letter  # Получаем буквенное обозначение столбца
+
+            for cell in col:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+
+            adjusted_width = max_length + 2  # Добавляем немного пространства
+            worksheet.column_dimensions[column].width = adjusted_width
+
+    # Перемещаем указатель потока в начало файла
+    output.seek(0)
+
+    # Отправляем файл
+    return send_file(output, as_attachment=True, download_name="departments.xlsx",
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

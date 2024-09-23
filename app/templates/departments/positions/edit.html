@@ -1,0 +1,34 @@
+{% extends 'main/base.html' %}
+
+{% block title %}პოზიციის რედაქტირება{% endblock %}
+
+{% block content %}
+    <div class="card col-md-6">
+        <div class="card-header">
+            <h3 class="card-title">პოზიციის რედაქტირება</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST"
+                  action="{{ url_for('department_positions.edit', dep_id=department.id, id=position.id) }}">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                    {% for error in form.name.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.department_id.label(class="form-label") }}
+                    {{ form.department_id(class="form-control", value=department.id, disabled=True) }}
+                    {% for error in form.department_id.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

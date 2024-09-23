@@ -69,7 +69,7 @@
                                 <td class="text-center">{{ position.updated_at }}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
-                                        <a href="#"
+                                        <a href="{{ url_for('department_positions.edit', dep_id=dep_id, id=position.id) }}"
                                            class="btn btn-warning btn-sm" title="რედაქტირება">
                                             <i class="fas fa-edit"></i>
                                         </a>

@@ -3,8 +3,8 @@
 {% block title %}{{ department.name }}: განყოფილებები{% endblock %}
 
 {% block content %}
-    <div class="car mb-2">
-        <a href="{{ url_for('divisions.create', dep_id=department.id) }}" class="btn btn-success">დამატება</a>
+    <div class="car mb-2 btn-group">
+        <a href="{{ url_for('divisions.create', dep_id=department.id) }}" class="btn btn-success" title="განყოფილების დამატება"><i class="fas fa-plus"></i></a>
     </div>
     <div class="card">
         <div class="card-header">

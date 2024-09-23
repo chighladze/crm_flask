@@ -85,3 +85,21 @@ def create(dep_id):
                            form=form,
                            department=department,
                            active_menu='administration')
+
+
+@department_positions.route('/departments/<int:dep_id>/positions/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit(dep_id, id):
+    department = Departments.query.get_or_404(dep_id)
+    position = DepartmentPositions.query.get_or_404(id)
+    form = DepartmentPositionCreateForm(dep_id, obj=position)
+
+    if form.validate_on_submit():
+        position.name = form.name.data
+        position.description = form.description.data
+        db.session.commit()
+        flash('პოზიცია წარმატებით განახლდა!', 'success')
+        return redirect(url_for('department_positions.list', dep_id=dep_id))
+
+    return render_template('departments/positions/edit.html', form=form, department=department, position=position,
+                           active_menu='administration')
