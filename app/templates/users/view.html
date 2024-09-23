@@ -38,7 +38,7 @@
                                 <td>{{ user.failedLoginAttempts }}</td>
                             </tr>
                             <tr>
-                                <td><strong>ბლოკირებების რაოდენობა:</strong></td>
+                                <td><strong>ბლოკირების თარიღი:</strong></td>
                                 <td>{{ user.lockOutUntil.strftime('%Y-%m-%d %H:%M:%S') if user.lockOutUntil else 'არ არსებობს' }}</td>
                             </tr>
                             <tr>
