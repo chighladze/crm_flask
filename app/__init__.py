@@ -4,6 +4,7 @@ from flask_login import current_user
 from .extensions import db, migrate, login_manager, csrf
 from .config import Config
 from datetime import datetime
+import pytz
 
 from .routes.users import users
 from .routes.dashboard import dashboard
@@ -21,7 +22,8 @@ def create_app(config_class=Config):
     @app.before_request
     def update_last_activity():
         if current_user.is_authenticated:
-            current_user.last_activity = datetime.utcnow()
+            tz_tbilisi = pytz.timezone('Asia/Tbilisi')
+            current_user.last_activity = datetime.now(tz_tbilisi)
             db.session.commit()
 
     csrf.init_app(app)
