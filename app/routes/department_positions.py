@@ -65,7 +65,8 @@ def list(dep_id):
         positions=positions_list,
         dep_id=dep_id,
         pagination=pagination,
-        per_page=per_page
+        per_page=per_page,
+        active_menu='administration'
     )
 
 
