@@ -2,7 +2,7 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
 from flask_login import login_user, login_required, current_user, logout_user
 import sqlalchemy as sa
 from ..extensions import db, bcrypt
-from ..forms.users import UserCreateForm, LoginForm
+from ..forms.users import UserCreateForm, LoginForm, UserEditForm
 from ..models.users import Users
 from datetime import datetime
 from urllib.parse import urlparse, urljoin
@@ -100,6 +100,11 @@ def users_list():
         per_page=per_page
     )
 
+@users.route('/users/view/<int:user_id>', methods=['GET'])
+@login_required
+def view_user(user_id):
+    user = Users.query.get_or_404(user_id)
+    return render_template('users/view.html', user=user, active_menu='administration')
 
 @users.route('/users/create', methods=['GET', 'POST'])
 @login_required
@@ -120,6 +125,33 @@ def user_create():
         return redirect(url_for('dashboard.index'))
     return render_template('users/create.html', form=form, active_menu='administration')
 
+@users.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def edit_user(user_id):
+    user = Users.query.get_or_404(user_id)
+    form = UserEditForm(original_email=user.email)
+
+    if form.validate_on_submit():
+        user.name = form.name.data
+        user.email = form.email.data
+        user.status = int(form.status.data)
+        if form.password.data:
+            user.passwordHash = bcrypt.generate_password_hash(form.password.data)
+
+        user.updatedAt = datetime.utcnow()
+        db.session.commit()
+
+        flash('მომხმარებლის ინფორმაცია წარმატებით განახლდა!', 'success')
+        return redirect(url_for('users.users_list'))
+
+    elif request.method == 'GET':
+        form.name.data = user.name
+        form.email.data = user.email
+
+    return render_template('users/edit.html',
+                           form=form,
+                           active_menu='administration')
+
 
 @users.route('/logout', methods=['GET', 'POST'])
 @login_required
@@ -133,45 +165,50 @@ def logout():
 @users.route('/users/export', methods=['GET'])
 @login_required
 def export_users():
-    # get a list of all users from the database
+    # Получаем список всех пользователей из базы данных
     users_query = db.session.execute(sa.select(Users))
     users = users_query.scalars().all()
 
-    # Convert data to DataFrame
+    # Преобразуем данные в список словарей
     user_data = [{
         "id": user.id,
         "სახელი": user.name,
         "meili": user.email,
-        "შექმნის თარიღი": user.createdAt,
-        "ბოლო ვიზიტი": user.lastLogin
+        "სტატუსი": 'აქტიური' if user.status == 1 else 'პასიური',
+        "ბოლო ვიზიტი": user.lastLogin.strftime('%Y-%m-%d %H:%M:%S') if user.lastLogin else 'არ არსებობს',
+        "ბოლო აქტივობა": user.last_activity.strftime('%Y-%m-%d %H:%M:%S') if user.last_activity else 'არ არსებობს',
+        "წარუმატებელი შესვლის მცდელობები": user.failedLoginAttempts,
+        "ბლოკირებების რაოდენობა": user.lockOutUntil.strftime('%Y-%m-%d %H:%M:%S') if user.lockOutUntil else 'არ არსებობს',
+        "შექმნის თარიღი": user.createdAt.strftime('%Y-%m-%d %H:%M:%S'),
+        "განახლების თარიღი": user.updatedAt.strftime('%Y-%m-%d %H:%M:%S')
     } for user in users]
 
     df = pd.DataFrame(user_data)
 
-    # Create an Excel file in memory
+    # Создаем Excel файл в памяти
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Users')
 
-        # Access to the active sheet
+        # Доступ к активному листу
         worksheet = writer.sheets['Users']
 
-        # Automatically change column widths
+        # Автоматически изменяем ширину столбцов
         for col in worksheet.columns:
             max_length = 0
-            column = col[0].column_letter  # We get the letter designation of the column (for example, 'A')
+            column = col[0].column_letter  # Получаем буквенное обозначение столбца (например, 'A')
 
             for cell in col:
                 if cell.value:
                     max_length = max(max_length, len(str(cell.value)))
 
-            adjusted_width = max_length + 2  # Adding some space
+            adjusted_width = max_length + 2  # Добавляем немного пространства
             worksheet.column_dimensions[column].width = adjusted_width
 
-    # Move the stream pointer to the beginning of the file
+    # Перемещаем указатель потока в начало файла
     output.seek(0)
 
-    # Sending a file
+    # Отправляем файл
     return send_file(output, as_attachment=True, download_name="users.xlsx",
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 

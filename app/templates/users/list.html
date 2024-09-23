@@ -3,8 +3,8 @@
 {% block title %}თანამშრომლები{% endblock %}
 
 {% block content %}
-    <div class="car mb-5">
-        <a href="{{ url_for('users.user_create') }}" class="btn btn-success">დამატება</a>
+    <div class="car mb-2 btn-group">
+        <a href="{{ url_for('users.user_create') }}" class="btn btn-success" title="თანამშრომლის დამატება"><i class="fas fa-plus"></i></a>
     </div>
     <div class="card">
         <div class="card-header">
@@ -22,7 +22,7 @@
                         <form method="GET" action="{{ url_for('users.users_list') }}"
                               style="display: flex; justify-content: space-between; align-items: center;">
                             <!-- Right Side: Search -->
-                            <div class="input-group input-group-sm" style="width: 200px;">
+                            <div class="input-group input-group-sm">
                                 <input type="text" name="search" class="form-control" placeholder="ძებნა"
                                        value="{{ request.args.get('search', '') }}">
                                 <div class="input-group-append">
@@ -51,13 +51,13 @@
                     <table class="table table-hover text-nowrap">
                         <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Last Login</th>
-                            <th>Registration Date</th>
-                            <th>Actions</th>
+                            <th class="text-center">ID</th>
+                            <th class="text-center">სახელი და გვარი</th>
+                            <th class="text-center">მეილი</th>
+                            <th class="text-center">სტატუსი</th>
+                            <th class="text-center">ბოლო ავტორიზაცია</th>
+                            <th class="text-center">რეგისტრაციის თარიღი</th>
+                            <th class="text-center">მოქმედება</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -66,18 +66,14 @@
                                 <td>{{ user.id }}</td>
                                 <td>{{ user.name }}</td>
                                 <td>{{ user.email }}</td>
-                                <td class="text-{% if user.status == 1 %}success{% else %}danger{% endif %}">
-                                    {% if user.status == 1 %}Active{% else %}Inactive{% endif %}</td>
-                                <td>{{ user.lastLogin }}</td>
-                                <td>{{ user.createdAt }}</td>
-                                <td>
+                                <td class="text-center text-{% if user.status == 1 %}success{% else %}danger{% endif %}">
+                                    {% if user.status == 1 %}აქტიური{% else %}პასიური{% endif %}</td>
+                                <td class="text-center">{{ user.lastLogin }}</td>
+                                <td class="text-center">{{ user.createdAt }}</td>
+                                <td class="text-center">
                                     <div class="btn-group" role="group" aria-label="">
-                                        <a href="#" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
-                                        <a href="#" class="btn btn-warning btn-sm"><i class="fas fa-lock"></i></a>
-                                        <a href="#" class="btn btn-danger btn-sm" data-toggle="modal"
-                                           data-target="#delete" onclick="delete(168)">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </a>
+                                        <a href="{{ url_for('users.view_user', user_id=user.id) }}" class="btn btn-info btn-sm"><i class="far fa-eye"></i></a>
+                                        <a href="{{ url_for('users.edit_user', user_id=user.id) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
                                     </div>
                                 </td>
                             </tr>

@@ -1,0 +1,63 @@
+{% extends 'main/base.html' %}
+
+{% block title %}ინფორმაცია თანამშრომელზე{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">ინფორმაცია თანამშრომელზე</h3>
+                </div>
+
+                <div class="card-body p-0">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td><strong>სახელი და გვარი:</strong></td>
+                                <td>{{ user.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>მეილი:</strong></td>
+                                <td>{{ user.email }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>სტატუსი:</strong></td>
+                                <td>{{ 'აქტიური' if user.status == 1 else 'პასიური' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ბოლო ავტორიზაცია:</strong></td>
+                                <td>{{ user.lastLogin.strftime('%Y-%m-%d %H:%M:%S') if user.lastLogin else 'არ არსებობს' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ბოლო აქტივობა:</strong></td>
+                                <td>{{ user.last_activity.strftime('%Y-%m-%d %H:%M:%S') if user.last_activity else 'არ არსებობს' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>წარუმატებელი შესვლის მცდელობები:</strong></td>
+                                <td>{{ user.failedLoginAttempts }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>ბლოკირებების რაოდენობა:</strong></td>
+                                <td>{{ user.lockOutUntil.strftime('%Y-%m-%d %H:%M:%S') if user.lockOutUntil else 'არ არსებობს' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>შექმნის თარიღი:</strong></td>
+                                <td>{{ user.createdAt.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>განახლების თარიღი:</strong></td>
+                                <td>{{ user.updatedAt.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-footer">
+                    <a href="{{ url_for('users.edit_user', user_id=user.id) }}" class="btn btn-warning">რედაქტირება</a>
+                    <a href="{{ url_for('users.users_list') }}" class="btn btn-primary">უკან სიისკენ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

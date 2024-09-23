@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileAllowed
-from wtforms import StringField, PasswordField, SubmitField, FileField, ValidationError, BooleanField
-from wtforms.validators import DataRequired, Length, EqualTo, Email
+from wtforms import StringField, PasswordField, SubmitField, FileField, ValidationError, BooleanField, SelectField
+from wtforms.validators import DataRequired, Length, EqualTo, Email, Optional
 from ..models.users import Users
 
 
@@ -24,3 +24,24 @@ class LoginForm(FlaskForm):
     password = PasswordField('პაროლი', validators=[DataRequired()])
     remember = BooleanField('დამახსოვრება')
     submit = SubmitField('შესვლა')
+
+
+class UserEditForm(FlaskForm):
+    name = StringField('სახელი და გვარი', validators=[DataRequired(), Length(min=2, max=100)])
+    email = StringField('მეილი', validators=[DataRequired(), Email(message='შეიყვანეთ მეილი სწორი ფორმატით'), Length(min=2, max=50)])
+    status = SelectField('სტატუსი', choices=[('1', 'აქტიური'), ('0', 'პასიური')], validators=[DataRequired()])
+    password = PasswordField('ახალი პაროლი', validators=[Optional()])
+    confirm_password = PasswordField('გაიმეორეთ ახალი პაროლი',
+                                     validators=[EqualTo('password', message='პაროლები უნდა ემთხვეოდეს'), Optional()])
+    submit = SubmitField('შენახვა')
+
+    def __init__(self, original_email, *args, **kwargs):
+        super(UserEditForm, self).__init__(*args, **kwargs)
+        self.original_email = original_email
+
+    def validate_email(self, field):
+        # Проверяем, существует ли пользователь с таким email
+        if field.data != self.original_email:
+            user = Users.query.filter_by(email=field.data).first()
+            if user:
+                raise ValidationError('მომხმარებელი ასეთი მეილით უკვე არსებობს.')
