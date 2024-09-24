@@ -5,12 +5,14 @@ from ..extensions import db, bcrypt
 from ..forms.users import UserCreateForm, LoginForm, UserEditForm
 from ..models.users import Users, log_action
 from datetime import datetime
+import pytz
 from urllib.parse import urlparse, urljoin
 import pandas as pd
 from io import BytesIO
 
 users = Blueprint('users', __name__)
 
+tbilisi_timezone = pytz.timezone('Asia/Tbilisi')
 
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
@@ -34,7 +36,7 @@ def login():
         login_user(user, remember=form.remember.data)
         log_action(user, 'Login')
 
-        user.lastLogin = datetime.utcnow()
+        user.lastLogin = datetime.now(tbilisi_timezone)
         db.session.commit()
 
         return redirect(request.args.get('next') or url_for('dashboard.index'))
@@ -119,8 +121,8 @@ def user_create():
             name=form.name.data,
             email=form.email.data,
             passwordHash=hashed_password,
-            createdAt=datetime.utcnow(),
-            updatedAt=datetime.utcnow()
+            createdAt=datetime.now(tbilisi_timezone),
+            updatedAt=datetime.now(tbilisi_timezone)
         )
         db.session.add(user)
         db.session.commit()
@@ -142,7 +144,7 @@ def edit_user(user_id):
         if form.password.data:
             user.passwordHash = bcrypt.generate_password_hash(form.password.data)
 
-        user.updatedAt = datetime.utcnow()
+        user.updatedAt = datetime.now(tbilisi_timezone)
         db.session.commit()
 
         flash('მომხმარებლის ინფორმაცია წარმატებით განახლდა!', 'success')
