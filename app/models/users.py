@@ -1,9 +1,12 @@
 from ..extensions import db, login_manager
 from datetime import datetime
 from flask_login import UserMixin
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class Users(UserMixin, db.Model):
+    __tablename__ = 'users'
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
@@ -20,3 +23,25 @@ class Users(UserMixin, db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(Users, str(user_id))
+
+
+class UserLog(db.Model):
+    __tablename__ = 'user_log'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    action = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# Функция для создания записи в логе
+def log_action(user, action):
+    log = UserLog(user_id=user.id, action=action)
+    try:
+        db.session.add(log)
+        db.session.commit()
+        print("Запись в лог успешно добавлена.")
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        print(f"Ошибка при добавлении записи в лог: {e}")
+

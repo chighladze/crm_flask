@@ -3,7 +3,7 @@ from flask_login import login_user, login_required, current_user, logout_user
 import sqlalchemy as sa
 from ..extensions import db, bcrypt
 from ..forms.users import UserCreateForm, LoginForm, UserEditForm
-from ..models.users import Users
+from ..models.users import Users, log_action
 from datetime import datetime
 from urllib.parse import urlparse, urljoin
 import pandas as pd
@@ -32,6 +32,7 @@ def login():
             return redirect(url_for('users.login'))
 
         login_user(user, remember=form.remember.data)
+        log_action(user, 'Login')
 
         user.lastLogin = datetime.utcnow()
         db.session.commit()
@@ -100,11 +101,13 @@ def users_list():
         per_page=per_page
     )
 
+
 @users.route('/users/view/<int:user_id>', methods=['GET'])
 @login_required
 def view_user(user_id):
     user = Users.query.get_or_404(user_id)
     return render_template('users/view.html', user=user, active_menu='administration')
+
 
 @users.route('/users/create', methods=['GET', 'POST'])
 @login_required
@@ -122,8 +125,9 @@ def user_create():
         db.session.add(user)
         db.session.commit()
         flash('ახალი მომხმარებელი წარმატებით შექმნილია!', 'success')
-        return redirect(url_for('dashboard.index'))
+        return redirect(url_for('users.users_list'))
     return render_template('users/create.html', form=form, active_menu='administration')
+
 
 @users.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
 @login_required
@@ -156,6 +160,8 @@ def edit_user(user_id):
 @users.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
+    user = current_user
+    log_action(user, 'Logout')
     user_id = current_user.get_id()
     session.pop(user_id, None)
     logout_user()
@@ -178,7 +184,8 @@ def export_users():
         "ბოლო ვიზიტი": user.lastLogin.strftime('%Y-%m-%d %H:%M:%S') if user.lastLogin else 'არ არსებობს',
         "ბოლო აქტივობა": user.last_activity.strftime('%Y-%m-%d %H:%M:%S') if user.last_activity else 'არ არსებობს',
         "წარუმატებელი შესვლის მცდელობები": user.failedLoginAttempts,
-        "ბლოკირებების რაოდენობა": user.lockOutUntil.strftime('%Y-%m-%d %H:%M:%S') if user.lockOutUntil else 'არ არსებობს',
+        "ბლოკირებების რაოდენობა": user.lockOutUntil.strftime(
+            '%Y-%m-%d %H:%M:%S') if user.lockOutUntil else 'არ არსებობს',
         "შექმნის თარიღი": user.createdAt.strftime('%Y-%m-%d %H:%M:%S'),
         "განახლების თარიღი": user.updatedAt.strftime('%Y-%m-%d %H:%M:%S')
     } for user in users]
@@ -211,4 +218,3 @@ def export_users():
     # Отправляем файл
     return send_file(output, as_attachment=True, download_name="users.xlsx",
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-

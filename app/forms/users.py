@@ -18,6 +18,15 @@ class UserCreateForm(FlaskForm):
         if user:
             raise ValidationError('მომხმარებელი ასეთი მეილთ უკვე არსებობს.')
 
+    def validate_password(form, field):
+        password = field.data
+        if len(password) < 8:
+            raise ValidationError('პაროლი არ უნდა იყოს 8 სიმბოლოზე ნაკლები..')
+        if not any(char.isdigit() for char in password):
+            raise ValidationError('პაროლი უნდა მოიცავდეს მინიმუმ ერთ ციფრს.')
+        if not any(char.isupper() for char in password):
+            raise ValidationError('პაროლი უნდა მოიცავდეს მინიმუმ ერთ დიდ ასოს.')
+
 
 class LoginForm(FlaskForm):
     email = StringField('მეილი', validators=[DataRequired(), Email(), Length(min=2, max=50)])
@@ -28,7 +37,8 @@ class LoginForm(FlaskForm):
 
 class UserEditForm(FlaskForm):
     name = StringField('სახელი და გვარი', validators=[DataRequired(), Length(min=2, max=100)])
-    email = StringField('მეილი', validators=[DataRequired(), Email(message='შეიყვანეთ მეილი სწორი ფორმატით'), Length(min=2, max=50)])
+    email = StringField('მეილი', validators=[DataRequired(), Email(message='შეიყვანეთ მეილი სწორი ფორმატით'),
+                                             Length(min=2, max=50)])
     status = SelectField('სტატუსი', choices=[('1', 'აქტიური'), ('0', 'პასიური')], validators=[DataRequired()])
     password = PasswordField('ახალი პაროლი', validators=[Optional()])
     confirm_password = PasswordField('გაიმეორეთ ახალი პაროლი',

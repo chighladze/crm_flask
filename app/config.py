@@ -24,6 +24,7 @@ class Config(object):
     SESSION_PERMANENT = os.environ.get('SESSION_PERMANENT') == 'True'
     SESSION_USE_SIGNER = os.environ.get('SESSION_USE_SIGNER') == 'True'
     SESSION_KEY_PREFIX = os.environ.get('SESSION_KEY_PREFIX', 'session')
+    PERMANENT_SESSION_LIFETIME = int(os.environ.get('PERMANENT_SESSION_LIFETIME', 86400))  # 24 hours
 
     # Настройка подключения к Redis
     SESSION_REDIS_HOST = os.environ.get('SESSION_REDIS_HOST', '127.0.0.1')
