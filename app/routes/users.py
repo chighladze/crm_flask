@@ -3,7 +3,7 @@ from flask_login import login_user, login_required, current_user, logout_user
 import sqlalchemy as sa
 from ..extensions import db, bcrypt
 from ..forms.users import UserCreateForm, LoginForm, UserEditForm
-from ..models.users import Users, log_action
+from ..models.users import Users, log_action, UserLog
 from datetime import datetime
 import pytz
 from urllib.parse import urlparse, urljoin
@@ -220,3 +220,15 @@ def export_users():
     # Отправляем файл
     return send_file(output, as_attachment=True, download_name="users.xlsx",
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+@users.route('/users/<int:user_id>/logs', methods=['GET'])
+@login_required
+def user_logs(user_id):
+    # Получаем пользователя по ID
+    user = Users.query.get_or_404(user_id)
+
+    # Получаем логи пользователя
+    logs = UserLog.query.filter_by(user_id=user_id).order_by(UserLog.created_at.desc()).all()
+
+    return render_template('users/user_logs.html', user=user, logs=logs, active_menu='administration')

@@ -50,15 +50,15 @@
                 <div class="card-body table-responsive p-0">
                     <table class="table table-hover text-nowrap">
                         <thead>
-                        <tr>
-                            <th class="text-center">ID</th>
-                            <th class="text-center">სახელი და გვარი</th>
-                            <th class="text-center">მეილი</th>
-                            <th class="text-center">სტატუსი</th>
-                            <th class="text-center">ბოლო ავტორიზაცია</th>
-                            <th class="text-center">რეგისტრაციის თარიღი</th>
-                            <th class="text-center">მოქმედება</th>
-                        </tr>
+                            <tr>
+                                <th class="text-center">ID</th>
+                                <th class="text-center">სახელი და გვარი</th>
+                                <th class="text-center">მეილი</th>
+                                <th class="text-center">სტატუსი</th>
+                                <th class="text-center">ბოლო ავტორიზაცია</th>
+                                <th class="text-center">რეგისტრაციის თარიღი</th>
+                                <th class="text-center">მოქმედება</th>
+                            </tr>
                         </thead>
                         <tbody>
                         {% for user in users %}
@@ -71,9 +71,10 @@
                                 <td class="text-center">{{ user.lastLogin }}</td>
                                 <td class="text-center">{{ user.createdAt }}</td>
                                 <td class="text-center">
-                                    <div class="btn-group" role="group" aria-label="">
-                                        <a href="{{ url_for('users.view_user', user_id=user.id) }}" class="btn btn-info btn-sm"><i class="far fa-eye"></i></a>
-                                        <a href="{{ url_for('users.edit_user', user_id=user.id) }}" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('users.view_user', user_id=user.id) }}" class="btn btn-info btn-sm" title="დეტალურად ნახვა"><i class="far fa-eye"></i></a>
+                                        <a href="{{ url_for('users.edit_user', user_id=user.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება"><i class="fas fa-edit"></i></a>
+                                        <a href="{{ url_for('users.user_logs', user_id=user.id) }}" class="btn btn-secondary btn-sm" title="მოქმედებების ისტორია"><i class="fas fa-history"></i></a>
                                     </div>
                                 </td>
                             </tr>
