@@ -75,7 +75,6 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-
     var cableModal = document.getElementById('cableModal');
     var saveCableButton = document.getElementById('saveCableData');
     var cableCoresInput = document.getElementById('cableCores');
@@ -113,11 +112,14 @@
 
     var routePoints = [];
     var routePolyline = null;
+    var markers = [];  // Массив для хранения маркеров
 
     map.on('click', function(e) {
         var latlng = e.latlng;
         routePoints.push(latlng);
-        L.marker([latlng.lat, latlng.lng]).addTo(map);
+
+        var marker = L.marker([latlng.lat, latlng.lng]).addTo(map);
+        markers.push(marker);  // Добавляем маркер в массив
 
         if (routePoints.length > 1) {
             if (routePolyline) {
@@ -126,5 +128,34 @@
             routePolyline = L.polyline(routePoints, { color: 'blue' }).addTo(map);
         }
     });
+
+    // Функция для удаления последней точки маршрута
+    function undoLastPoint() {
+        if (routePoints.length > 0) {
+            routePoints.pop();  // Удаляем последнюю точку
+            var lastMarker = markers.pop();  // Удаляем последний маркер
+            map.removeLayer(lastMarker);  // Удаляем маркер с карты
+
+            // Перерисовываем линию
+            if (routePolyline) {
+                map.removeLayer(routePolyline);  // Удаляем старую линию
+            }
+            if (routePoints.length > 1) {
+                routePolyline = L.polyline(routePoints, { color: 'blue' }).addTo(map);
+            } else if (routePoints.length === 1) {
+                // Если осталась одна точка, создаем линию с ней
+                routePolyline = L.polyline(routePoints, { color: 'blue' }).addTo(map);
+            }
+        }
+    }
+
+    // Обработка комбинации Ctrl+Z для отмены последней точки
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === 'z') {
+            event.preventDefault();  // Предотвращаем стандартное поведение
+            undoLastPoint();
+        }
+    });
 </script>
+
 {% endblock %}
