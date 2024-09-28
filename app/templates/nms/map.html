@@ -1,0 +1,130 @@
+{% extends 'main/base.html' %}
+
+{% block title %}ინფორმაცია თანამშრომელზე{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        #map {
+            height: 700px;
+            width: 100%;
+        }
+
+        #controls {
+            margin: 20px;
+        }
+
+        /* Устанавливаем стандартный курсор для всей карты */
+        .leaflet-container {
+            cursor: default;
+        }
+
+        /* Стили для модального окна */
+        .modal {
+            display: none; /* По умолчанию скрываем окно */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
+        }
+
+        /* Контейнер для контента модального окна */
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            text-align: center;
+        }
+
+        /* Кнопка закрытия модального окна */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+
+<div id="cableModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <p2>შეიყვანეთ ჟილების რაოდენობა</p2>
+    <input type="number" id="cableCores" placeholder="ჟილების რაოდენობა" min="1" required>
+    <button id="saveCableData">შენახვა</button>
+  </div>
+</div>
+
+<div id="controls">
+    <p id="distance">Total Distance: 0 meters</p>
+    <button id="endRoute">End Route</button>
+</div>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+
+    var cableModal = document.getElementById('cableModal');
+    var saveCableButton = document.getElementById('saveCableData');
+    var cableCoresInput = document.getElementById('cableCores');
+    var closeModalButton = document.querySelector('.close');
+    var currentCableCores = 1;  // Значение по умолчанию для жил
+
+    // Показать модальное окно
+    function showCableModal() {
+        cableModal.style.display = 'block';
+    }
+
+    // Скрыть модальное окно
+    function hideCableModal() {
+        cableModal.style.display = 'none';
+    }
+
+    // Закрытие окна при клике на крестик
+    closeModalButton.addEventListener('click', hideCableModal);
+
+    // Обработчик для кнопки End Route
+    document.getElementById('endRoute').addEventListener('click', function() {
+        if (routePoints.length > 1) {
+            showCableModal();  // Показать модальное окно для ввода жил
+        } else {
+            alert("Please select at least two points to create a route.");
+        }
+    });
+
+    // Логика для карты и маршрутов
+    var map = L.map('map').setView([41.7151, 44.8271], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var routePoints = [];
+    var routePolyline = null;
+
+    map.on('click', function(e) {
+        var latlng = e.latlng;
+        routePoints.push(latlng);
+        L.marker([latlng.lat, latlng.lng]).addTo(map);
+
+        if (routePoints.length > 1) {
+            if (routePolyline) {
+                map.removeLayer(routePolyline);
+            }
+            routePolyline = L.polyline(routePoints, { color: 'blue' }).addTo(map);
+        }
+    });
+</script>
+{% endblock %}

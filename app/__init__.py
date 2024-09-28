@@ -14,11 +14,13 @@ from .routes.api import api
 from .routes.departments import departments
 from .routes.department_positions import department_positions
 from .routes.divisions import divisions
+from .routes.nms import nms
 
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
     @app.before_request
     def update_last_activity():
         if current_user.is_authenticated:
@@ -41,6 +43,7 @@ def create_app(config_class=Config):
     app.register_blueprint(departments)
     app.register_blueprint(department_positions)
     app.register_blueprint(divisions)
+    app.register_blueprint(nms)
 
     db.init_app(app)
     migrate.init_app(app, db)

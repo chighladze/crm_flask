@@ -65,6 +65,7 @@
                         </li>
                     </ul>
                 </li>
+
                 <li class="nav-item {% if active_menu == 'clients' %}menu-open{% endif %}">
                     <a href="#" class="nav-link {% if active_menu == 'clients' %}active{% endif %}">
                         <i class="nav-icon far fa-address-card"></i>
@@ -82,6 +83,25 @@
                         </li>
                     </ul>
                 </li>
+
+                <li class="nav-item {% if active_menu == 'nms' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if active_menu == 'nms' %}active{% endif %}">
+                        <i class="fas fa-network-wired nav-icon"></i>
+                        <p>
+                            ქსელის მართვა
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ url_for('nms.map') }}" class="nav-link {% if request.path.split('/')[2] == 'map' %}active{% endif %}">
+                                <i class="fas fa-map-marked-alt nav-icon"></i>
+                                <p>რუკა</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
             </ul>
         </nav>
         <!-- /.sidebar-menu -->
