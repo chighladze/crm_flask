@@ -1,0 +1,33 @@
+{% extends 'main/base.html' %}
+
+{% block title %}როლის შექმნა{% endblock %}
+
+{% block content %}
+    <div class="card col-md-6">
+        <div class="card-header">
+            <h3 class="card-title">როლის შექმნა</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('roles.create_role') }}">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                    {% for error in form.name.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control") }}
+                    {% for error in form.description.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

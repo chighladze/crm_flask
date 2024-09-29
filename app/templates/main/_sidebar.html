@@ -58,7 +58,7 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ url_for('roles.roles_list') }}" class="nav-link {% if request.path.split('/')[2] == 'roles_list' %}active{% endif %}">
                                 <i class="fas fa-exclamation-circle nav-icon"></i>
                                 <p>როლები</p>
                             </a>

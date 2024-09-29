@@ -5,14 +5,15 @@ from ..extensions import db, bcrypt
 from ..forms.users import UserCreateForm, LoginForm, UserEditForm
 from ..models.users import Users, log_action, UserLog
 from datetime import datetime
-import pytz
+from zoneinfo import ZoneInfo
 from urllib.parse import urlparse, urljoin
 import pandas as pd
 from io import BytesIO
 
 users = Blueprint('users', __name__)
 
-tbilisi_timezone = pytz.timezone('Asia/Tbilisi')
+tbilisi_timezone = ZoneInfo('Asia/Tbilisi')
+now = datetime.now(tbilisi_timezone)
 
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
