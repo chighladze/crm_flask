@@ -1,9 +1,8 @@
 from ..extensions import db
 from datetime import datetime
 
-
-class Roles(db.Model):
-    __tablename__ = 'roles'
+class Permissions(db.Model):
+    __tablename__ = 'permissions'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(255), nullable=False)
@@ -11,7 +10,7 @@ class Roles(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # Defining relationship with RolesPermissions
-    roles_permissions = db.relationship('RolesPermissions', backref='role', cascade='all, delete-orphan')
+    roles_permissions = db.relationship('RolesPermissions', backref='permission', cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f'<Role {self.name}>'
+        return f'<Permission {self.name}>'

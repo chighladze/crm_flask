@@ -48,26 +48,30 @@
             <div class="col-12">
                 <div class="card-body table-responsive p-0">
                     <table class="table table-hover text-nowrap">
-                        <thead>
-                            <tr>
-                                <th class="text-center">ID</th>
-                                <th class="text-center">სახელი</th>
-                                <th class="text-center">შექმნილი</th>
-                                <th class="text-center">მოქმედება</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for role in roles %}
-                            <tr>
-                                <td>{{ role.id }}</td>
-                                <td>{{ role.name }}</td>
-                                <td class="text-center">{{ role.created_at }}</td>
-                                <td class="text-center">
-                                    <a href="{{ url_for('roles.edit_role', id=role.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება"><i class="fas fa-edit"></i></a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
+<thead>
+    <tr>
+        <th class="text-center">ID</th>
+        <th class="text-center">სახელი</th>
+        <th class="text-center">შექმნილი</th>
+        <th class="text-center">უფლებების რაოდენობა</th> <!-- Новая колонка -->
+        <th class="text-center">მოქმედება</th>
+    </tr>
+</thead>
+<tbody>
+{% for role, permissions_count in roles %}
+    <tr>
+        <td>{{ role.id }}</td>
+        <td>{{ role.name }}</td>
+        <td class="text-center">{{ role.created_at }}</td>
+        <td class="text-center">
+            <a href="{{ url_for('roles.permissions_for_role', id=role.id) }}">{{ permissions_count }}</a>
+        </td>
+        <td class="text-center">
+            <a href="{{ url_for('roles.edit_role', id=role.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება"><i class="fas fa-edit"></i></a>
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
                     </table>
                 </div>
 

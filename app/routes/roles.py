@@ -6,6 +6,8 @@ from io import BytesIO
 from ..extensions import db
 from ..forms.roles import RoleCreateForm
 from ..models.roles import Roles
+from ..models.roles_permissions import RolesPermissions
+from ..models.permissions import Permissions
 
 roles = Blueprint('roles', __name__)
 
@@ -19,7 +21,14 @@ def roles_list():
 
     per_page = per_page if per_page in [10, 50, 100] else 10
 
-    query = sa.select(Roles).filter(Roles.name.ilike(f'%{search_query}%')).order_by(Roles.created_at.desc())
+    # Основной запрос для ролей с подсчетом разрешений
+    query = (
+        sa.select(Roles, sa.func.count(RolesPermissions.permissions_id).label('permissions_count'))
+        .outerjoin(RolesPermissions, Roles.id == RolesPermissions.role_id)
+        .filter(Roles.name.ilike(f'%{search_query}%'))
+        .group_by(Roles.id)
+        .order_by(Roles.created_at.desc())
+    )
 
     total_count_query = sa.select(sa.func.count()).select_from(Roles).filter(Roles.name.ilike(f'%{search_query}%'))
     total_count = db.session.execute(total_count_query).scalar()
@@ -28,7 +37,7 @@ def roles_list():
     paginated_query = query.limit(per_page).offset(offset)
 
     roles_query = db.session.execute(paginated_query)
-    roles_list = roles_query.scalars().all()
+    roles_list = roles_query.all()  # Получаем список кортежей (роль, количество разрешений)
 
     class Pagination:
         def __init__(self, total, page, per_page):
@@ -107,3 +116,53 @@ def export_roles():
 
     return send_file(output, as_attachment=True, download_name="roles.xlsx",
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+# Маршрут для отображения разрешений конкретной роли
+@roles.route('/roles/role/<int:id>/permissions', methods=['GET', 'POST'])
+def permissions_for_role(id):
+    role = Roles.query.get_or_404(id)
+
+    # Получаем все разрешения, связанные с этой ролью
+    role_permissions = RolesPermissions.query.filter_by(role_id=id).all()
+
+    # Если была отправка формы для добавления нового разрешения
+    if request.method == 'POST':
+        permission_id = request.form.get('permission_id')
+        if permission_id:
+            permission = Permissions.query.get(permission_id)
+            if permission and permission not in [rp.permission for rp in role_permissions]:
+                new_role_permission = RolesPermissions(role_id=role.id, permission_id=permission.id)
+                db.session.add(new_role_permission)
+                db.session.commit()
+                flash('Permission added successfully.', 'success')
+            else:
+                flash('Permission is already associated with this role or does not exist.', 'danger')
+        return redirect(url_for('roles.permissions_for_role', id=role.id))
+
+    # Все доступные разрешения
+    all_permissions = Permissions.query.all()
+
+    return render_template(
+        'roles/permissions_for_role.html',
+        role=role,
+        role_permissions=role_permissions,
+        all_permissions=all_permissions,
+        active_menu='administration'
+    )
+
+
+# Маршрут для удаления разрешения из роли
+@roles.route('/role/<int:role_id>/permissions/remove/<int:permission_id>', methods=['POST'])
+def toggle_permission(role_id, permission_id):
+    role = Roles.query.get_or_404(role_id)
+    permission = Permissions.query.get_or_404(permission_id)
+
+    if permission in role.permissions:
+        role.permissions.remove(permission)
+        db.session.commit()
+        flash('Permission removed successfully.', 'success')
+    else:
+        flash('Permission not found for this role.', 'danger')
+
+    return redirect(url_for('roles.permissions_for_role', id=role_id))
