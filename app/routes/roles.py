@@ -3,14 +3,13 @@ from flask_login import login_required
 import sqlalchemy as sa
 import pandas as pd
 from io import BytesIO
-from ..extensions import db
+from ..extensions import db, csrf
 from ..forms.roles import RoleCreateForm
 from ..models.roles import Roles
 from ..models.roles_permissions import RolesPermissions
 from ..models.permissions import Permissions
 
 roles = Blueprint('roles', __name__)
-
 
 @roles.route('/roles/roles_list', methods=['GET', 'POST'])
 @login_required
@@ -23,7 +22,7 @@ def roles_list():
 
     # Основной запрос для ролей с подсчетом разрешений
     query = (
-        sa.select(Roles, sa.func.count(RolesPermissions.permissions_id).label('permissions_count'))
+        sa.select(Roles, sa.func.count(RolesPermissions.permission_id).label('permissions_count'))
         .outerjoin(RolesPermissions, Roles.id == RolesPermissions.role_id)
         .filter(Roles.name.ilike(f'%{search_query}%'))
         .group_by(Roles.id)
@@ -123,25 +122,46 @@ def export_roles():
 def permissions_for_role(id):
     role = Roles.query.get_or_404(id)
 
-    # Получаем все разрешения, связанные с этой ролью
-    role_permissions = RolesPermissions.query.filter_by(role_id=id).all()
-
-    # Если была отправка формы для добавления нового разрешения
-    if request.method == 'POST':
-        permission_id = request.form.get('permission_id')
-        if permission_id:
-            permission = Permissions.query.get(permission_id)
-            if permission and permission not in [rp.permission for rp in role_permissions]:
-                new_role_permission = RolesPermissions(role_id=role.id, permission_id=permission.id)
-                db.session.add(new_role_permission)
-                db.session.commit()
-                flash('Permission added successfully.', 'success')
-            else:
-                flash('Permission is already associated with this role or does not exist.', 'danger')
-        return redirect(url_for('roles.permissions_for_role', id=role.id))
-
-    # Все доступные разрешения
+    # Получаем все разрешения
     all_permissions = Permissions.query.all()
+
+    # Получаем разрешения, связанные с этой ролью
+    role_permissions = {rp.permission_id for rp in RolesPermissions.query.filter_by(role_id=id).all()}
+
+    # Если была отправка формы для добавления или удаления разрешения
+    if request.method == 'POST':
+        # Для добавления разрешения
+        if request.form.get('add_permission'):
+            permission_id = request.form.get('permission_id')
+            if permission_id:
+                permission = Permissions.query.get(permission_id)
+                if permission:
+                    # Проверяем, существует ли уже связь
+                    existing_role_permission = RolesPermissions.query.filter_by(role_id=role.id,
+                                                                                permission_id=permission.id).first()
+                    if not existing_role_permission:
+                        new_role_permission = RolesPermissions(role_id=role.id, permission_id=permission.id)
+                        db.session.add(new_role_permission)
+                        db.session.commit()
+                        flash('Permission added successfully.', 'success')
+                    else:
+                        flash('Permission is already associated with this role.', 'danger')
+                else:
+                    flash('Permission does not exist.', 'danger')
+
+        # Для удаления разрешения
+        elif request.form.get('delete_permission'):
+            permission_id = request.form.get('permission_id')
+            if permission_id:
+                role_permission = RolesPermissions.query.filter_by(role_id=role.id, permission_id=permission_id).first()
+                if role_permission:
+                    db.session.delete(role_permission)
+                    db.session.commit()
+                    flash('Permission removed successfully.', 'success')
+                else:
+                    flash('Permission is not associated with this role.', 'danger')
+
+        return redirect(url_for('roles.permissions_for_role', id=role.id))
 
     return render_template(
         'roles/permissions_for_role.html',
@@ -151,18 +171,3 @@ def permissions_for_role(id):
         active_menu='administration'
     )
 
-
-# Маршрут для удаления разрешения из роли
-@roles.route('/role/<int:role_id>/permissions/remove/<int:permission_id>', methods=['POST'])
-def toggle_permission(role_id, permission_id):
-    role = Roles.query.get_or_404(role_id)
-    permission = Permissions.query.get_or_404(permission_id)
-
-    if permission in role.permissions:
-        role.permissions.remove(permission)
-        db.session.commit()
-        flash('Permission removed successfully.', 'success')
-    else:
-        flash('Permission not found for this role.', 'danger')
-
-    return redirect(url_for('roles.permissions_for_role', id=role_id))

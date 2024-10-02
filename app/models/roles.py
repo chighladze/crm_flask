@@ -11,7 +11,7 @@ class Roles(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     # Defining relationship with RolesPermissions
-    roles_permissions = db.relationship('RolesPermissions', backref='role', cascade='all, delete-orphan')
+    permissions = db.relationship('RolesPermissions', backref='role', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Role {self.name}>'

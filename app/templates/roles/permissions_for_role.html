@@ -8,27 +8,36 @@
             <table class="table table-bordered">
                 <thead>
                 <tr>
-                    <th style="width: 10px">#</th>
-                    <th>Permission Name</th>
-                    <th>Status</th>
-                    <th style="width: 40px">Actions</th>
+                    <th class="text-center">#</th>
+                    <th class="text-center">Permission Name</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for role_permission in role_permissions %}
+                {% for permission in all_permissions %}
                     <tr>
-                        <td>{{ loop.index }}.</td>
-                        <td>{{ role_permission.permission.name }}</td>
-                        <td>
-                            <span class="badge bg-{{ 'success' if role_permission in role_permissions else 'danger' }}">
-                                {{ 'Enabled' if role_permission in role_permissions else 'Disabled' }}
-                            </span>
+                        <td class="text-center">{{ permission.id }}</td>
+                        <td>{{ permission.name }}</td>
+                        <td class="text-center">
+                            {% if permission.id in role_permissions %}
+                                <span class="badge bg-success">Enabled</span>
+                            {% else %}
+                                <span class="badge bg-danger">Disabled</span>
+                            {% endif %}
                         </td>
-                        <td>
-                            <form method="POST" action="{{ url_for('roles.toggle_permission', role_id=role.id, permission_id=role_permission.permission.id) }}">
-                                <button type="submit" class="btn btn-outline-{{ 'danger' if role_permission in role_permissions else 'success' }}">
-                                    {{ 'Disable' if role_permission in role_permissions else 'Enable' }}
-                                </button>
+                        <td class="text-center">
+                            <form method="POST" action="{{ url_for('roles.permissions_for_role', id=role.id) }}">
+                                {% if permission.id in role_permissions %}
+                                    <input type="hidden" name="delete_permission" value="delete_permission">
+                                    <input type="hidden" name="permission_id" value="{{ permission.id }}">
+                                    <button type="submit" class="btn btn-outline-danger">Disable</button>
+                                {% else %}
+                                    <input type="hidden" name="add_permission" value="add_permission">
+                                    <input type="hidden" name="permission_id" value="{{ permission.id }}">
+                                    <button type="submit" class="btn btn-outline-success">Enable</button>
+                                {% endif %}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             </form>
                         </td>
                     </tr>

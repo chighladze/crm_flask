@@ -6,7 +6,6 @@
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card card-secondary">
-                <!-- /.card-header -->
                 <div class="card-header">
                     <h3 class="card-title">თანამშრომლის დამატება</h3>
                 </div>
@@ -14,6 +13,17 @@
                 <form method="post" enctype="multipart/form-data" class="form-horizontal">
                     <div class="card-body">
                         {{ form.csrf_token }}
+
+                        <!-- Flash Messages -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                <div class="alert alert-dismissible fade show" role="alert">
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
 
                         <div class="form-group row">
                             <label for="inputName" class="col-sm-3 col-form-label">სახელი და გვარი:</label>
@@ -46,6 +56,13 @@
                         <div class="form-group row">
                             <label for="inputPassword" class="col-sm-3 col-form-label">პაროლი:</label>
                             <div class="col-sm-9">
+                                {% if form.password.errors %}
+                                    <span class="text-danger">
+                                    {% for error in form.password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                    </span>
+                                {% endif %}
                                 {{ form.password(class="form-control", id="inputPassword", placeholder="შეიყვანეთ პაროლი") }}
                             </div>
                         </div>
@@ -53,18 +70,24 @@
                         <div class="form-group row">
                             <label for="inputConfirmPassword" class="col-sm-3 col-form-label">გაიმეორეთ პაროლი:</label>
                             <div class="col-sm-9">
+                                {% if form.confirm_password.errors %}
+                                    <span class="text-danger">
+                                    {% for error in form.confirm_password.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                    </span>
+                                {% endif %}
                                 {{ form.confirm_password(class="form-control", id="inputConfirmPassword", placeholder="გაიმეორეთ პაროლი") }}
                             </div>
                         </div>
                     </div>
                     <!-- /.card-body -->
                     <div class="card-footer">
-                        {{ form.submit(class="btn btn-success") }}
+                        {{ form.submit(class="btn btn-success", type="submit") }}
                     </div>
                 </form>
             </div>
         </div>
     </div>
     <!-- /.card -->
-
 {% endblock %}
