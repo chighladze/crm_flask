@@ -143,11 +143,11 @@ def permissions_for_role(id):
                         new_role_permission = RolesPermissions(role_id=role.id, permission_id=permission.id)
                         db.session.add(new_role_permission)
                         db.session.commit()
-                        flash('Permission added successfully.', 'success')
+                        flash('დაშვება წარმატებით დამატებულია.', 'success')
                     else:
-                        flash('Permission is already associated with this role.', 'danger')
+                        flash('დაშვება უკვე გააქტიურებულია როლზე.', 'danger')
                 else:
-                    flash('Permission does not exist.', 'danger')
+                    flash('დაშვება ვერ მოიძებნა.', 'danger')
 
         # Для удаления разрешения
         elif request.form.get('delete_permission'):
@@ -157,9 +157,9 @@ def permissions_for_role(id):
                 if role_permission:
                     db.session.delete(role_permission)
                     db.session.commit()
-                    flash('Permission removed successfully.', 'success')
+                    flash('დაშვება წარმატებით გათიშულია.', 'success')
                 else:
-                    flash('Permission is not associated with this role.', 'danger')
+                    flash('დაშვება არ არის დაკავშირებული ამ როლთან.', 'danger')
 
         return redirect(url_for('roles.permissions_for_role', id=role.id))
 
