@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash, send_file
+from flask import Blueprint, request, render_template, redirect, url_for, flash, send_file, jsonify
 from flask_login import login_required, current_user
 import sqlalchemy as sa
 import pandas as pd
@@ -135,48 +135,38 @@ def permissions_for_role(id):
     if 'roles_permissions' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
         flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['roles_permissions']", 'danger')
         return redirect(url_for('dashboard.index'))
+
     role = Roles.query.get_or_404(id)
-
-    # Получаем все разрешения
     all_permissions = Permissions.query.all()
-
-    # Получаем разрешения, связанные с этой ролью
     role_permissions = {rp.permission_id for rp in RolesPermissions.query.filter_by(role_id=id).all()}
 
-    # Если была отправка формы для добавления или удаления разрешения
     if request.method == 'POST':
-        # Для добавления разрешения
-        if request.form.get('add_permission'):
-            permission_id = request.form.get('permission_id')
-            if permission_id:
-                permission = Permissions.query.get(permission_id)
-                if permission:
-                    # Проверяем, существует ли уже связь
-                    existing_role_permission = RolesPermissions.query.filter_by(role_id=role.id,
-                                                                                permission_id=permission.id).first()
-                    if not existing_role_permission:
-                        new_role_permission = RolesPermissions(role_id=role.id, permission_id=permission.id)
-                        db.session.add(new_role_permission)
-                        db.session.commit()
-                        flash('დაშვება წარმატებით დამატებულია.', 'success')
-                    else:
-                        flash('დაშვება უკვე გააქტიურებულია როლზე.', 'danger')
-                else:
-                    flash('დაშვება ვერ მოიძებნა.', 'danger')
+        permission_id = request.form.get('permission_id')
+        if permission_id:
+            permission = Permissions.query.get(permission_id)
+            if not permission:
+                return jsonify({'success': False, 'message': 'დაშვება ვერ მოიძებნა.'})
 
-        # Для удаления разрешения
-        elif request.form.get('delete_permission'):
-            permission_id = request.form.get('permission_id')
-            if permission_id:
-                role_permission = RolesPermissions.query.filter_by(role_id=role.id, permission_id=permission_id).first()
+            # Добавление разрешения
+            if request.form.get('add_permission'):
+                existing_role_permission = RolesPermissions.query.filter_by(
+                    role_id=role.id, permission_id=permission.id).first()
+                if not existing_role_permission:
+                    new_role_permission = RolesPermissions(role_id=role.id, permission_id=permission.id)
+                    db.session.add(new_role_permission)
+                    db.session.commit()
+                    return jsonify({'success': True, 'action': 'added'})
+
+            # Удаление разрешения
+            elif request.form.get('delete_permission'):
+                role_permission = RolesPermissions.query.filter_by(
+                    role_id=role.id, permission_id=permission_id).first()
                 if role_permission:
                     db.session.delete(role_permission)
                     db.session.commit()
-                    flash('დაშვება წარმატებით გათიშულია.', 'success')
-                else:
-                    flash('დაშვება არ არის დაკავშირებული ამ როლთან.', 'danger')
+                    return jsonify({'success': True, 'action': 'removed'})
 
-        return redirect(url_for('roles.permissions_for_role', id=role.id))
+        return jsonify({'success': False, 'message': 'Ошибка при обработке разрешения.'})
 
     return render_template(
         'roles/permissions_for_role.html',
@@ -185,4 +175,3 @@ def permissions_for_role(id):
         all_permissions=all_permissions,
         active_menu='administration'
     )
-

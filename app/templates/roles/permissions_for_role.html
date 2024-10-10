@@ -20,24 +20,22 @@
                         <td class="text-center">{{ permission.id }}</td>
                         <td>{{ permission.name }}</td>
                         <td class="text-center">
-                            {% if permission.id in role_permissions %}
-                                <span class="badge bg-success">Enabled</span>
-                            {% else %}
-                                <span class="badge bg-danger">Disabled</span>
-                            {% endif %}
+                            <span class="badge {{ 'bg-success' if permission.id in role_permissions else 'bg-danger' }}">
+                                {{ 'Enabled' if permission.id in role_permissions else 'Disabled' }}
+                            </span>
                         </td>
                         <td class="text-center">
-                            <form method="POST" action="{{ url_for('roles.permissions_for_role', id=role.id) }}">
-                                {% if permission.id in role_permissions %}
-                                    <input type="hidden" name="delete_permission" value="delete_permission">
-                                    <input type="hidden" name="permission_id" value="{{ permission.id }}">
-                                    <button type="submit" class="btn btn-outline-danger">Disable</button>
-                                {% else %}
-                                    <input type="hidden" name="add_permission" value="add_permission">
-                                    <input type="hidden" name="permission_id" value="{{ permission.id }}">
-                                    <button type="submit" class="btn btn-outline-success">Enable</button>
-                                {% endif %}
+                            <form method="POST" action="{{ url_for('roles.permissions_for_role', id=role.id) }}"
+                                  class="ajax-form">
+                                <input type="hidden"
+                                       name="{{ 'delete_permission' if permission.id in role_permissions else 'add_permission' }}"
+                                       value="{{ 'delete_permission' if permission.id in role_permissions else 'add_permission' }}">
+                                <input type="hidden" name="permission_id" value="{{ permission.id }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit"
+                                        class="btn {{ 'btn-outline-danger' if permission.id in role_permissions else 'btn-outline-success' }}">
+                                    {{ 'Disable' if permission.id in role_permissions else 'Enable' }}
+                                </button>
                             </form>
                         </td>
                     </tr>
@@ -46,4 +44,36 @@
             </table>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.ajax-form').forEach(form => {
+                form.addEventListener('submit', async function (event) {
+                    event.preventDefault(); // Отменяем стандартное поведение отправки формы
+
+                    const formData = new FormData(this);
+                    const url = this.action;
+
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {'X-Requested-With': 'XMLHttpRequest'}
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            // Перезагружаем страницу для обновления данных
+                            window.location.reload();
+                        } else {
+                            alert('დაფიქსირდა შეცდომა, გთხოვთ გადატვირთთ გვერდი');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('დაფიქსირდა შეცდომა, გთხოვთ გადატვირთთ გვერდი');
+                    }
+                });
+            });
+        });
+    </script>
 {% endblock %}
