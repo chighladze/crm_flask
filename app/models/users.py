@@ -1,7 +1,11 @@
+from .roles import Roles
 from ..extensions import db, login_manager
 from datetime import datetime
-from flask_login import UserMixin
+from flask_login import UserMixin, current_user
 from sqlalchemy.exc import SQLAlchemyError
+from ..models.users_roles import UsersRoles
+from ..models.roles_permissions import RolesPermissions
+from ..models.permissions import Permissions
 
 
 class Users(UserMixin, db.Model):
@@ -18,6 +22,27 @@ class Users(UserMixin, db.Model):
     lockOutUntil = db.Column(db.DateTime, default=datetime.utcnow)
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def get_roles(self) -> list:
+        roles_id = []
+        for user_role in UsersRoles.query.filter_by(user_id=current_user.id).all():
+            roles_id.append(user_role.role_id)
+
+        roles_name = []
+        for role_id in roles_id:
+            roles_name.append(Roles.query.filter_by(id=role_id).first().name)
+        return roles_name
+
+    def get_permissions(self) -> list:
+        permissions = []
+
+        for role in UsersRoles.query.filter_by(user_id=current_user.id).all():
+            # permissions.append(RolesPermissions.query.filter_by(role_id=role.role_id).all())
+            for rolePermission in RolesPermissions.query.filter_by(role_id=role.role_id).all():
+                permissions.append(
+                    Permissions.query.filter_by(id=rolePermission.permission_id).first().name
+                )
+        return permissions
 
 
 @login_manager.user_loader
@@ -44,4 +69,3 @@ def log_action(user, action):
     except SQLAlchemyError as e:
         db.session.rollback()
         print(f"Ошибка при добавлении записи в лог: {e}")
-

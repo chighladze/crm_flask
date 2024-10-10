@@ -108,6 +108,9 @@ def users_list():
 @users.route('/users/view/<int:user_id>', methods=['GET'])
 @login_required
 def view_user(user_id):
+    if 'user_view' not in current_user.get_permissions():
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['user_view']", 'danger')
+        return redirect(url_for('dashboard.index'))
     user = Users.query.get_or_404(user_id)
     return render_template('users/view.html', user=user, active_menu='administration')
 
@@ -115,6 +118,10 @@ def view_user(user_id):
 @users.route('/users/create', methods=['GET', 'POST'])
 @login_required
 def user_create():
+    if 'user_create' not in current_user.get_permissions():
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['user_create']", 'danger')
+        return redirect(url_for('dashboard.index'))
+
     form = UserCreateForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data)
