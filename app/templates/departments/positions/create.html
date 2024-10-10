@@ -8,7 +8,7 @@
             <h3 class="card-title">პოზიციის შექმნა</h3>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('department_positions.create', dep_id=department.id) }}">
+            <form method="POST" action="{{ url_for('department_positions.position_create', dep_id=department.id) }}">
                 {{ form.hidden_tag() }}
                 <div class="form-group">
                     {{ form.name.label(class="form-label") }}

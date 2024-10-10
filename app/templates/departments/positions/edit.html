@@ -9,7 +9,7 @@
         </div>
         <div class="card-body">
             <form method="POST"
-                  action="{{ url_for('department_positions.edit', dep_id=department.id, id=position.id) }}">
+                  action="{{ url_for('department_positions.position_edit', dep_id=department.id, id=position.id) }}">
                 {{ form.hidden_tag() }}
                 <div class="form-group">
                     {{ form.name.label(class="form-label") }}

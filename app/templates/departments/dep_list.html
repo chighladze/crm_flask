@@ -9,7 +9,7 @@
     <div class="card">
         <div class="card-header">
             <div class="card-tools col-md-auto">
-                <a href="{{ url_for('departments.export_departments') }}" class="btn btn-primary btn-sm">
+                <a href="{{ url_for('departments.departments_export') }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-file-excel"></i> ექსპორტი
                 </a>
             </div>
@@ -71,7 +71,7 @@
                                     <div class="btn-group" role="group">
                                         <a href="{{ url_for('departments.edit', id=department.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება"><i class="fas fa-edit"></i></a>
                                         <a href="{{ url_for('divisions.div_list', dep_id=department.id) }}" class="btn btn-primary btn-sm" title="განყოფილებები"><i class="fas fa-project-diagram"></i></a>
-                                        <a href="{{ url_for('department_positions.list', dep_id=department.id) }}" class="btn btn-success btn-sm" title="პოზიციები"><i class="fas fa-user-friends"></i></a>
+                                        <a href="{{ url_for('department_positions.positions_llist', dep_id=department.id) }}" class="btn btn-success btn-sm" title="პოზიციები"><i class="fas fa-user-friends"></i></a>
                                     </div>
                                 </td>
                             </tr>

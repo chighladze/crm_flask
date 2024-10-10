@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash
-from flask_login import login_required
+from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
 from ..forms.department_positions import DepartmentPositionCreateForm
@@ -11,7 +11,10 @@ department_positions = Blueprint('department_positions', __name__)
 
 @department_positions.route('/departments/<int:dep_id>/positions/list', methods=['GET'])
 @login_required
-def list(dep_id):
+def positions_llist(dep_id):
+    if 'positions_llist' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['positions_llist']", 'danger')
+        return redirect(url_for('dashboard.index'))
     search_query = request.args.get('search', '')
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
@@ -72,7 +75,10 @@ def list(dep_id):
 
 @department_positions.route('/departments/<int:dep_id>/positions/create', methods=['GET', 'POST'])
 @login_required
-def create(dep_id):
+def position_create(dep_id):
+    if 'position_create' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['position_create']", 'danger')
+        return redirect(url_for('dashboard.index'))
     department = Departments.query.get_or_404(dep_id)
     form = DepartmentPositionCreateForm(dep_id)
     if form.validate_on_submit():
@@ -81,7 +87,7 @@ def create(dep_id):
         db.session.add(position)
         db.session.commit()
         flash('პოზიცია წარმატებით დაემატა!', 'success')
-        return redirect(url_for('department_positions.list', dep_id=form.department_id.data))
+        return redirect(url_for('department_positions.positions_llist', dep_id=form.department_id.data))
     return render_template('departments/positions/create.html',
                            form=form,
                            department=department,
@@ -90,7 +96,10 @@ def create(dep_id):
 
 @department_positions.route('/departments/<int:dep_id>/positions/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
-def edit(dep_id, id):
+def position_edit(dep_id, id):
+    if 'position_edit' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['position_edit']", 'danger')
+        return redirect(url_for('dashboard.index'))
     department = Departments.query.get_or_404(dep_id)
     position = DepartmentPositions.query.get_or_404(id)
     form = DepartmentPositionCreateForm(dep_id, obj=position)
@@ -100,7 +109,7 @@ def edit(dep_id, id):
         position.description = form.description.data
         db.session.commit()
         flash('პოზიცია წარმატებით განახლდა!', 'success')
-        return redirect(url_for('department_positions.list', dep_id=dep_id))
+        return redirect(url_for('department_positions.positions_llist', dep_id=dep_id))
 
     return render_template('departments/positions/edit.html', form=form, department=department, position=position,
                            active_menu='administration')

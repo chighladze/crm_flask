@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash
-from flask_login import login_required
+from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
 from ..forms.division import DivisionCreateForm
@@ -12,6 +12,9 @@ divisions = Blueprint('divisions', __name__)
 @divisions.route('/departments/<int:dep_id>/divisions/list', methods=['GET'])
 @login_required
 def div_list(dep_id):
+    if 'divisions_list' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['divisions_list']", 'danger')
+        return redirect(url_for('dashboard.index'))
     # Получаем данные о департаменте
     department_query = sa.select(Departments).where(Departments.id == dep_id)
     department = db.session.execute(department_query).scalar_one_or_none()
@@ -77,6 +80,9 @@ def div_list(dep_id):
 @divisions.route('/departments/<int:dep_id>/divisions/create', methods=['GET', 'POST'])
 @login_required
 def create(dep_id):
+    if 'divisions_create' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['divisions_create']", 'danger')
+        return redirect(url_for('dashboard.index'))
     department = Departments.query.get_or_404(dep_id)
     form = DivisionCreateForm(department_id=department.id)
 
@@ -97,6 +103,9 @@ def create(dep_id):
 @divisions.route('/departments/divisions/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit(id):
+    if 'divisions_edit' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['divisions_edit']", 'danger')
+        return redirect(url_for('dashboard.index'))
     # Получаем подразделение для редактирования
     division = db.session.execute(sa.select(Divisions).filter_by(id=id)).scalar_one_or_none()
     if division is None:

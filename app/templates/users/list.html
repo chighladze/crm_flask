@@ -67,7 +67,12 @@
                                 <td class="text-center">{{ user.id }}</td>
                                 <td class="text-center">{{ user.name }}</td>
                                 <td class="text-center">{{ user.email }}</td>
-                                <td class="text-center">{{ user.get_roles(user.id) | length }}</td>
+
+                                <td class="text-center">
+                                        <a href="{{ url_for('users.user_roles', user_id=user.id) }}" class="btn btn-secondary btn-sm" title="როლები">
+                                           {{ user.get_roles(user.id) | length }}
+                                        </a>
+                                </td>
                                 <td class="text-center">{{ 'აქტიური' if user.status == 1 else 'პასიური' }}</td>
                                 <td class="text-center">{{ user.lastLogin.strftime('%Y-%m-%d %H:%M:%S') if user.lastLogin else 'არ არსებობს' }}</td>
                                 <td class="text-center">

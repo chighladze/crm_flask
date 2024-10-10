@@ -4,7 +4,7 @@
 
 {% block content %}
     <div class="car mb-2 btn-group">
-        <a href="{{ url_for('department_positions.create', dep_id=dep_id) }}" class="btn btn-success"
+        <a href="{{ url_for('department_positions.position_create', dep_id=dep_id) }}" class="btn btn-success"
            title="Добавить позицию">
             <i class="fas fa-plus"></i>
         </a>
@@ -21,7 +21,7 @@
             <div class="col-sm-12">
                 <div class="card-header">
                     <div class="card-tools">
-                        <form method="GET" action="{{ url_for('department_positions.list', dep_id=dep_id) }}"
+                        <form method="GET" action="{{ url_for('department_positions.positions_llist', dep_id=dep_id) }}"
                               style="display: flex; justify-content: space-between; align-items: center;">
                             <!-- Поиск -->
                             <div class="input-group input-group-sm">
@@ -69,7 +69,7 @@
                                 <td class="text-center">{{ position.updated_at }}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
-                                        <a href="{{ url_for('department_positions.edit', dep_id=dep_id, id=position.id) }}"
+                                        <a href="{{ url_for('department_positions.position_edit', dep_id=dep_id, id=position.id) }}"
                                            class="btn btn-warning btn-sm" title="რედაქტირება">
                                             <i class="fas fa-edit"></i>
                                         </a>
@@ -90,7 +90,7 @@
                             {% if pagination.has_prev %}
                                 <li class="page-item">
                                     <a class="page-link"
-                                       href="{{ url_for('department_positions.list', dep_id=dep_id, search=request.args.get('search', ''), per_page=per_page, page=pagination.prev_num) }}"
+                                       href="{{ url_for('department_positions.positions_llist', dep_id=dep_id, search=request.args.get('search', ''), per_page=per_page, page=pagination.prev_num) }}"
                                        aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
@@ -99,7 +99,7 @@
                             {% for page_num in range(1, pagination.pages + 1) %}
                                 <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
                                     <a class="page-link"
-                                       href="{{ url_for('department_positions.list', dep_id=dep_id, search=request.args.get('search', ''), per_page=per_page, page=page_num) }}">
+                                       href="{{ url_for('department_positions.positions_llist', dep_id=dep_id, search=request.args.get('search', ''), per_page=per_page, page=page_num) }}">
                                         {{ page_num }}
                                     </a>
                                 </li>
@@ -107,7 +107,7 @@
                             {% if pagination.has_next %}
                                 <li class="page-item">
                                     <a class="page-link"
-                                       href="{{ url_for('department_positions.list', dep_id=dep_id, search=request.args.get('search', ''), per_page=per_page, page=pagination.next_num) }}"
+                                       href="{{ url_for('department_positions.positions_llist', dep_id=dep_id, search=request.args.get('search', ''), per_page=per_page, page=pagination.next_num) }}"
                                        aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>

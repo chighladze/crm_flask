@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash, send_file
-from flask_login import login_required
+from flask_login import login_required, current_user
 import sqlalchemy as sa
 import pandas as pd
 from io import BytesIO
@@ -14,6 +14,9 @@ roles = Blueprint('roles', __name__)
 @roles.route('/roles/roles_list', methods=['GET', 'POST'])
 @login_required
 def roles_list():
+    if 'roles_list' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['roles_list']", 'danger')
+        return redirect(url_for('dashboard.index'))
     search_query = request.args.get('search', '')
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
@@ -63,6 +66,9 @@ def roles_list():
 @roles.route('/roles/create_role', methods=['GET', 'POST'])
 @login_required
 def create_role():
+    if 'roles_create' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['roles_create']", 'danger')
+        return redirect(url_for('dashboard.index'))
     form = RoleCreateForm()
     if form.validate_on_submit():
         role = Roles(name=form.name.data, description=form.description.data)
@@ -76,6 +82,9 @@ def create_role():
 @roles.route('/roles/edit_role/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_role(id):
+    if 'roles_edit' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['roles_edit']", 'danger')
+        return redirect(url_for('dashboard.index'))
     role = db.session.execute(sa.select(Roles).filter_by(id=id)).scalar_one_or_none()
     if role is None:
         flash('როლი ვერ მოიძებნა!', 'danger')
@@ -96,6 +105,9 @@ def edit_role(id):
 @roles.route('/roles/export', methods=['GET'])
 @login_required
 def export_roles():
+    if 'roles_export' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['roles_export']", 'danger')
+        return redirect(url_for('dashboard.index'))
     roles_query = db.session.execute(sa.select(Roles))
     roles = roles_query.scalars().all()
 
@@ -120,6 +132,9 @@ def export_roles():
 # Маршрут для отображения разрешений конкретной роли
 @roles.route('/roles/role/<int:id>/permissions', methods=['GET', 'POST'])
 def permissions_for_role(id):
+    if 'roles_permissions' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['roles_permissions']", 'danger')
+        return redirect(url_for('dashboard.index'))
     role = Roles.query.get_or_404(id)
 
     # Получаем все разрешения
