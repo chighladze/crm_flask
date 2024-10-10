@@ -1,0 +1,49 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ user.name }} - როლები{% endblock %}
+
+{% block content %}
+    <div class="card col-md-6">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th class="text-center">Role Name</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for role in all_roles %}
+                    <tr>
+                        <td class="text-center">{{ role.id }}</td>
+                        <td>{{ role.name }}</td>
+                        <td class="text-center">
+                            {% if role.id in user_roles %}
+                                <span class="badge bg-success">Enabled</span>
+                            {% else %}
+                                <span class="badge bg-danger">Disabled</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <form method="POST" action="{{ url_for('users.user_roles', user_id=user.id) }}">
+                                {% if role.id in user_roles %}
+                                    <input type="hidden" name="delete_role" value="delete_role">
+                                    <input type="hidden" name="role_id" value="{{ role.id }}">
+                                    <button type="submit" class="btn btn-outline-danger">Disable</button>
+                                {% else %}
+                                    <input type="hidden" name="add_role" value="add_role">
+                                    <input type="hidden" name="role_id" value="{{ role.id }}">
+                                    <button type="submit" class="btn btn-outline-success">Enable</button>
+                                {% endif %}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

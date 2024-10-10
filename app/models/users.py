@@ -23,26 +23,34 @@ class Users(UserMixin, db.Model):
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    def get_roles(self) -> list:
-        roles_id = []
-        for user_role in UsersRoles.query.filter_by(user_id=current_user.id).all():
-            roles_id.append(user_role.role_id)
+    def get_roles(self, user_id) -> list:
+        roles = (
+            db.session.query(Roles.id, Roles.name)
+            .join(UsersRoles, UsersRoles.role_id == Roles.id)
+            .filter(UsersRoles.user_id == user_id)
+            .all()
+        )
 
-        roles_name = []
-        for role_id in roles_id:
-            roles_name.append(Roles.query.filter_by(id=role_id).first().name)
-        return roles_name
+        # Преобразуем в список словарей
+        roles_dict_list = [{'id': role.id, 'name': role.name} for role in roles]
 
-    def get_permissions(self) -> list:
-        permissions = []
+        return roles_dict_list
 
-        for role in UsersRoles.query.filter_by(user_id=current_user.id).all():
-            # permissions.append(RolesPermissions.query.filter_by(role_id=role.role_id).all())
-            for rolePermission in RolesPermissions.query.filter_by(role_id=role.role_id).all():
-                permissions.append(
-                    Permissions.query.filter_by(id=rolePermission.permission_id).first().name
-                )
-        return permissions
+    def get_permissions(self, user_id) -> list:
+        # Запрос с использованием join для извлечения разрешений пользователя через его роли
+        permissions = (
+            db.session.query(Permissions.id, Permissions.name)
+            .join(RolesPermissions, RolesPermissions.permission_id == Permissions.id)
+            .join(UsersRoles, UsersRoles.role_id == RolesPermissions.role_id)
+            .filter(UsersRoles.user_id == user_id)
+            .all()
+        )
+
+        # Преобразуем в список словарей
+        permissions_dict_list = [{'id': permission.id, 'name': permission.name} for permission in permissions]
+        print(permissions_dict_list)
+
+        return permissions_dict_list
 
 
 @login_manager.user_loader
