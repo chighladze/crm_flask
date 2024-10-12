@@ -1,0 +1,78 @@
+{% extends "main/base.html" %}
+
+{% block title %}კლიენტის დეტალები{% endblock %}
+
+{% block content %}
+    <div class="card card-info">
+        <div class="card-header">
+            <h3 class="card-title">კლიენტის დეტალები</h3>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label>კლიენტის ტიპი:</label>
+                        <p>{{ customer.customer_type.name }}</p>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label>ელ. ფოსტა:</label>
+                        <p>{{ customer.email }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if customer.customer_type.id == 1 %}
+                <!-- Для физических лиц -->
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>პირადი ნომერი:</label>
+                            <p>{{ customer.identification_number }}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>სახელი და გვარი:</label>
+                            <p>{{ customer.name }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% elif customer.customer_type.id == 2 %}
+                <!-- Для юридических лиц -->
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>საიდენტიფიკაციო კოდი:</label>
+                            <p>{{ customer.identification_number }}</p>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label>კომპანიის სახელი:</label>
+                            <p>{{ customer.name }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label>მობილური ნომერი:</label>
+                        <p>{{ customer.mobile }}</p>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label>დამატებითი საკონტაქტო:</label>
+                        <p>{{ customer.mobile_second }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

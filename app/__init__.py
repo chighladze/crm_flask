@@ -16,6 +16,7 @@ from .routes.department_positions import department_positions
 from .routes.divisions import divisions
 from .routes.nms import nms
 from .routes.roles import roles
+from .routes.customers import customers
 
 
 def create_app(config_class=Config):
@@ -46,6 +47,7 @@ def create_app(config_class=Config):
     app.register_blueprint(divisions)
     app.register_blueprint(nms)
     app.register_blueprint(roles)
+    app.register_blueprint(customers)
 
     db.init_app(app)
     migrate.init_app(app, db)
