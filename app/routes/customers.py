@@ -1,10 +1,12 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify
+from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, send_file
 from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
 from ..forms.customers import CustomerForm
 from ..models.customers import Customers
 from ..models.customer_type import CustomersType
+from io import BytesIO
+import pandas as pd
 
 customers = Blueprint('customers', __name__)
 
@@ -74,6 +76,124 @@ def check_customer_id():
         })
     else:
         return jsonify({"exists": False})
+
+
+@customers.route('/customers/list', methods=['GET', 'POST'])
+@login_required
+def customers_list():
+    if 'customers_list' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash("თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['customers_list']", 'danger')
+        return redirect(url_for('dashboard.index'))
+
+    search_query = request.args.get('search', '')
+    page = request.args.get('page', 1, type=int)  # Page number
+    per_page = request.args.get('per_page', 10, type=int)  # Number of entries per page, default 10
+
+    # Limiting allowed values for per_page
+    per_page = per_page if per_page in [10, 50, 100] else 10
+
+    # Query to search for customers
+    query = sa.select(Customers).filter(
+        sa.or_(
+            Customers.name.ilike(f'%{search_query}%'),
+            Customers.identification_number.ilike(f'%{search_query}%')
+        )
+    ).order_by(Customers.created_at.desc())
+
+    # Get the total number of customers
+    total_count_query = sa.select(sa.func.count()).select_from(
+        sa.select(Customers).filter(
+            sa.or_(
+                Customers.name.ilike(f'%{search_query}%'),
+                Customers.identification_number.ilike(f'%{search_query}%')
+            )
+        )
+    )
+    total_count = db.session.execute(total_count_query).scalar()
+
+    # Pagination
+    offset = (page - 1) * per_page
+    paginated_query = query.limit(per_page).offset(offset)
+    customers_query = db.session.execute(paginated_query)
+    customers = customers_query.scalars().all()
+
+    # Create a pagination object manually
+    class Pagination:
+        def __init__(self, total, page, per_page):
+            self.total = total
+            self.page = page
+            self.per_page = per_page
+            self.pages = (total + per_page - 1) // per_page
+            self.has_prev = page > 1
+            self.has_next = page < self.pages
+            self.prev_num = page - 1
+            self.next_num = page + 1
+
+    pagination = Pagination(total_count, page, per_page)
+
+    return render_template(
+        'customers/customer_list.html',
+        customers=customers,
+        active_menu='customers',
+        pagination=pagination,
+        per_page=per_page
+    )
+
+
+@customers.route('/customers/export', methods=['GET'])
+@login_required
+def customers_export():
+    # Check if the user has permission to export customers
+    if 'customers_export' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash("You do not have access to this page. Permission required: ['customers_export']", 'danger')
+        return redirect(url_for('dashboard.index'))
+
+    # Fetch all customers from the database
+    customers_query = db.session.execute(sa.select(Customers))
+    customers = customers_query.scalars().all()
+
+    # Convert customer data into a list of dictionaries
+    customer_data = [{
+        "ID": customer.id,
+        "Type": customer.customer_type.name,
+        "Identification Number": customer.identification_number,
+        "Name": customer.name,
+        "Email": customer.email,
+        "Mobile": customer.mobile,
+        "Second Mobile": customer.mobile_second,
+        "Created At": customer.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        "Updated At": customer.updated_at.strftime('%Y-%m-%d %H:%M:%S')
+    } for customer in customers]
+
+    # Create a DataFrame from the customer data
+    df = pd.DataFrame(customer_data)
+
+    # Create an Excel file in memory
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Customers')
+
+        # Access the active sheet
+        worksheet = writer.sheets['Customers']
+
+        # Adjust column width based on the maximum length of content in each column
+        for col in worksheet.columns:
+            max_length = 0
+            column = col[0].column_letter  # Get the letter designation of the column
+
+            for cell in col:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+
+            adjusted_width = max_length + 2  # Add some space
+            worksheet.column_dimensions[column].width = adjusted_width
+
+    # Move the stream pointer to the beginning of the file
+    output.seek(0)
+
+    # Send the file as an attachment
+    return send_file(output, as_attachment=True, download_name="customers_list.xlsx",
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 # @customers.route('/customers/edit/<int:id>', methods=['GET', 'POST'])
 # @login_required

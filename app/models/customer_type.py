@@ -12,5 +12,5 @@ class CustomersType(db.Model):
     createdAt = db.Column(db.DateTime, default=datetime.utcnow, nullable=True)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
 
-    # Relationship with Customers model (renamed to avoid conflict)
-    customer_type = db.relationship('Customers', backref='customer_type', lazy=True)
+    # Relationship with Customers model
+    customers = db.relationship('Customers', backref='type_details', lazy=True)

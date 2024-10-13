@@ -2,7 +2,6 @@ from ..extensions import db
 from datetime import datetime
 from ..models.customer_type import CustomersType  # Ensure import is above usage
 
-
 class Customers(db.Model):
     __tablename__ = 'customers'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -16,4 +15,4 @@ class Customers(db.Model):
     updated_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Define the relationship with the CustomersType model
-    # customers_type = db.relationship('CustomersType', backref='customers_list')
+    customer_type = db.relationship('CustomersType', back_populates='customers', lazy='joined')

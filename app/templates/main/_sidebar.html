@@ -74,6 +74,22 @@
                             </a>
                         </li>
                     </ul>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ url_for('customers.customers_list') }}" class="nav-link {% if request.path.split('/')[2] == 'list' %}active{% endif %}">
+                                <i class="fas fa-users nav-icon"></i>
+                                <p>ყველა კლიენტები</p>
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link {% if request.path.split('/')[2] == 'types' %}active{% endif %}">
+                                <i class="far fa-address-card nav-icon"></i>
+                                <p>კლიენტის ტიპები</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
                 <li class="nav-item {% if active_menu == 'nms' %}menu-open{% endif %}">
