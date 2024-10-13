@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, send_file
 from flask_login import login_required, current_user
 import sqlalchemy as sa
@@ -86,38 +88,45 @@ def customers_list():
         return redirect(url_for('dashboard.index'))
 
     search_query = request.args.get('search', '')
-    page = request.args.get('page', 1, type=int)  # Page number
-    per_page = request.args.get('per_page', 10, type=int)  # Number of entries per page, default 10
+    page = request.args.get('page', 1, type=int)  # Номер страницы
+    per_page = request.args.get('per_page', 10, type=int)  # Число записей на странице, по умолчанию 10
+    type_id = request.args.get('type_id', type=int)  # Фильтр по типу клиента
+    start_date = request.args.get('start_date')  # Дата начала фильтрации
+    end_date = request.args.get('end_date')  # Дата окончания фильтрации
 
-    # Limiting allowed values for per_page
+    # Ограничение допустимых значений для per_page
     per_page = per_page if per_page in [10, 50, 100] else 10
 
-    # Query to search for customers
+    # Начало построения запроса
     query = sa.select(Customers).filter(
         sa.or_(
             Customers.name.ilike(f'%{search_query}%'),
             Customers.identification_number.ilike(f'%{search_query}%')
         )
-    ).order_by(Customers.created_at.desc())
-
-    # Get the total number of customers
-    total_count_query = sa.select(sa.func.count()).select_from(
-        sa.select(Customers).filter(
-            sa.or_(
-                Customers.name.ilike(f'%{search_query}%'),
-                Customers.identification_number.ilike(f'%{search_query}%')
-            )
-        )
     )
-    total_count = db.session.execute(total_count_query).scalar()
 
-    # Pagination
+    # Применение дополнительных фильтров
+    if type_id:
+        query = query.filter(Customers.type_id == type_id)
+
+    # Преобразование формата дат (если это необходимо)
+    if start_date:
+        query = query.filter(Customers.created_at >= start_date)
+    if end_date:
+        query = query.filter(Customers.created_at <= end_date)
+
+    query = query.order_by(Customers.created_at.desc())
+
+    # Получение общего количества клиентов
+    total_count = db.session.execute(sa.select(sa.func.count()).select_from(query)).scalar()
+
+    # Пагинация
     offset = (page - 1) * per_page
     paginated_query = query.limit(per_page).offset(offset)
     customers_query = db.session.execute(paginated_query)
     customers = customers_query.scalars().all()
 
-    # Create a pagination object manually
+    # Создание объекта пагинации
     class Pagination:
         def __init__(self, total, page, per_page):
             self.total = total
@@ -131,12 +140,21 @@ def customers_list():
 
     pagination = Pagination(total_count, page, per_page)
 
+    # Получение типов клиентов для выпадающего списка фильтра
+    customer_types = db.session.execute(sa.select(CustomersType)).scalars().all()
+    print(customer_types)
+
     return render_template(
         'customers/customer_list.html',
         customers=customers,
         active_menu='customers',
         pagination=pagination,
-        per_page=per_page
+        per_page=per_page,
+        search_query=search_query,
+        start_date=start_date,
+        end_date=end_date,
+        type_id=type_id,
+        customer_types=customer_types
     )
 
 
@@ -148,8 +166,39 @@ def customers_export():
         flash("You do not have access to this page. Permission required: ['customers_export']", 'danger')
         return redirect(url_for('dashboard.index'))
 
-    # Fetch all customers from the database
-    customers_query = db.session.execute(sa.select(Customers))
+    # Получаем параметры фильтрации
+    search_query = request.args.get('search', '')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    type_id = request.args.get('type_id')
+
+    # Начинаем формировать запрос
+    query = sa.select(Customers)
+
+    # Применяем фильтры по поисковому запросу
+    if search_query:
+        query = query.filter(
+            sa.or_(
+                Customers.name.ilike(f'%{search_query}%'),
+                Customers.identification_number.ilike(f'%{search_query}%')
+            )
+        )
+
+    # Применяем фильтры по типу клиента
+    if type_id and type_id != '':
+        query = query.filter(Customers.type_id == type_id)
+
+    # Применяем фильтры по датам
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        query = query.filter(Customers.created_at >= start_date)
+
+    if end_date:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d')
+        query = query.filter(Customers.created_at <= end_date)
+
+    # Выполняем запрос
+    customers_query = db.session.execute(query)
     customers = customers_query.scalars().all()
 
     # Convert customer data into a list of dictionaries
@@ -194,6 +243,7 @@ def customers_export():
     # Send the file as an attachment
     return send_file(output, as_attachment=True, download_name="customers_list.xlsx",
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
 
 # @customers.route('/customers/edit/<int:id>', methods=['GET', 'POST'])
 # @login_required

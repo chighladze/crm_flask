@@ -3,17 +3,109 @@
 {% block title %}კლიენტების სია{% endblock %}
 
 {% block content %}
-    <div class="car mb-2 btn-group">
-        <a href="{{ url_for('customers.create') }}" class="btn btn-success" title="დეპარტამენტსი დამატება"><i class="fas fa-plus"></i></a>
+<div class="card mb-2">
+    <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+        <div>
+            <a href="{{ url_for('customers.create') }}" class="btn btn-success" title="კლიენტის დამატება">
+                <i class="fas fa-plus"></i>
+            </a>
+        </div>
+
+        <div class="mx-auto"> <!-- This div will help center the filter button -->
+            <a href="#" class="btn btn-info" title="ფილტრი" data-toggle="modal" data-target="#filterModal">
+                <i class="fas fa-filter"></i>
+            </a>
+        </div>
+
+        <div>
+            <a href="{{ url_for('customers.customers_export', search=search_query, start_date=start_date, end_date=end_date, type_id=type_id) }}" class="btn btn-block btn-outline-success"><i class="fas fa-file-excel"></i></a>
+        </div>
     </div>
-    <div class="card">
-        <div class="card-header">
-            <div class="card-tools col-md-auto">
-                <a href="{{ url_for('customers.customers_export') }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-file-excel"></i> ექსპორტი
-                </a>
+</div>
+
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">ფილტრის პარამეტრები</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="დახურვა">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="GET" action="{{ url_for('customers.customers_list') }}" class="mb-4">
+                    <div class="input-group mb-3">
+                        <textarea name="search" class="form-control" placeholder="ძიება" rows="3">{{ search_query }}</textarea>
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <select name="type_id" class="form-control">
+                            <option value=""> ყველა ტიპი</option>
+                            {% for customer_type in customer_types %}
+                            <option value="{{ customer_type.id }}" {% if customer_type.id == type_id %}selected{% endif %}>
+                                {{ customer_type.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="fas fa-tag"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>კლიენტის რეგისტრაციის თარიღით:</label>
+                        <div class="input-group mb-3">
+                            <input type="date" class="form-control" name="start_date" placeholder="დაწყების თარიღი (-დან)" title="დაწყების თარიღი (-დან)" value="{{ start_date }}">
+                            <input type="date" class="form-control" name="end_date" placeholder="დასრულების თარიღი (-მდე)" title="დასრულების თარიღი (-მდე)" value="{{ end_date }}">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" title="Применить фильтры">
+                            <i class="fas fa-check"></i> <!-- Иконка для применения -->
+                        </button>
+                        <button type="button" class="btn btn-danger" id="resetFilters" title="Удалить все фильтры">
+                            <i class="fas fa-trash"></i> <!-- Иконка для удаления фильтров -->
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+</div>
+
+<script>
+    // Обработчик события для формы
+    document.querySelector('#filterModal form').addEventListener('keydown', function(event) {
+        // Проверяем, нажата ли клавиша 'Enter'
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Предотвращаем стандартное поведение
+            this.submit(); // Отправляем форму
+        }
+    });
+</script>
+
+<script>
+    document.getElementById('resetFilters').addEventListener('click', function() {
+        // Сброс значений всех полей ввода
+        document.querySelector('input[name="search"]').value = '';
+        document.querySelector('select[name="type_id"]').value = '';
+        document.querySelector('input[name="start_date"]').value = '';
+        document.querySelector('input[name="end_date"]').value = '';
+    });
+</script>
+
+
+
+
+
+    <div class="card">
         <div class="row">
             <div class="col-sm-12">
                 <div class="card-header">
