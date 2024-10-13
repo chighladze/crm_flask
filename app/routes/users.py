@@ -196,11 +196,11 @@ def users_export():
         flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['users_export']", 'danger')
         return redirect(url_for('dashboard.index'))
 
-    # Получаем список всех пользователей из базы данных
+    # get a list of all users from the database
     users_query = db.session.execute(sa.select(Users))
     users = users_query.scalars().all()
 
-    # Преобразуем данные в список словарей
+    # Convert the data into a list of dictionaries
     user_data = [{
         "id": user.id,
         "სახელი": user.name,
@@ -217,30 +217,30 @@ def users_export():
 
     df = pd.DataFrame(user_data)
 
-    # Создаем Excel файл в памяти
+    # Create an Excel file in memory
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Users')
 
-        # Доступ к активному листу
+        # Access to the active sheet
         worksheet = writer.sheets['Users']
 
-        # Автоматически изменяем ширину столбцов
+        # Automatically change the width of columns
         for col in worksheet.columns:
             max_length = 0
-            column = col[0].column_letter  # Получаем буквенное обозначение столбца (например, 'A')
+            column = col[0].column_letter  # get the letter designation of the column (for example, 'A')
 
             for cell in col:
                 if cell.value:
                     max_length = max(max_length, len(str(cell.value)))
 
-            adjusted_width = max_length + 2  # Добавляем немного пространства
+            adjusted_width = max_length + 2  # Adding some space
             worksheet.column_dimensions[column].width = adjusted_width
 
-    # Перемещаем указатель потока в начало файла
+    # Move the stream pointer to the beginning of the file
     output.seek(0)
 
-    # Отправляем файл
+    # Sending a file
     return send_file(output, as_attachment=True, download_name="users.xlsx",
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
@@ -248,10 +248,10 @@ def users_export():
 @users.route('/users/<int:user_id>/logs', methods=['GET'])
 @login_required
 def user_logs(user_id):
-    # Получаем пользователя по ID
+    # Get user by ID
     user = Users.query.get_or_404(user_id)
 
-    # Получаем логи пользователя
+    # Getting user logs
     logs = UserLog.query.filter_by(user_id=user_id).order_by(UserLog.created_at.desc()).all()
 
     return render_template('users/user_logs.html', user=user, logs=logs, active_menu='administration')
@@ -260,20 +260,20 @@ def user_logs(user_id):
 @users.route('/users/<int:user_id>/roles', methods=['GET', 'POST'])
 @login_required
 def user_roles(user_id):
-    # Получаем объект пользователя
+    # Get the user object
     user = Users.query.get(user_id)
     if user is None:
         flash('Пользователь не найден!', 'danger')
         return redirect(url_for('users.users_list'))
 
-    # Получаем все роли
+    # get all the roles
     all_roles = Roles.query.all()
 
-    # Получаем роли, связанные с этим пользователем
+    # Get roles associated with this user
     user_roles = {ur.role_id for ur in UsersRoles.query.filter_by(user_id=user_id).all()}
 
     if request.method == 'POST':
-        # Добавление роли
+        # Adding a role
         if request.form.get('add_role'):
             role_id = request.form.get('role_id')
             if role_id:
@@ -284,13 +284,13 @@ def user_roles(user_id):
                         new_user_role = UsersRoles(user_id=user.id, role_id=role.id)
                         db.session.add(new_user_role)
                         db.session.commit()
-                        flash('Роль успешно добавлена.', 'success')
+                        flash('როლი დამატებულია.', 'success')
                     else:
-                        flash('Роль уже добавлена пользователю.', 'danger')
+                        flash('როლი უკვე დამატებული არის.', 'danger')
                 else:
-                    flash('Роль не найдена.', 'danger')
+                    flash('როლი ვერ მოიძებნა.', 'danger')
 
-        # Удаление роли
+        # Removing a role
         elif request.form.get('delete_role'):
             role_id = request.form.get('role_id')
             if role_id:
@@ -298,9 +298,9 @@ def user_roles(user_id):
                 if user_role:
                     db.session.delete(user_role)
                     db.session.commit()
-                    flash('Роль успешно удалена.', 'success')
+                    flash('როლი წარმარტაბეთი წაიშალა.', 'success')
                 else:
-                    flash('Роль не связана с пользователем.', 'danger')
+                    flash('როლს არ აქვს კავშირი ტანამშრომლთან.', 'danger')
 
         return redirect(url_for('users.user_roles', user_id=user.id))
 

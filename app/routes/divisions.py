@@ -15,45 +15,45 @@ def div_list(dep_id):
     if 'divisions_list' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
         flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['divisions_list']", 'danger')
         return redirect(url_for('dashboard.index'))
-    # Получаем данные о департаменте
+    # get data about the department
     department_query = sa.select(Departments).where(Departments.id == dep_id)
     department = db.session.execute(department_query).scalar_one_or_none()
 
-    # Проверяем, существует ли департамент
+    # Check if the department exists
     if department is None:
-        # Можно перенаправить на страницу с ошибкой или на другую страницу
+        # edirect to an error page or to another page
         return "Department not found", 404
 
     search_query = request.args.get('search', '')
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    # Ограничиваем per_page значениями 10, 50, 100
+    # limit per_page to values ​​10, 50, 100
     per_page = per_page if per_page in [10, 50, 100] else 10
 
-    # Фильтрация подразделений по ID департамента
+    # Filtering departments by department ID
     query = sa.select(Divisions).where(Divisions.department_id == dep_id).order_by(Divisions.created_at.desc())
 
-    # Если есть строка поиска, добавляем фильтрацию по названию подразделения
+    # If there is a search line, add filtering by department name
     if search_query:
         query = query.where(Divisions.name.ilike(f'%{search_query}%'))
 
-    # Получаем общее количество подразделений для данного департамента
+    # get the total number of divisions for this department
     total_count_query = sa.select(sa.func.count()).select_from(Divisions).where(Divisions.department_id == dep_id)
     if search_query:
         total_count_query = total_count_query.where(Divisions.name.ilike(f'%{search_query}%'))
 
     total_count = db.session.execute(total_count_query).scalar()
 
-    # Пагинация
+    # Pagination
     offset = (page - 1) * per_page
     paginated_query = query.limit(per_page).offset(offset)
 
-    # Выполняем запрос с учетом пагинации
+    # execute a query taking into account pagination
     divisions_query = db.session.execute(paginated_query)
     divisions_list = divisions_query.scalars().all()
 
-    # Пагинация вручную
+    # Manual pagination
     class Pagination:
         def __init__(self, total, page, per_page):
             self.total = total
@@ -72,7 +72,7 @@ def div_list(dep_id):
         divisions=divisions_list,
         active_menu='administration',
         pagination=pagination,
-        department=department,  # Теперь это экземпляр Department, а не запрос
+        department=department,
         per_page=per_page,
     )
 
@@ -106,17 +106,17 @@ def edit(id):
     if 'divisions_edit' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
         flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['divisions_edit']", 'danger')
         return redirect(url_for('dashboard.index'))
-    # Получаем подразделение для редактирования
+    # get a division for editing
     division = db.session.execute(sa.select(Divisions).filter_by(id=id)).scalar_one_or_none()
     if division is None:
         flash('განყოფილება ვერ მოიძებნა!', 'danger')
         return redirect(url_for('divisions.div_list'))
 
-    # Создаем форму с текущими данными подразделения
+    # Create a form with current department data
     form = DivisionCreateForm(department_id=division.department_id)
 
     if form.validate_on_submit():
-        # Обновляем данные подразделения
+        # Updating department data
         division.name = form.name.data
         division.description = form.description.data
         db.session.commit()

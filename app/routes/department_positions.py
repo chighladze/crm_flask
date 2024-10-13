@@ -19,10 +19,10 @@ def positions_llist(dep_id):
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    # Ограничение допустимых значений для per_page
+    # Limiting allowed values ​​for per_page
     per_page = per_page if per_page in [10, 50, 100] else 10
 
-    # Составляем запрос для поиска позиций в определённом департаменте
+    # create a query to search for positions in a specific department
     query = sa.select(DepartmentPositions).filter(
         DepartmentPositions.department_id == dep_id,
         sa.or_(
@@ -30,7 +30,7 @@ def positions_llist(dep_id):
         )
     ).order_by(DepartmentPositions.created_at.desc())
 
-    # Получаем общее количество позиций для пагинации
+    # get the total number of positions for pagination
     total_count_query = sa.select(sa.func.count()).select_from(
         sa.select(DepartmentPositions).filter(
             DepartmentPositions.department_id == dep_id,
@@ -41,15 +41,15 @@ def positions_llist(dep_id):
     )
     total_count = db.session.execute(total_count_query).scalar()
 
-    # Пагинация
+    # Pagination
     offset = (page - 1) * per_page
     paginated_query = query.limit(per_page).offset(offset)
 
-    # Выполняем запрос с учетом пагинации
+    # execute a query taking into account paginatio
     positions_query = db.session.execute(paginated_query)
     positions_list = positions_query.scalars().all()
 
-    # Создаем объект пагинации вручную
+    # Create a pagination object manually
     class Pagination:
         def __init__(self, total, page, per_page):
             self.total = total

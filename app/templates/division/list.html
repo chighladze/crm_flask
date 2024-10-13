@@ -31,7 +31,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <!-- Записи на странице -->
+                            <!-- Posts on page -->
                             <div class="input-group input-group-sm mr-2 ml-2" style="width: 100px;">
                                 <select name="per_page" id="per_page" class="form-control form-control-sm"
                                         onchange="this.form.submit()">
@@ -43,7 +43,7 @@
                         </form>
                     </div>
                 </div>
-                <!-- Пагинация -->
+                <!-- Pagination -->
                 <ul class="pagination">
                     {% if pagination.pages > 1 %}
                         {% if pagination.has_prev %}

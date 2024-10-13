@@ -10,30 +10,30 @@ UPLOAD_FOLDER = os.path.dirname(os.path.abspath(__file__))
 @api.route('/api/test', methods=['POST'])
 def save_data():
     if request.method == 'POST':
-        # Получаем данные в формате JSON
+        # get data in JSON format
         data = request.get_json()
 
-        # Проверяем, что данные переданы и это массив объектов
+        # check that the data has been transferred and that it is an array of objects
         if not data or not isinstance(data, list):
             return jsonify({'error': 'Invalid data format. Expected a list of objects.'}), 400
 
-        # Указываем путь к файлу для сохранения данных
+        # Specify the path to the file to save the data
         file_path = os.path.join(UPLOAD_FOLDER, 'data.json')
 
-        # Сохраняем каждый объект из массива в файл
+        # Save each object from the array to a file
         try:
-            # Открываем файл с указанием кодировки UTF-8
+            # Open the file with UTF-8 encoding specified
             with open(file_path, 'a', encoding='utf-8') as f:
                 for item in data:
-                    # Проверяем, что каждый объект имеет необходимые поля
+                    # check that each object has the required fields
                     if not isinstance(item, dict) or 'id' not in item or 'status' not in item:
                         return jsonify({'error': f'Invalid item format: {item}'}), 400
-                    # Записываем данные в файл, указав ensure_ascii=False для правильного отображения символов
+                    # write data to a file, specifying ensure_ascii=False to display characters correctly.
                     f.write(json.dumps(item, ensure_ascii=False) + '\n')
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
-        # Возвращаем успешный ответ
+        # Return a successful response
         return jsonify({'success': True}), 200
 
     return jsonify({'error': 'Invalid request method'}), 405

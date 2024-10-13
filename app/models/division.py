@@ -12,7 +12,7 @@ class Divisions(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    # Связь с моделью Departments
+    # Relationship the Departments model
     department = db.relationship('Departments', backref=db.backref('divisions', cascade='all, delete'))
 
     def __repr__(self):

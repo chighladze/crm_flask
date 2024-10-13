@@ -14,12 +14,7 @@ class DivisionCreateForm(FlaskForm):
 
     def __init__(self, department_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # # Сначала обработаем данные
-        # self.process()
-        # print(self.name)
-
-        # Если передан department_id, устанавливаем только этот департамент в списке выбора
+        # If department_id is passed, set only that department in the selection list
         if department_id is not None:
             department = Departments.query.get(department_id)
             if department:

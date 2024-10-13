@@ -17,5 +17,5 @@ class CustomerForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Получаем все типы клиентов из таблицы и добавляем их в список выбора
+        # get all types of clients from the table and add them to the selection list
         self.type_id.choices = [(t.id, t.name) for t in CustomersType.query.all()]

@@ -11,6 +11,7 @@ from ..models.permissions import Permissions
 
 roles = Blueprint('roles', __name__)
 
+
 @roles.route('/roles/roles_list', methods=['GET', 'POST'])
 @login_required
 def roles_list():
@@ -23,7 +24,7 @@ def roles_list():
 
     per_page = per_page if per_page in [10, 50, 100] else 10
 
-    # Основной запрос для ролей с подсчетом разрешений
+    # Basic query for roles with permission counting
     query = (
         sa.select(Roles, sa.func.count(RolesPermissions.permission_id).label('permissions_count'))
         .outerjoin(RolesPermissions, Roles.id == RolesPermissions.role_id)
@@ -39,7 +40,7 @@ def roles_list():
     paginated_query = query.limit(per_page).offset(offset)
 
     roles_query = db.session.execute(paginated_query)
-    roles_list = roles_query.all()  # Получаем список кортежей (роль, количество разрешений)
+    roles_list = roles_query.all()  # get a list of tuples (role, number of permissions)
 
     class Pagination:
         def __init__(self, total, page, per_page):
@@ -129,7 +130,7 @@ def export_roles():
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
-# Маршрут для отображения разрешений конкретной роли
+# Route to display permissions of a specific role
 @roles.route('/roles/role/<int:id>/permissions', methods=['GET', 'POST'])
 def permissions_for_role(id):
     if 'roles_permissions' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
@@ -147,7 +148,7 @@ def permissions_for_role(id):
             if not permission:
                 return jsonify({'success': False, 'message': 'დაშვება ვერ მოიძებნა.'})
 
-            # Добавление разрешения
+            # Adding permission
             if request.form.get('add_permission'):
                 existing_role_permission = RolesPermissions.query.filter_by(
                     role_id=role.id, permission_id=permission.id).first()
@@ -157,7 +158,7 @@ def permissions_for_role(id):
                     db.session.commit()
                     return jsonify({'success': True, 'action': 'added'})
 
-            # Удаление разрешения
+            # Removing permission
             elif request.form.get('delete_permission'):
                 role_permission = RolesPermissions.query.filter_by(
                     role_id=role.id, permission_id=permission_id).first()
@@ -166,7 +167,7 @@ def permissions_for_role(id):
                     db.session.commit()
                     return jsonify({'success': True, 'action': 'removed'})
 
-        return jsonify({'success': False, 'message': 'Ошибка при обработке разрешения.'})
+        return jsonify({'success': False, 'message': 'დაფიქსირდა შეცდომა.'})
 
     return render_template(
         'roles/permissions_for_role.html',

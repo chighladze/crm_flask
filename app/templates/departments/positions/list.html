@@ -23,7 +23,7 @@
                     <div class="card-tools">
                         <form method="GET" action="{{ url_for('department_positions.positions_llist', dep_id=dep_id) }}"
                               style="display: flex; justify-content: space-between; align-items: center;">
-                            <!-- Поиск -->
+                            <!-- Search -->
                             <div class="input-group input-group-sm">
                                 <input type="text" name="search" class="form-control" placeholder="ძებნა"
                                        value="{{ request.args.get('search', '') }}">
@@ -33,7 +33,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <!-- Количество записей на странице -->
+                            <!-- Number of records per page -->
                             <div class="input-group input-group-sm mr-2 ml-2" style="width: 100px;">
                                 <select name="per_page" id="per_page" class="form-control form-control-sm"
                                         onchange="this.form.submit()">
@@ -83,7 +83,7 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- Пагинация -->
+                <!-- Pagination -->
                 <div class="card-footer">
                     <ul class="pagination">
                         {% if pagination.pages > 1 %}

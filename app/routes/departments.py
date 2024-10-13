@@ -17,20 +17,20 @@ def dep_list():
         flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['departments_list']", 'danger')
         return redirect(url_for('dashboard.index'))
     search_query = request.args.get('search', '')
-    page = request.args.get('page', 1, type=int)  # Номер страницы
-    per_page = request.args.get('per_page', 10, type=int)  # Количество записей на странице, по умолчанию 10
+    page = request.args.get('page', 1, type=int)  # Page number
+    per_page = request.args.get('per_page', 10, type=int)  # Number of entries per page, default 10
 
-    # Ограничение допустимых значений для per_page
+    # Limiting allowed values values for per_page
     per_page = per_page if per_page in [10, 50, 100] else 10
 
-    # Составляем запрос для поиска департаментов
+    # make a query to search for departments
     query = sa.select(Departments).filter(
         sa.or_(
             Departments.name.ilike(f'%{search_query}%')
         )
-    ).order_by(Departments.createdAt.desc())  # Добавляем сортировку по дате создания
+    ).order_by(Departments.createdAt.desc())  # Add sorting by creation date
 
-    # Получаем общее количество департаментов
+    # get the total number of departments
     total_count_query = sa.select(sa.func.count()).select_from(
         sa.select(Departments).filter(
             sa.or_(
@@ -40,15 +40,15 @@ def dep_list():
     )
     total_count = db.session.execute(total_count_query).scalar()
 
-    # Пагинация
+    # Pagination
     offset = (page - 1) * per_page
     paginated_query = query.limit(per_page).offset(offset)
 
-    # Выполняем запрос с учетом пагинации
+    # execute a query taking into account paginatio
     departments_query = db.session.execute(paginated_query)
     departments_list = departments_query.scalars().all()
 
-    # Создаем объект пагинации вручную
+    # Create a pagination object manually
     class Pagination:
         def __init__(self, total, page, per_page):
             self.total = total
@@ -64,7 +64,7 @@ def dep_list():
 
     return render_template(
         'departments/dep_list.html',
-        departments=departments_list,  # Переименовали переменную
+        departments=departments_list,
         active_menu='administration',
         pagination=pagination,
         per_page=per_page
@@ -119,11 +119,11 @@ def departments_export():
     if 'departments_export' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
         flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['departments_export']", 'danger')
         return redirect(url_for('dashboard.index'))
-    # Получаем список всех департаментов из базы данных
+    # get a list of all departments from the database
     departments_query = db.session.execute(sa.select(Departments))
     departments = departments_query.scalars().all()
 
-    # Преобразуем данные в список словарей
+    # Convert the data into a list of dictionaries
     department_data = [{
         "id": department.id,
         "სახელი": department.name,
@@ -134,29 +134,29 @@ def departments_export():
 
     df = pd.DataFrame(department_data)
 
-    # Создаем Excel файл в памяти
+    # Create an Excel file in memory
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Departments')
 
-        # Доступ к активному листу
+        # Access to the active sheet
         worksheet = writer.sheets['Departments']
 
-        # Автоматически изменяем ширину столбцов
+        # Automatically change the width of columns
         for col in worksheet.columns:
             max_length = 0
-            column = col[0].column_letter  # Получаем буквенное обозначение столбца
+            column = col[0].column_letter  # get the letter designation of the column
 
             for cell in col:
                 if cell.value:
                     max_length = max(max_length, len(str(cell.value)))
 
-            adjusted_width = max_length + 2  # Добавляем немного пространства
+            adjusted_width = max_length + 2  # Adding some space
             worksheet.column_dimensions[column].width = adjusted_width
 
-    # Перемещаем указатель потока в начало файла
+    # Move the stream pointer to the beginning of the file
     output.seek(0)
 
-    # Отправляем файл
-    return send_file(output, as_attachment=True, download_name="departments.xlsx",
+    # Sending a file
+    return send_file(output, as_attachment=True, download_name="departments_list.xlsx",
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

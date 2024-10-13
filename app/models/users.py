@@ -31,13 +31,13 @@ class Users(UserMixin, db.Model):
             .all()
         )
 
-        # Преобразуем в список словарей
+        # Convert to a list of dictionaries
         roles_dict_list = [{'id': role.id, 'name': role.name} for role in roles]
 
         return roles_dict_list
 
     def get_permissions(self, user_id) -> list:
-        # Запрос с использованием join для извлечения разрешений пользователя через его роли
+        # Query using join to retrieve user permissions via their roles
         permissions = (
             db.session.query(Permissions.id, Permissions.name)
             .join(RolesPermissions, RolesPermissions.permission_id == Permissions.id)
@@ -67,7 +67,7 @@ class UserLog(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# Функция для создания записи в логе
+# Function to create a log entry
 def log_action(user, action):
     log = UserLog(user_id=user.id, action=action)
     try:

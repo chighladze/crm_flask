@@ -23,7 +23,7 @@
                             </div>
                         </div>
 
-                        <!-- Блок для физических лиц -->
+                        <!-- Block for individuals -->
                         <div id="individual-fields" style="display:none;">
                             <div class="form-group">
                                 <label>პირადი ნომერი</label>
@@ -35,7 +35,7 @@
                             </div>
                         </div>
 
-                        <!-- Блок для юридических лиц -->
+                        <!-- Block for legal entities -->
                         <div id="company-fields" style="display:none;">
                             <div class="form-group">
                                 <label>საიდენტიფიკაციო კოდი</label>
@@ -70,7 +70,7 @@
             </form>
         </div>
 
-        <!-- Div для вывода информации о клиенте -->
+        <!-- Div for displaying client information -->
         <div class="col-md-6">
             <div id="customer-info" class="card card-danger" style="display: none;">
                     <div class="card-header">
@@ -92,7 +92,7 @@
                         </div>
                     </div>
 
-                    <!-- Для физических лиц -->
+                    <!-- For individuals -->
                     <div id="individual-info" style="display: none;">
                         <div class="row">
                             <div class="col-sm-6">
@@ -110,7 +110,7 @@
                         </div>
                     </div>
 
-                    <!-- Для юридических лиц -->
+                    <!-- For legal entities -->
                     <div id="company-info" style="display: none;">
                         <div class="row">
                             <div class="col-sm-6">
@@ -183,24 +183,24 @@
                         console.error('Invalid customer ID:', customerId);
                     }
 
-                    // Обновляем данные в зависимости от типа клиента
-                    if (data.customer.type_id == 1) { // 1 - физическое лицо
+                    // update data depending on the type of client
+                    if (data.customer.type_id == 1) { //1 - individual
                         individualInfo.style.display = 'block';
                         companyInfo.style.display = 'none';
                         document.getElementById('customer-identification-number-info').textContent = data.customer.identification_number;
                         document.getElementById('customer-name-info').textContent = data.customer.name;
-                    } else { // 2 - юридическое лицо
+                    } else { // 2 - legal entity
                         individualInfo.style.display = 'none';
                         companyInfo.style.display = 'block';
                         document.getElementById('customer-identification-number-company-info').textContent = data.customer.identification_number;
                         document.getElementById('customer-name-company-info').textContent = data.customer.name;
                     }
 
-                    // Скрываем кнопку отправки формы, если клиент найден
+                    // Hide the form submit button if the client is found
                     document.getElementById('submit-button').style.display = 'none';
                 } else {
                     customerInfo.style.display = 'none';
-                    // Показываем кнопку отправки формы, если клиент не найден
+                    // Show form submit button if client not found
                     document.getElementById('submit-button').style.display = 'block';
                 }
 
@@ -221,17 +221,17 @@
             checkCustomerId('identification-number-company');
         });
 
-        // Обработчик изменения типа клиента
+        // Client type change handler
         document.getElementById('customer-type').addEventListener('change', function () {
             var type = this.value;
             var individualFields = document.getElementById('individual-fields');
             var companyFields = document.getElementById('company-fields');
 
-            // Показываем или скрываем блоки в зависимости от типа клиента
-            if (type == '1') { // 1 - физическое лицо
+            // Show or hide blocks depending on the client type
+            if (type == '1') { // 1 - individual
                 individualFields.style.display = 'block';
                 companyFields.style.display = 'none';
-            } else if (type >= '2') { // 2 - юридическое лицо
+            } else if (type >= '2') { // 2 - legal entity
                 individualFields.style.display = 'none';
                 companyFields.style.display = 'block';
             } else {
@@ -240,7 +240,7 @@
             }
         });
 
-        // Инициализация состояния формы при загрузке
+        // Initializing the form state on load
         document.addEventListener('DOMContentLoaded', function () {
             var event = new Event('change');
             document.getElementById('customer-type').dispatchEvent(event);

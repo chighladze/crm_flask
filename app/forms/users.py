@@ -50,7 +50,7 @@ class UserEditForm(FlaskForm):
         self.original_email = original_email
 
     def validate_email(self, field):
-        # Проверяем, существует ли пользователь с таким email
+        # Check if a user with such email exists
         if field.data != self.original_email:
             user = Users.query.filter_by(email=field.data).first()
             if user:

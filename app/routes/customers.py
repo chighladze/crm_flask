@@ -13,7 +13,7 @@ customers = Blueprint('customers', __name__)
 @login_required
 def create():
     if 'customer_create' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
-        flash("თქვენ არ გაქვთ წვდომა ამ გვერდზე.", 'danger')
+        flash("თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['customer_create']", 'danger')
         return redirect(url_for('dashboard.index'))
 
     form = CustomerForm()
@@ -29,7 +29,7 @@ def create():
         )
         db.session.add(customer)
         db.session.commit()
-        flash('Customer successfully added!', 'success')
+        flash('კლინეტი წარმატებით დამატებულია!', 'success')
 
         # Redirect to the newly created customer's detail page
         return redirect(url_for('customers.view', id=customer.id))  # Используем id для редиректа
@@ -55,7 +55,7 @@ def check_customer_id():
     customer = Customers.query.filter_by(identification_number=id_number).first()
 
     if customer:
-        # Получаем имя типа клиента
+        # Get the name of the client type
         customer_type = CustomersType.query.filter_by(id=customer.type_id).first()
         type_name = customer_type.name if customer_type else "Unknown"  # Или любое другое значение по умолчанию
 
@@ -64,7 +64,7 @@ def check_customer_id():
             "customer": {
                 "id": customer.id,
                 "type_id": customer.type_id,
-                "type_name": type_name,  # Добавляем имя типа клиента
+                "type_name": type_name,  # Adding a client type name
                 "email": customer.email,
                 "mobile": customer.mobile,
                 "mobile_second": customer.mobile_second,
@@ -85,7 +85,7 @@ def check_customer_id():
 #     customer = db.session.execute(sa.select(Customers).filter_by(id=id)).scalar_one_or_none()
 #     if customer is None:
 #         flash('Customer not found!', 'danger')
-#         return redirect(url_for('customers.customer_list'))  # Поменяйте на соответствующий маршрут
+#         return redirect(url_for('customers.customer_list'))
 #
 #     form = CustomerForm(obj=customer)
 #     if form.validate_on_submit():
@@ -97,6 +97,6 @@ def check_customer_id():
 #         customer.mobile_second = form.mobile_second.data
 #         db.session.commit()
 #         flash('Customer successfully updated!', 'success')
-#         return redirect(url_for('customers.customer_list'))  # Поменяйте на соответствующий маршрут
+#         return redirect(url_for('customers.customer_list'))
 #
 #     return render_template('customers/edit.html', form=form, customer=customer, active_menu='customers')
