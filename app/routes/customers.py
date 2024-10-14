@@ -46,7 +46,7 @@ def create():
 @login_required
 def view(id):
     customer = Customers.query.get_or_404(id)
-    return render_template('customers/view.html', customer=customer)
+    return render_template('customers/view.html', customer=customer, active_menu='customers')
 
 
 @customers.route('/check_customer_id', methods=['POST'])
