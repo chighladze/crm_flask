@@ -48,7 +48,6 @@ class Users(UserMixin, db.Model):
 
         # Преобразуем в список словарей
         permissions_dict_list = [{'id': permission.id, 'name': permission.name} for permission in permissions]
-        print(permissions_dict_list)
 
         return permissions_dict_list
 

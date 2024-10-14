@@ -11,6 +11,7 @@ class Customers(db.Model):
     email = db.Column(db.String(100), nullable=True)
     mobile = db.Column(db.String(20), nullable=True)
     mobile_second = db.Column(db.String(20), nullable=True)
+    resident = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
     updated_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -29,16 +29,17 @@ def create():
             name=form.name.data,
             email=form.email.data,
             mobile=form.mobile.data,
-            mobile_second=form.mobile_second.data
+            mobile_second=form.mobile_second.data,
+            resident=int(form.resident.data) if form.resident.data else 1
         )
         db.session.add(customer)
         db.session.commit()
         flash('კლინეტი წარმატებით დამატებულია!', 'success')
 
-        # Redirect to the newly created customer's detail page
-        return redirect(url_for('customers.view', id=customer.id))  # Используем id для редиректа
+        return redirect(url_for('customers.view', id=customer.id))
 
     return render_template('customers/create.html', form=form, active_menu='customers')
+
 
 
 @customers.route('/customer/<int:id>/view', methods=['GET'])

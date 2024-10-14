@@ -7,8 +7,7 @@
         <div class="col-md-6">
             <form method="POST" novalidate>
                 {{ form.hidden_tag() }}
-
-                <div class="card card-success">
+                <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">შეავსეთ მონაცემები</h3>
                     </div>
@@ -21,8 +20,13 @@
                                     {{ form.type_id(class="form-control", id="customer-type", placeholder="კლიენტის ტიპი") }}
                                 </div>
                             </div>
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <label>რეზიდენტი</label>
+                                    {{ form.resident(class="form-control", id="resident") }}
+                                </div>
+                            </div>
                         </div>
-
                         <!-- Block for individuals -->
                         <div id="individual-fields" style="display:none;">
                             <div class="form-group">
@@ -69,7 +73,6 @@
                 </div>
             </form>
         </div>
-
         <!-- Div for displaying client information -->
         <div class="col-md-6">
             <div id="customer-info" class="card card-danger" style="display: none;">
@@ -91,7 +94,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- For individuals -->
                     <div id="individual-info" style="display: none;">
                         <div class="row">
@@ -109,7 +111,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- For legal entities -->
                     <div id="company-info" style="display: none;">
                         <div class="row">
@@ -147,7 +148,6 @@
             </div>
         </div>
     </div>
-
     <script>
         function checkCustomerId(inputId) {
             var idNumber = document.getElementById(inputId).value;
