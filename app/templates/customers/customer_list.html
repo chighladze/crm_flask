@@ -79,13 +79,13 @@
                                 <!-- Иконка для сортировки по возрастанию -->
                                 <a href="{{ url_for('customers.customers_list', sort_by='created_asc', search=search_query, type_id=type_id, start_date=start_date, end_date=end_date, per_page=per_page) }}"
                                    class="btn {% if sort_by == 'created_asc' %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm mr-2"
-                                   title="თარიღით ზრდადობით">
+                                   title="თარიღის ზრდადობით">
                                     <i class="fas fa-arrow-up"></i>
                                 </a>
                                 <!-- Иконка для сортировки по убыванию -->
                                 <a href="{{ url_for('customers.customers_list', sort_by='created_desc', search=search_query, type_id=type_id, start_date=start_date, end_date=end_date, per_page=per_page) }}"
                                    class="btn {% if sort_by == 'created_desc' %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm"
-                                   title="თარიღით კლებადობით">
+                                   title="თარიღის კლებადობით">
                                     <i class="fas fa-arrow-down"></i>
                                 </a>
                             </div>
@@ -186,8 +186,6 @@
                                     <div class="btn-group" role="group">
                                         <a href="{{ url_for('customers.view', id=customer.id) }}"
                                            class="btn btn-info btn-sm" title="ნახვა"><i class="fas fa-eye"></i></a>
-                                        <a href="#" class="btn btn-warning btn-sm" title="რედაქტირება"><i
-                                                class="fas fa-edit"></i></a>
                                     </div>
                                 </td>
                             </tr>

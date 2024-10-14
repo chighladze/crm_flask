@@ -148,24 +148,49 @@
             </div>
         </div>
     </div>
-    <script>
-        function checkCustomerId(inputId) {
-            var idNumber = document.getElementById(inputId).value;
-            var customerInfo = document.getElementById('customer-info');
-            var individualInfo = document.getElementById('individual-info');
-            var companyInfo = document.getElementById('company-info');
 
-            if (idNumber.trim() !== '') {
-                fetch("{{ url_for('customers.check_customer_id') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': "{{ csrf_token() }}"
-                    },
-                    body: JSON.stringify({ id_number: idNumber })
-                })
-                .then(response => response.json())
-                .then(data => {
+
+
+<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">დაფიქსირდა შეცდომა</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                გთხოვთ შეავსოთ ყველა საჭირო ველი.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">დახურვა</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Существующий код для проверки и управления полями
+
+    function checkCustomerId(inputId) {
+        var idNumber = document.getElementById(inputId).value;
+        var customerInfo = document.getElementById('customer-info');
+        var individualInfo = document.getElementById('individual-info');
+        var companyInfo = document.getElementById('company-info');
+
+        if (idNumber.trim() !== '') {
+            fetch("{{ url_for('customers.check_customer_id') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ id_number: idNumber })
+            })
+            .then(response => response.json())
+            .then(data => {
                 if (data.exists) {
                     // Показываем информацию о клиенте
                     customerInfo.style.display = 'block';
@@ -174,76 +199,89 @@
                     document.getElementById('customer-mobile-info').textContent = data.customer.mobile;
                     document.getElementById('customer-mobile-second-info').textContent = data.customer.mobile_second;
 
-
                     var customerId = data.customer.id;
                     if (customerId) {
                         document.getElementById('customer-id').innerHTML = '<a href="/customer/' + customerId + '/view' + '"><i class="fas fa-eye btn btn-info" title="კლიენტის ნახვა"></i></a>';
                     } else {
-                        document.getElementById('customer-id').innerHTML = ''; // Clear the inner HTML if customerId is not valid
+                        document.getElementById('customer-id').innerHTML = ''; // Очистить содержимое, если ID клиента недействителен
                         console.error('Invalid customer ID:', customerId);
                     }
 
-                    // update data depending on the type of client
-                    if (data.customer.type_id == 1) { //1 - individual
+                    if (data.customer.type_id == 1) { // 1 - физическое лицо
                         individualInfo.style.display = 'block';
                         companyInfo.style.display = 'none';
                         document.getElementById('customer-identification-number-info').textContent = data.customer.identification_number;
                         document.getElementById('customer-name-info').textContent = data.customer.name;
-                    } else { // 2 - legal entity
+                    } else { // 2 - юридическое лицо
                         individualInfo.style.display = 'none';
                         companyInfo.style.display = 'block';
                         document.getElementById('customer-identification-number-company-info').textContent = data.customer.identification_number;
                         document.getElementById('customer-name-company-info').textContent = data.customer.name;
                     }
 
-                    // Hide the form submit button if the client is found
                     document.getElementById('submit-button').style.display = 'none';
                 } else {
                     customerInfo.style.display = 'none';
-                    // Show form submit button if client not found
                     document.getElementById('submit-button').style.display = 'block';
                 }
-
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            } else {
-                customerInfo.style.display = 'none';
-            }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        } else {
+            customerInfo.style.display = 'none';
         }
+    }
 
-        document.getElementById('identification-number').addEventListener('input', function () {
-            checkCustomerId('identification-number');
-        });
+    document.getElementById('identification-number').addEventListener('input', function () {
+        checkCustomerId('identification-number');
+    });
 
-        document.getElementById('identification-number-company').addEventListener('input', function () {
-            checkCustomerId('identification-number-company');
-        });
+    document.getElementById('identification-number-company').addEventListener('input', function () {
+        checkCustomerId('identification-number-company');
+    });
 
-        // Client type change handler
-        document.getElementById('customer-type').addEventListener('change', function () {
-            var type = this.value;
-            var individualFields = document.getElementById('individual-fields');
-            var companyFields = document.getElementById('company-fields');
+    document.getElementById('customer-type').addEventListener('change', function () {
+        var type = this.value;
+        var individualFields = document.getElementById('individual-fields');
+        var companyFields = document.getElementById('company-fields');
 
-            // Show or hide blocks depending on the client type
-            if (type == '1') { // 1 - individual
-                individualFields.style.display = 'block';
-                companyFields.style.display = 'none';
-            } else if (type >= '2') { // 2 - legal entity
-                individualFields.style.display = 'none';
-                companyFields.style.display = 'block';
+        if (type == '1') {
+            individualFields.style.display = 'block';
+            companyFields.style.display = 'none';
+        } else if (type >= '2') {
+            individualFields.style.display = 'none';
+            companyFields.style.display = 'block';
+        } else {
+            individualFields.style.display = 'none';
+            companyFields.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var event = new Event('change');
+        document.getElementById('customer-type').dispatchEvent(event);
+    });
+
+    document.getElementById('submit-button').addEventListener('click', function(event) {
+        const requiredFields = ['customer-type', 'identification-number', 'name', 'email', 'mobile'];
+        let isValid = true;
+
+        requiredFields.forEach(function(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field && field.value.trim() === '') {
+                isValid = false;
+                field.classList.add('is-invalid');
             } else {
-                individualFields.style.display = 'none';
-                companyFields.style.display = 'none';
+                field.classList.remove('is-invalid');
             }
         });
 
-        // Initializing the form state on load
-        document.addEventListener('DOMContentLoaded', function () {
-            var event = new Event('change');
-            document.getElementById('customer-type').dispatchEvent(event);
-        });
-    </script>
+        if (!isValid) {
+            event.preventDefault();
+            $('#errorModal').modal('show');
+        }
+    });
+</script>
+
 {% endblock %}

@@ -10,10 +10,10 @@ class CustomerForm(FlaskForm):
     name = StringField('სახელი და გვარი', validators=[DataRequired(), Length(max=255)])
     email = StringField('ელ. ფოსტა', validators=[Length(max=100)])
     mobile = StringField('მობილური ნომერი', validators=[DataRequired(), Length(max=20)])
-    mobile_second = StringField('დამატებითი საკონტაქტო', validators=[Length(max=20)])
+    mobile_second = StringField('დამატებითი საკონტაქტო', validators=[Length(max=20)])  # Необязательное поле
     resident = SelectField('რეზიდენტი', choices=[(1, 'კი'), (0, 'არა')], coerce=int, default=1)
-
     submit = SubmitField('რეგისტრაცია')
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

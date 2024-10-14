@@ -3,76 +3,85 @@
 {% block title %}კლიენტის დეტალები{% endblock %}
 
 {% block content %}
-    <div class="card card-info">
-        <div class="card-header">
-            <h3 class="card-title">კლიენტის დეტალები</h3>
-        </div>
-
-        <div class="card-body">
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="form-group">
-                        <label>კლიენტის ტიპი:</label>
-                        <p>{{ customer.customer_type.name }}</p>
-                    </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="form-group">
-                        <label>ელ. ფოსტა:</label>
-                        <p>{{ customer.email }}</p>
-                    </div>
-                </div>
+    <div class="container mt-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h3 class="card-title mb-0">კლიენტის დეტალები</h3>
             </div>
 
-            {% if customer.customer_type.id == 1 %}
-                <!-- For individuals -->
-                <div class="row">
-                    <div class="col-sm-6">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6 col-12 mb-2">
                         <div class="form-group">
-                            <label>პირადი ნომერი:</label>
-                            <p>{{ customer.identification_number }}</p>
+                            <label class="font-weight-bold">კლიენტის ტიპი:</label>
+                            <p>{{ customer.customer_type.name }}</p>
                         </div>
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-md-6 col-12 mb-2">
                         <div class="form-group">
-                            <label>სახელი და გვარი:</label>
-                            <p>{{ customer.name }}</p>
-                        </div>
-                    </div>
-                </div>
-            {% elif customer.customer_type.id == 2 %}
-                <!-- For legal entities -->
-                <div class="row">
-                    <div class="col-sm-6">
-                        <div class="form-group">
-                            <label>საიდენტიფიკაციო კოდი:</label>
-                            <p>{{ customer.identification_number }}</p>
-                        </div>
-                    </div>
-                    <div class="col-sm-6">
-                        <div class="form-group">
-                            <label>კომპანიის სახელი:</label>
-                            <p>{{ customer.name }}</p>
+                            <label class="font-weight-bold">ელ. ფოსტა:</label>
+                            <p>{{ customer.email }}</p>
                         </div>
                     </div>
                 </div>
-            {% endif %}
 
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="form-group">
-                        <label>მობილური ნომერი:</label>
-                        <p>{{ customer.mobile }}</p>
+                {% if customer.customer_type.id == 1 %}
+                    <!-- For individuals -->
+                    <div class="row mb-3">
+                        <div class="col-md-6 col-12 mb-2">
+                            <div class="form-group">
+                                <label class="font-weight-bold">პირადი ნომერი:</label>
+                                <p>{{ customer.identification_number }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-12 mb-2">
+                            <div class="form-group">
+                                <label class="font-weight-bold">სახელი და გვარი:</label>
+                                <p>{{ customer.name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% elif customer.customer_type.id > 1 %}
+                    <!-- For legal entities -->
+                    <div class="row mb-3">
+                        <div class="col-md-6 col-12 mb-2">
+                            <div class="form-group">
+                                <label class="font-weight-bold">საიდენტიფიკაციო კოდი:</label>
+                                <p>{{ customer.identification_number }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-12 mb-2">
+                            <div class="form-group">
+                                <label class="font-weight-bold">კომპანიის სახელი:</label>
+                                <p>{{ customer.name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="row mb-3">
+                    <div class="col-md-6 col-12 mb-2">
+                        <div class="form-group">
+                            <label class="font-weight-bold">მობილური ნომერი:</label>
+                            <p>{{ customer.mobile }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-12 mb-2">
+                        <div class="form-group">
+                            <label class="font-weight-bold">დამატებითი საკონტაქტო:</label>
+                            <p>{{ customer.mobile_second or 'არ არსებობს' }}</p>
+                        </div>
                     </div>
                 </div>
-                <div class="col-sm-6">
-                    <div class="form-group">
-                        <label>დამატებითი საკონტაქტო:</label>
-                        <p>{{ customer.mobile_second }}</p>
-                    </div>
+
+                <!-- Button to edit the customer -->
+                <div class="form-group mt-3">
+                    <a href="{{ url_for('customers.edit', id=customer.id) }}" class="btn btn-warning"
+                       title="რედაქტირება"><i
+                            class="fas fa-edit"></i></a>
+
                 </div>
             </div>
         </div>
-
     </div>
 {% endblock %}

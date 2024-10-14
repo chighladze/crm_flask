@@ -1,0 +1,54 @@
+{% extends "main/base.html" %}
+
+{% block title %}რედაქტირება - {{ customer.name }}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">კლიენტის რედაქტირება</h3>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>კლიენტის ტიპი</label>
+                            {{ form.type_id(class="form-control", id="customer-type", placeholder="კლიენტის ტიპი") }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>პირადი ნომერი</label>
+                            {{ form.identification_number(class="form-control", placeholder="პირადი ნომერი") }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>სახელი და გვარი</label>
+                            {{ form.name(class="form-control", placeholder="სახელი და გვარი") }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>ელ. ფოსტა</label>
+                            {{ form.email(class="form-control", placeholder="ელ. ფოსტა") }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>მობილური ნომერი</label>
+                            {{ form.mobile(class="form-control", placeholder="მობილური ნომერი") }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>დამატებითი საკონტაქტო</label>
+                            {{ form.mobile_second(class="form-control", placeholder="დამატებითი საკონტაქტო") }}
+                        </div>
+
+                        <div class="form-group">
+                            {{ form.submit(class="btn btn-success", id="submit-button", value="შენახვა") }}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

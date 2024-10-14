@@ -248,28 +248,21 @@ def customers_export():
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 
-# @customers.route('/customers/edit/<int:id>', methods=['GET', 'POST'])
-# @login_required
-# def edit(id):
-#     if 'customer_edit' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
-#         flash('Access denied.', 'danger')
-#         return redirect(url_for('dashboard.index'))
-#
-#     customer = db.session.execute(sa.select(Customers).filter_by(id=id)).scalar_one_or_none()
-#     if customer is None:
-#         flash('Customer not found!', 'danger')
-#         return redirect(url_for('customers.customer_list'))
-#
-#     form = CustomerForm(obj=customer)
-#     if form.validate_on_submit():
-#         customer.type_id = form.type_id.data
-#         customer.identification_number = form.identification_number.data
-#         customer.name = form.name.data
-#         customer.email = form.email.data
-#         customer.mobile = form.mobile.data
-#         customer.mobile_second = form.mobile_second.data
-#         db.session.commit()
-#         flash('Customer successfully updated!', 'success')
-#         return redirect(url_for('customers.customer_list'))
-#
-#     return render_template('customers/edit.html', form=form, customer=customer, active_menu='customers')
+@customers.route('/customers/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit(id):
+    if 'customer_edit' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash("You do not have access to this page. Permission required: ['customer_edit']", 'danger')
+        return redirect(url_for('dashboard.index'))
+
+    customer = Customers.query.filter_by(id=id).first_or_404()
+
+    form = CustomerForm(obj=customer)
+    if form.validate_on_submit():
+        form.populate_obj(customer)  # Обновляем данные клиента из формы
+        db.session.commit()
+        flash('კლიენტის მონაცემები განახლებულია!', 'success')
+        return redirect(url_for('customers.view', id=customer.id))
+
+    return render_template('customers/edit.html', form=form, customer=customer, active_menu='customers')
+
