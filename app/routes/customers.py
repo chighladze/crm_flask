@@ -88,43 +88,44 @@ def customers_list():
         return redirect(url_for('dashboard.index'))
 
     search_query = request.args.get('search', '')
-    page = request.args.get('page', 1, type=int)  # Номер страницы
-    per_page = request.args.get('per_page', 10, type=int)  # Число записей на странице, по умолчанию 10
-    type_id = request.args.get('type_id', type=int)  # Фильтр по типу клиента
-    start_date = request.args.get('start_date')  # Дата начала фильтрации
-    end_date = request.args.get('end_date')  # Дата окончания фильтрации
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    type_id = request.args.get('type_id', type=int)
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    sort_by = request.args.get('sort_by', 'created_desc')
 
     # Ограничение допустимых значений для per_page
     per_page = per_page if per_page in [10, 50, 100] else 10
 
     # Начало построения запроса
-    query = sa.select(Customers).filter(
+    query = Customers.query.filter(
         sa.or_(
             Customers.name.ilike(f'%{search_query}%'),
             Customers.identification_number.ilike(f'%{search_query}%')
         )
     )
 
-    # Применение дополнительных фильтров
+    # Применение фильтров
     if type_id:
         query = query.filter(Customers.type_id == type_id)
-
-    # Преобразование формата дат (если это необходимо)
     if start_date:
         query = query.filter(Customers.created_at >= start_date)
     if end_date:
         query = query.filter(Customers.created_at <= end_date)
 
-    query = query.order_by(Customers.created_at.desc())
+    # Применение сортировки
+    if sort_by == 'created_asc':
+        query = query.order_by(Customers.created_at.asc())
+    else:
+        query = query.order_by(Customers.created_at.desc())
 
     # Получение общего количества клиентов
-    total_count = db.session.execute(sa.select(sa.func.count()).select_from(query)).scalar()
+    total_count = query.count()
 
     # Пагинация
     offset = (page - 1) * per_page
-    paginated_query = query.limit(per_page).offset(offset)
-    customers_query = db.session.execute(paginated_query)
-    customers = customers_query.scalars().all()
+    customers = query.limit(per_page).offset(offset).all()
 
     # Создание объекта пагинации
     class Pagination:
@@ -142,7 +143,6 @@ def customers_list():
 
     # Получение типов клиентов для выпадающего списка фильтра
     customer_types = db.session.execute(sa.select(CustomersType)).scalars().all()
-    print(customer_types)
 
     return render_template(
         'customers/customer_list.html',
@@ -154,8 +154,10 @@ def customers_list():
         start_date=start_date,
         end_date=end_date,
         type_id=type_id,
+        sort_by=sort_by,
         customer_types=customer_types
     )
+
 
 
 @customers.route('/customers/export', methods=['GET'])
