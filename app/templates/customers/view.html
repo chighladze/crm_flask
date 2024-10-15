@@ -74,12 +74,16 @@
                     </div>
                 </div>
 
-                <!-- Button to edit the customer -->
-                <div class="form-group mt-3">
-                    <a href="{{ url_for('customers.edit', id=customer.id) }}" class="btn btn-warning"
-                       title="რედაქტირება"><i
-                            class="fas fa-edit"></i></a>
-
+                <!-- Buttons for edit and order acceptance -->
+                <div class="form-group mt-3 d-flex justify-content-between">
+                    <div>
+                        <a href="#" class="btn btn-success"
+                           title="შეკვეთის მიღება"><i class="fas fa-plus"></i></a>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('customers.edit', id=customer.id) }}" class="btn btn-warning"
+                           title="რედაქტირება"><i class="fas fa-edit"></i></a>
+                    </div>
                 </div>
             </div>
         </div>

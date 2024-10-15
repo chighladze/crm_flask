@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, send_file
 from flask_login import login_required, current_user
 import sqlalchemy as sa
