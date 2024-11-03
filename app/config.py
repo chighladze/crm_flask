@@ -6,7 +6,6 @@ load_dotenv('.env')
 
 
 class Config(object):
-    DEBUG = True
     APPNAME = 'app'
     ROOT = os.path.abspath(APPNAME)
     UPLOAD_PATH = '/static/upload/'
