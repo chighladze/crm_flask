@@ -77,7 +77,7 @@
                 <!-- Buttons for edit and order acceptance -->
                 <div class="form-group mt-3 d-flex justify-content-between">
                     <div>
-                        <a href="#" class="btn btn-success"
+                        <a href="{{ url_for('orders.create_order', customer_id=customer.id) }}" class="btn btn-success"
                            title="შეკვეთის მიღება"><i class="fas fa-plus"></i></a>
                     </div>
                     <div>

@@ -2,8 +2,10 @@ from ..extensions import db
 from datetime import datetime
 from ..models.customer_type import CustomersType  # Ensure import is above usage
 
+
 class Customers(db.Model):
     __tablename__ = 'customers'
+
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     type_id = db.Column(db.Integer, db.ForeignKey('customers_type.id'), nullable=False)
     identification_number = db.Column(db.String(50), unique=True, nullable=False)

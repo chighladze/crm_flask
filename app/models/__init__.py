@@ -3,6 +3,10 @@ from .roles import Roles
 from .users_roles import UsersRoles
 from .permissions import Permissions
 from .roles_permissions import RolesPermissions
+from .regions import Region
+from .districts import District
+from .settlements import Settlement
+from  .building_types import BuildingType
 from .departments import Departments
 from .division import Divisions
 from .customers import Customers
@@ -15,3 +19,6 @@ from .task_statuses import TaskStatuses
 from .task_priorities import TaskPriorities
 from .tasks import Tasks
 from .orders import Orders
+from .tariff_plans import TariffPlan
+from .currencies import Currencies
+from.connection_technology import ConnectionTechnology

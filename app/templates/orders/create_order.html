@@ -1,0 +1,209 @@
+{% extends 'main/base.html' %}
+
+{% block title %}შეკვეთის რეგისტრაცია{% endblock %}
+
+{% block content %}
+<div class="card card-warning">
+    <div class="card-header">
+        <h3 class="card-title">კლიენტი: {{ customer.name }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('orders.create_order', customer_id=customer.id) }}">
+            {{ form.hidden_tag() }}
+            <input type="hidden" name="customer_id" value="{{ customer.id }}">
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="district">რაიონი</label>
+                        {{ form.address.district_id(class="form-control", required=True) }}
+                        {% if form.address.district_id.errors %}
+                            <div class="text-danger">{{ form.address.district_id.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="settlement">დასახლება</label>
+                        {{ form.address.settlement_id(class="form-control", required=True) }}
+                        {% if form.address.settlement_id.errors %}
+                            <div class="text-danger">{{ form.address.settlement_id.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <div class="form-group">
+                        <label for="street">ქუჩის სახელი</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-road"></i></span>
+                            </div>
+                            {{ form.address.street(class="form-control", required=True) }}
+                            {% if form.address.street.errors %}
+                                <div class="text-danger">{{ form.address.street.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="form-group">
+                        <label for="building_number">ქუჩის ნომერი</label>
+                        {{ form.address.building_number(class="form-control", required=True) }}
+                            {% if form.address.building_number.errors %}
+                                <div class="text-danger">{{ form.address.building_number.errors[0] }}</div>
+                            {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="building_type">შენობის ტიპი</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="fas fa-building"></i>
+                                </span>
+                            </div>
+                            {{ form.address.building_type_id(class="form-control", required=True) }}
+                            {% if form.address.building_type_id.errors %}
+                                <div class="text-danger">{{ form.address.building_type_id.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3" id="dynamic_fields"></div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="mobile">მობილური ტელეფონი</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                            </div>
+                            {{ form.mobile(class="form-control", required=True) }}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="alt_mobile">ალტერნატიული მობილური</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                            </div>
+                            {{ form.alt_mobile(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="latitude">გრძედი</label>
+                        {{ form.address.latitude(class="form-control", required=True) }}
+                        {% if form.address.latitude.errors %}
+                            <div class="text-danger">{{ form.address.latitude.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="longitude">განედი</label>
+                        {{ form.address.longitude(class="form-control", required=True) }}
+                        {% if form.address.longitude.errors %}
+                            <div class="text-danger">{{ form.address.longitude.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <div class="form-group">
+                        <label for="registry_code">შენობის რეგისტრაციის კოდი</label>
+                        {{ form.address.registry_code(class="form-control", required=True) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <div class="form-group">
+                        <label for="tariff_plan_id">სატარიფო გეგმა</label>
+                        {{ form.tariff_plan_id(class="form-control", required=True) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <div class="form-group">
+                        <label for="comment">დამატებითი კომენტარი</label>
+                        {{ form.comment(class="form-control", required=True, rows=4) }}
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">შეკვეთის შექმნა</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Загрузка населенных пунктов при изменении района
+    document.getElementById('address-district_id').addEventListener('change', function () {
+        const districtId = this.value;
+        const settlementSelect = document.getElementById('address-settlement_id');
+        settlementSelect.innerHTML = '<option value="">აირჩიეთ დასახლება</option>';
+
+        if (districtId) {
+            fetch(`/settlements/${districtId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.settlements.forEach(settlement => {
+                        settlementSelect.innerHTML += `<option value="${settlement.id}">${settlement.name}</option>`;
+                    });
+                });
+        }
+    });
+
+    // Динамическое отображение полей на основе типа здания
+    document.getElementById('address-building_type_id').addEventListener('change', function () {
+        const buildingTypeId = this.value;
+        const dynamicFields = document.getElementById('dynamic_fields');
+        dynamicFields.innerHTML = '';
+
+        if (buildingTypeId) {
+            if (buildingTypeId === '1') { // Тип "ბინა"
+                dynamicFields.innerHTML += `
+                <div class="col-sm-6"><div class="form-group">
+                    <label for="apartment_number">სახლის ნომერი</label>
+                    <input type="text" name="apartment_number" class="form-control" required>
+                </div>`;
+            } else if (buildingTypeId === '2') { // Тип "კორპუსი"
+                dynamicFields.innerHTML += `
+                <div class="col-sm-6"><div class="form-group">
+                    <label for="entrance_number">სადარბაზო</label>
+                    <input type="number" name="entrance_number" class="form-control">
+                </div></div>
+                <div class="col-sm-6"><div class="form-group">
+                    <label for="floor_number">სართული</label>
+                    <input type="number" name="floor_number" class="form-control">
+                </div></div>
+                <div class="col-sm-6"><div class="form-group">
+                    <label for="apartment_number">ბინის ნომერი</label>
+                    <input type="text" name="apartment_number" class="form-control" required>
+                </div></div>`;
+            }
+        }
+    });
+</script>
+{% endblock %}
