@@ -26,7 +26,6 @@
                 </div>
 
                 {% if customer.customer_type.id == 1 %}
-                    <!-- For individuals -->
                     <div class="row mb-3">
                         <div class="col-md-6 col-12 mb-2">
                             <div class="form-group">
@@ -42,7 +41,6 @@
                         </div>
                     </div>
                 {% elif customer.customer_type.id > 1 %}
-                    <!-- For legal entities -->
                     <div class="row mb-3">
                         <div class="col-md-6 col-12 mb-2">
                             <div class="form-group">
@@ -74,7 +72,6 @@
                     </div>
                 </div>
 
-                <!-- Buttons for edit and order acceptance -->
                 <div class="form-group mt-3 d-flex justify-content-between">
                     <div>
                         <a href="{{ url_for('orders.create_order', customer_id=customer.id) }}" class="btn btn-success"
@@ -85,6 +82,49 @@
                            title="რედაქტირება"><i class="fas fa-edit"></i></a>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Orders List -->
+        <div class="card mt-4 mb-4 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h4 class="card-title mb-0">შეკვეთები</h4>
+            </div>
+            <div class="card-body p-0">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>მობილური ნომერი</th>
+                            <th>შეკვეთის თარიღი</th>
+                            <th>კომენტარი</th>
+                            <th>მოქმედება</th> <!-- ახალი სვეტი, სადაც აიკონი იქნება -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if customer.orders %}
+                            {% for order in customer.orders %}
+                                <tr>
+                                    <td>{{ order.id }}</td>
+                                    <td>{{ order.mobile }}</td>
+                                    <td>{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>{{ order.comment|truncate(50, True, '...') }}</td>
+                                    <td class="text-center">
+                                        <div class="btn-group">
+                                            <a href="#" class="btn btn-info btn-sm" title="მომხმარებლის ინფორმაცია">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center">შეკვეთები არ არსებობს</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

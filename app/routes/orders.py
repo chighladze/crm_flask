@@ -44,7 +44,7 @@ def create_order(customer_id):
 
         db.session.add(order)
         db.session.commit()
-        flash('Order created successfully!', 'success')
+        flash('განაცხადი წარმატებით დამატებულია!', 'success')
         return redirect(url_for('customers.view', id=customer_id))
     else:
         for field, errors in form.errors.items():

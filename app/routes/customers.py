@@ -6,6 +6,7 @@ from ..extensions import db
 from ..forms.customers import CustomerForm
 from ..models.customers import Customers
 from ..models.customer_type import CustomersType
+from ..models import Orders
 from io import BytesIO
 import pandas as pd
 
@@ -40,11 +41,12 @@ def create():
     return render_template('customers/create.html', form=form, active_menu='customers')
 
 
-
 @customers.route('/customer/<int:id>/view', methods=['GET'])
 @login_required
 def view(id):
     customer = Customers.query.get_or_404(id)
+    orders = Orders.query.filter_by(customer_id=customer.id).all()  # Получаем заказы клиента
+    customer.orders = orders  # Добавляем заказы к объекту клиента
     return render_template('customers/view.html', customer=customer, active_menu='customers')
 
 
@@ -159,7 +161,6 @@ def customers_list():
     )
 
 
-
 @customers.route('/customers/export', methods=['GET'])
 @login_required
 def customers_export():
@@ -264,4 +265,3 @@ def edit(id):
         return redirect(url_for('customers.view', id=customer.id))
 
     return render_template('customers/edit.html', form=form, customer=customer, active_menu='customers')
-

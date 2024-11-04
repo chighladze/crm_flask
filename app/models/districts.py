@@ -12,4 +12,4 @@ class District(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    settlements = db.relationship('Settlement', backref='district', lazy=True)
+    settlements = db.relationship('Settlement', back_populates='district', lazy=True)
