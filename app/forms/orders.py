@@ -13,7 +13,7 @@ def coerce_to_int(value):
         return None
 
 class OrderForm(FlaskForm):
-    customer_id = IntegerField('Customer ID', validators=[DataRequired()], )
+    customer_id = IntegerField('Customer ID', validators=[Optional()], )
     address = FormField(AddressForm)
     mobile = TelField('Mobile', validators=[DataRequired(), Length(max=20)])
     alt_mobile = TelField('Alternative Mobile', validators=[Optional()])

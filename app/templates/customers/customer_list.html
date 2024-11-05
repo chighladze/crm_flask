@@ -23,8 +23,6 @@
             </div>
         </div>
     </div>
-
-
     <!-- Filter Modal -->
     <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -105,32 +103,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Обработчик события для формы
-        document.querySelector('#filterModal form').addEventListener('keydown', function (event) {
-            // Проверяем, нажата ли клавиша 'Enter'
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Предотвращаем стандартное поведение
-                this.submit(); // Отправляем форму
-            }
-        });
-    </script>
-
-    <script>
-        document.getElementById('resetFilters').addEventListener('click', function () {
-            // Сброс значений всех полей ввода
-            document.querySelector('input[name="search"]').value = '';
-            document.querySelector('select[name="type_id"]').value = '';
-            document.querySelector('input[name="start_date"]').value = '';
-            document.querySelector('input[name="end_date"]').value = '';
-        });
-    </script>
-
-
-
-
-
     <div class="card">
         <div class="row">
             <div class="col-sm-12">
@@ -226,4 +198,25 @@
             </div>
         </div>
     </div>
+    <script>
+        // Обработчик события для формы
+        document.querySelector('#filterModal form').addEventListener('keydown', function (event) {
+            // Проверяем, нажата ли клавиша 'Enter'
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Предотвращаем стандартное поведение
+                this.submit(); // Отправляем форму
+            }
+        });
+
+        document.getElementById('resetFilters').addEventListener('click', function () {
+            // Очищаем все поля ввода
+            document.querySelector('input[name="search"]').value = '';
+            document.querySelector('select[name="type_id"]').value = '';
+            document.querySelector('input[name="start_date"]').value = '';
+            document.querySelector('input[name="end_date"]').value = '';
+
+            // Перенаправляем на страницу без фильтров
+            window.location.href = "{{ url_for('customers.customers_list') }}";
+        });
+    </script>
 {% endblock %}

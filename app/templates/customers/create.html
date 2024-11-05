@@ -3,285 +3,204 @@
 {% block title %}კლიენტის რეგისტრაცია{% endblock %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-6">
-            <form method="POST" novalidate>
-                {{ form.hidden_tag() }}
+    <!-- Форма регистрации клиента -->
+    <form method="POST" id="customer-form" novalidate> <!-- Добавлен id="customer-form" -->
+        <div class="row">
+            <div class="col-md-6">
+                {{ customer_form.hidden_tag() }}
+                {{ order_form.hidden_tag() }}
+                <input type="hidden" name="create_order" id="create-order-flag" value="false">
+
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">შეავსეთ მონაცემები</h3>
-                    </div>
-
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="form-group">
-                                    <label>კლიენტის ტიპი</label>
-                                    {{ form.type_id(class="form-control", id="customer-type", placeholder="კლიენტის ტიპი") }}
-                                </div>
-                            </div>
-                            <div class="col-sm-2">
-                                <div class="form-group">
-                                    <label>რეზიდენტი</label>
-                                    {{ form.resident(class="form-control", id="resident") }}
-                                </div>
-                            </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="card-title">კლიენტის ფორმა</h3>
+                            <button type="button" class="btn btn-primary" id="add-order-btn">
+                                <i class="fas fa-plus"></i> შეკვეთის დამატება
+                            </button>
                         </div>
-                        <!-- Block for individuals -->
-                        <div id="individual-fields" style="display:none;">
+                    </div>
+                    <div class="card-body">
+                        <!-- Поля для регистрации клиента -->
+                        <div class="form-group">
+                            <label>კლიენტის ტიპი</label>
+                            {{ customer_form.type_id(class="form-control", id="customer-type") }}
+                        </div>
+                        <div id="individual-fields" style="display: none;">
                             <div class="form-group">
                                 <label>პირადი ნომერი</label>
-                                {{ form.identification_number(class="form-control", id="identification-number", placeholder="პირადი ნომერი") }}
+                                {{ customer_form.identification_number(class="form-control") }}
                             </div>
                             <div class="form-group">
                                 <label>სახელი და გვარი</label>
-                                {{ form.name(class="form-control", placeholder="სახელი და გვარი") }}
+                                {{ customer_form.name(class="form-control") }}
                             </div>
                         </div>
-
-                        <!-- Block for legal entities -->
-                        <div id="company-fields" style="display:none;">
+                        <div id="company-fields" style="display: none;">
                             <div class="form-group">
                                 <label>საიდენტიფიკაციო კოდი</label>
-                                {{ form.identification_number(class="form-control", id="identification-number-company", placeholder="საიდენტიფიკაციო კოდი") }}
+                                {{ customer_form.identification_number(class="form-control") }}
                             </div>
                             <div class="form-group">
                                 <label>კომპანიის სახელი</label>
-                                {{ form.name(class="form-control", placeholder="კომპანიის სახელი") }}
+                                {{ customer_form.name(class="form-control") }}
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label>ელ. ფოსტა</label>
-                            {{ form.email(class="form-control", placeholder="ელ. ფოსტა") }}
+                            {{ customer_form.email(class="form-control") }}
                         </div>
-
                         <div class="form-group">
                             <label>მობილური ნომერი</label>
-                            {{ form.mobile(class="form-control", placeholder="მობილური ნომერი") }}
+                            {{ customer_form.mobile(class="form-control") }}
                         </div>
-
                         <div class="form-group">
                             <label>დამატებითი საკონტაქტო</label>
-                            {{ form.mobile_second(class="form-control", placeholder="დამატებითი საკონტაქტო") }}
+                            {{ customer_form.mobile_second(class="form-control") }}
                         </div>
-
-                    <div class="form-group">
-                        {{ form.submit(class="btn btn-primary", id="submit-button") }}
-                    </div>
                     </div>
                 </div>
-            </form>
-        </div>
-        <!-- Div for displaying client information -->
-        <div class="col-md-6">
-            <div id="customer-info" class="card card-danger" style="display: none;">
+            </div>
+
+            <!-- Форма для заказа -->
+            <div class="col-md-6" id="order-form-section" style="display: none;">
+                <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">კლიენტი უკვე არსებობს</h3>
+                        <h3 class="card-title">შეკვეთის ფორმა</h3>
                     </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label>კლიენტის ტიპი:</label>
-                                <p id="customer-type-info"></p>
+                    <div class="card-body">
+                        <!-- Поля для заказа -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label>რაიონი</label>
+                                {{ order_form.address.district_id(class="form-control", required=True) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>დასახლება</label>
+                                {{ order_form.address.settlement_id(class="form-control", required=True) }}
                             </div>
                         </div>
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label>ელ. ფოსტა:</label>
-                                <p id="customer-email-info"></p>
+                        <div class="form-row">
+                            <div class="col-md-8 mb-3">
+                                <label>ქუჩის სახელი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-road"></i></span>
+                                    </div>
+                                    {{ order_form.address.street(class="form-control", required=True) }}
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>ქუჩის ნომერი</label>
+                                {{ order_form.address.building_number(class="form-control", required=True) }}
                             </div>
                         </div>
-                    </div>
-                    <!-- For individuals -->
-                    <div id="individual-info" style="display: none;">
                         <div class="row">
-                            <div class="col-sm-6">
-                                <div class="form-group">
-                                    <label>პირადი ნომერი:</label>
-                                    <p id="customer-identification-number-info"></p>
+                            <div class="col-md-6 mb-3">
+                                <label for="building_type">შენობის ტიპი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                    </div>
+                                    {{ order_form.address.building_type_id(class="form-control", required=True) }}
                                 </div>
                             </div>
-                            <div class="col-sm-6">
-                                <div class="form-group">
-                                    <label>სახელი და გვარი:</label>
-                                    <p id="customer-name-info"></p>
-                                </div>
+                            <div class="col-md-6 mb-3" id="dynamic_fields"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label>მობილური ტელეფონი</label>
+                                {{ order_form.mobile(class="form-control", required=True) }}
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label>ალტერნატიული მობილური</label>
+                                {{ order_form.alt_mobile(class="form-control") }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label>გრძედი</label>
+                                {{ order_form.address.latitude(class="form-control", required=True) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>განედი</label>
+                                {{ order_form.address.longitude(class="form-control", required=True) }}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>შენობის რეგისტრაციის კოდი</label>
+                            {{ order_form.address.registry_code(class="form-control", required=True) }}
+                        </div>
+                        <div class="form-group">
+                            <label>სატარიფო გეგმა</label>
+                            {{ order_form.tariff_plan_id(class="form-control", required=True) }}
+                        </div>
+                        <div class="form-group">
+                            <label>დამატებითი კომენტარი</label>
+                            {{ order_form.comment(class="form-control", required=True, rows=4) }}
                         </div>
                     </div>
-                    <!-- For legal entities -->
-                    <div id="company-info" style="display: none;">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <div class="form-group">
-                                    <label>საიდენტიფიკაციო კოდი:</label>
-                                    <p id="customer-identification-number-company-info"></p>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="form-group">
-                                    <label>კომპანიის სახელი:</label>
-                                    <p id="customer-name-company-info"></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label>მობილური ნომერი:</label>
-                                <p id="customer-mobile-info"></p>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label>დამატებითი საკონტაქტო:</label>
-                                <p id="customer-mobile-second-info"></p>
-                            </div>
-                        </div>
-                    </div>
-                    <p id="customer-id"></p>
                 </div>
             </div>
-        </div>
-    </div>
 
-
-
-<div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="errorModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="errorModalLabel">დაფიქსირდა შეცდომა</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                გთხოვთ შეავსოთ ყველა საჭირო ველი.
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">დახურვა</button>
+            <!-- Кнопка отправки -->
+            <div class="col-md-12 mt-3 mb-3 text-center">
+                <button type="submit" class="btn btn-primary btn-custom">შენახვა</button>
             </div>
         </div>
-    </div>
-</div>
+    </form>
 
-
-<script>
-    // Существующий код для проверки и управления полями
-
-    function checkCustomerId(inputId) {
-        var idNumber = document.getElementById(inputId).value;
-        var customerInfo = document.getElementById('customer-info');
-        var individualInfo = document.getElementById('individual-info');
-        var companyInfo = document.getElementById('company-info');
-
-        if (idNumber.trim() !== '') {
-            fetch("{{ url_for('customers.check_customer_id') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': "{{ csrf_token() }}"
-                },
-                body: JSON.stringify({ id_number: idNumber })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.exists) {
-                    // Показываем информацию о клиенте
-                    customerInfo.style.display = 'block';
-                    document.getElementById('customer-type-info').textContent = data.customer.type_name;  // Используем имя типа
-                    document.getElementById('customer-email-info').textContent = data.customer.email;
-                    document.getElementById('customer-mobile-info').textContent = data.customer.mobile;
-                    document.getElementById('customer-mobile-second-info').textContent = data.customer.mobile_second;
-
-                    var customerId = data.customer.id;
-                    if (customerId) {
-                        document.getElementById('customer-id').innerHTML = '<a href="/customer/' + customerId + '/view' + '"><i class="fas fa-eye btn btn-info" title="კლიენტის ნახვა"></i></a>';
-                    } else {
-                        document.getElementById('customer-id').innerHTML = ''; // Очистить содержимое, если ID клиента недействителен
-                        console.error('Invalid customer ID:', customerId);
-                    }
-
-                    if (data.customer.type_id == 1) { // 1 - физическое лицо
-                        individualInfo.style.display = 'block';
-                        companyInfo.style.display = 'none';
-                        document.getElementById('customer-identification-number-info').textContent = data.customer.identification_number;
-                        document.getElementById('customer-name-info').textContent = data.customer.name;
-                    } else { // 2 - юридическое лицо
-                        individualInfo.style.display = 'none';
-                        companyInfo.style.display = 'block';
-                        document.getElementById('customer-identification-number-company-info').textContent = data.customer.identification_number;
-                        document.getElementById('customer-name-company-info').textContent = data.customer.name;
-                    }
-
-                    document.getElementById('submit-button').style.display = 'none';
-                } else {
-                    customerInfo.style.display = 'none';
-                    document.getElementById('submit-button').style.display = 'block';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        } else {
-            customerInfo.style.display = 'none';
+    <!-- Стили -->
+    <style>
+        .btn-custom {
+            font-size: 1.25rem;
+            padding: 15px 30px;
         }
-    }
+    </style>
 
-    document.getElementById('identification-number').addEventListener('input', function () {
-        checkCustomerId('identification-number');
-    });
-
-    document.getElementById('identification-number-company').addEventListener('input', function () {
-        checkCustomerId('identification-number-company');
-    });
-
-    document.getElementById('customer-type').addEventListener('change', function () {
-        var type = this.value;
-        var individualFields = document.getElementById('individual-fields');
-        var companyFields = document.getElementById('company-fields');
-
-        if (type == '1') {
-            individualFields.style.display = 'block';
-            companyFields.style.display = 'none';
-        } else if (type >= '2') {
-            individualFields.style.display = 'none';
-            companyFields.style.display = 'block';
-        } else {
-            individualFields.style.display = 'none';
-            companyFields.style.display = 'none';
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        var event = new Event('change');
-        document.getElementById('customer-type').dispatchEvent(event);
-    });
-
-    document.getElementById('submit-button').addEventListener('click', function(event) {
-        const requiredFields = ['customer-type', 'identification-number', 'name', 'email', 'mobile'];
-        let isValid = true;
-
-        requiredFields.forEach(function(fieldId) {
-            const field = document.getElementById(fieldId);
-            if (field && field.value.trim() === '') {
-                isValid = false;
-                field.classList.add('is-invalid');
-            } else {
-                field.classList.remove('is-invalid');
-            }
+    <!-- Скрипты -->
+    <script>
+        document.getElementById('add-order-btn').addEventListener('click', function() {
+            const orderFormSection = document.getElementById('order-form-section');
+            const isVisible = orderFormSection.style.display === 'block';
+            orderFormSection.style.display = isVisible ? 'none' : 'block';
+            document.getElementById('create-order-flag').value = !isVisible; // true или false
         });
 
-        if (!isValid) {
-            event.preventDefault();
-            $('#errorModal').modal('show');
-        }
-    });
-</script>
+        document.getElementById('customer-type').addEventListener('change', function () {
+            const type = this.value;
+            document.getElementById('individual-fields').style.display = type === '1' ? 'block' : 'none';
+            document.getElementById('company-fields').style.display = type === '2' ? 'block' : 'none';
+        });
 
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('customer-type').dispatchEvent(new Event('change'));
+        });
+
+        document.getElementById('address-building_type_id').addEventListener('change', function () {
+            const buildingTypeId = this.value;
+            const dynamicFields = document.getElementById('dynamic_fields');
+            dynamicFields.innerHTML = '';
+
+            if (buildingTypeId) {
+                if (buildingTypeId === '1') { // Тип "Apartment"
+                    dynamicFields.innerHTML += `
+                    <div class="form-group">
+                        <label for="apartment_number">ბინის ნომერი</label>
+                        <input type="text" name="apartment_number" class="form-control" required>
+                    </div>`;
+                } else if (buildingTypeId === '2') { // Тип "Building"
+                    dynamicFields.innerHTML += `
+                    <div class="form-group">
+                        <label for="entrance_number">სადარბაზო</label>
+                        <input type="number" name="entrance_number" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="floor_number">სართული</label>
+                        <input type="number" name="floor_number" class="form-control">
+                    </div>`;
+                }
+            }
+        });
+    </script>
 {% endblock %}

@@ -4,41 +4,106 @@ from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
 from ..forms.customers import CustomerForm
+from ..forms.orders import OrderForm
 from ..models.customers import Customers
 from ..models.customer_type import CustomersType
-from ..models import Orders
+from ..models.addresses import Addresses
+from ..models.orders import Orders
+from sqlalchemy.exc import SQLAlchemyError
 from io import BytesIO
 import pandas as pd
 
 customers = Blueprint('customers', __name__)
 
-
 @customers.route('/customers/create', methods=['GET', 'POST'])
 @login_required
 def create():
-    if 'customer_create' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
-        flash("თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['customer_create']", 'danger')
+    # Check permissions
+    if 'customer_create' not in [perm['name'] for perm in current_user.get_permissions(current_user.id)]:
+        flash("Access denied. Permission required: 'customer_create'", 'danger')
         return redirect(url_for('dashboard.index'))
 
-    form = CustomerForm()
+    # Initialize forms
+    customer_form = CustomerForm()
+    order_form = OrderForm()
+    create_with_order = request.form.get('create_order', 'false') == 'true'
 
-    if form.validate_on_submit():
-        customer = Customers(
-            type_id=form.type_id.data,
-            identification_number=form.identification_number.data,
-            name=form.name.data,
-            email=form.email.data,
-            mobile=form.mobile.data,
-            mobile_second=form.mobile_second.data,
-            resident=int(form.resident.data) if form.resident.data else 1
-        )
-        db.session.add(customer)
-        db.session.commit()
-        flash('კლინეტი წარმატებით დამატებულია!', 'success')
+    is_customer_form_valid = customer_form.validate_on_submit()
+    is_order_form_valid = order_form.validate_on_submit() if create_with_order else True
 
-        return redirect(url_for('customers.view', id=customer.id))
+    if is_customer_form_valid and is_order_form_valid:
+        try:
+            # Create and save customer
+            customer = Customers(
+                type_id=customer_form.type_id.data,
+                identification_number=customer_form.identification_number.data,
+                name=customer_form.name.data,
+                email=customer_form.email.data,
+                mobile=customer_form.mobile.data,
+                mobile_second=customer_form.mobile_second.data,
+                resident=int(customer_form.resident.data) if customer_form.resident.data else 1
+            )
+            db.session.add(customer)
+            db.session.commit()
 
-    return render_template('customers/create.html', form=form, active_menu='customers')
+            # Set customer_id in order_form
+            if create_with_order:
+                order_form.customer_id.data = customer.id  # Set customer_id
+
+                # Create and save address
+                address = Addresses(
+                    settlement_id=order_form.address.settlement_id.data,
+                    building_type_id=order_form.address.building_type_id.data,
+                    street=order_form.address.street.data,
+                    building_number=order_form.address.building_number.data,
+                    entrance_number=order_form.address.entrance_number.data,
+                    floor_number=order_form.address.floor_number.data,
+                    apartment_number=order_form.address.apartment_number.data,
+                    coordinates_id=None,  # Set this as needed
+                    registry_code=order_form.address.registry_code.data,
+                )
+                db.session.add(address)
+                db.session.commit()
+
+                # Create and save order linked to customer and address
+                order = Orders(
+                    customer_id=order_form.customer_id.data,  # Use customer_id from order_form
+                    address_id=address.id,
+                    mobile=order_form.mobile.data,
+                    alt_mobile=order_form.alt_mobile.data,
+                    tariff_plan_id=order_form.tariff_plan_id.data,
+                    comment=order_form.comment.data,
+                )
+                db.session.add(order)
+                db.session.commit()
+
+                flash('Client and order created successfully!', 'success')
+            else:
+                flash('Client created successfully!', 'success')
+
+            return redirect(url_for('customers.view', id=customer.id))
+
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            flash(f"An error occurred: {str(e)}", 'danger')
+    else:
+        if not is_customer_form_valid:
+            for field, errors in customer_form.errors.items():
+                for error in errors:
+                    flash(f"{field}: {error}", 'danger')
+        if create_with_order and not is_order_form_valid:
+            for field, errors in order_form.errors.items():
+                for error in errors:
+                    flash(f"{field}: {error}", 'danger')
+
+    # Render form
+    return render_template(
+        'customers/create.html',
+        customer_form=customer_form,
+        order_form=order_form,
+        create_with_order=create_with_order,
+        active_menu='customers'
+    )
 
 
 @customers.route('/customer/<int:id>/view', methods=['GET'])
