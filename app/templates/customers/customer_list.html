@@ -2,7 +2,21 @@
 
 {% block title %}კლიენტების სია{% endblock %}
 
+{% block styles %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+{% endblock %}
+
+{% block script %}
+    <script src="{{ url_for('static', filename='dist/js/custom/customers/customer_list.js') }}"></script>
+{% endblock %}
+
 {% block content %}
+<style>
+    .btn:hover {
+        transition: transform 0.2s;
+        transform: scale(1.1);
+    }
+</style>
     <div class="card mb-2">
         <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
             <div>
@@ -24,7 +38,7 @@
         </div>
     </div>
     <!-- Filter Modal -->
-    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal fade animate__animated animate__fadeInDown" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -198,25 +212,4 @@
             </div>
         </div>
     </div>
-    <script>
-        // Обработчик события для формы
-        document.querySelector('#filterModal form').addEventListener('keydown', function (event) {
-            // Проверяем, нажата ли клавиша 'Enter'
-            if (event.key === 'Enter') {
-                event.preventDefault(); // Предотвращаем стандартное поведение
-                this.submit(); // Отправляем форму
-            }
-        });
-
-        document.getElementById('resetFilters').addEventListener('click', function () {
-            // Очищаем все поля ввода
-            document.querySelector('input[name="search"]').value = '';
-            document.querySelector('select[name="type_id"]').value = '';
-            document.querySelector('input[name="start_date"]').value = '';
-            document.querySelector('input[name="end_date"]').value = '';
-
-            // Перенаправляем на страницу без фильтров
-            window.location.href = "{{ url_for('customers.customers_list') }}";
-        });
-    </script>
 {% endblock %}

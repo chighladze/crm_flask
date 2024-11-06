@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CRM | {% block title %}{% endblock %}</title>
+    {% block styles %}{% endblock %}
     <link rel="icon" href="{{ url_for('static', filename='dist/img/8020943.png') }}" type="image/x-icon">
-
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome -->
@@ -104,8 +104,10 @@
     <script src="{{ url_for('static', filename='plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js') }}"></script>
     <!-- AdminLTE App -->
     <script src="{{ url_for('static', filename='dist/js/adminlte.js') }}"></script>
-    <env></env>
     <!-- AdminLTE dashboard demo -->
     <script src="{{ url_for('static', filename='dist/js/pages/dashboard.js') }}"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='dist/js/custom/footer.js') }}"></script>
+    {% block script %}{% endblock %}
 </body>
 </html>

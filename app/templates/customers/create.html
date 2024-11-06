@@ -1,7 +1,9 @@
 {% extends "main/base.html" %}
 
 {% block title %}კლიენტის რეგისტრაცია{% endblock %}
-
+{% block script %}
+	<script src="{{ url_for('static', filename='dist/js/custom/customers/create.js') }}"></script>
+{% endblock %}
 {% block content %}
     <!-- Форма регистрации клиента -->
     <form method="POST" id="customer-form" novalidate> <!-- Добавлен id="customer-form" -->
@@ -145,62 +147,34 @@
 
             <!-- Кнопка отправки -->
             <div class="col-md-12 mt-3 mb-3 text-center">
-                <button type="submit" class="btn btn-primary btn-custom">შენახვა</button>
+                <button type="submit" class="btn btn-primary btn-custom">რეგისტრაცია</button>
             </div>
         </div>
     </form>
 
-    <!-- Стили -->
     <style>
+        /* Стили анимации и кнопок */
         .btn-custom {
             font-size: 1.25rem;
             padding: 15px 30px;
         }
+
+        .fade-in {
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
     </style>
-
-    <!-- Скрипты -->
-    <script>
-        document.getElementById('add-order-btn').addEventListener('click', function() {
-            const orderFormSection = document.getElementById('order-form-section');
-            const isVisible = orderFormSection.style.display === 'block';
-            orderFormSection.style.display = isVisible ? 'none' : 'block';
-            document.getElementById('create-order-flag').value = !isVisible; // true или false
-        });
-
-        document.getElementById('customer-type').addEventListener('change', function () {
-            const type = this.value;
-            document.getElementById('individual-fields').style.display = type === '1' ? 'block' : 'none';
-            document.getElementById('company-fields').style.display = type === '2' ? 'block' : 'none';
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('customer-type').dispatchEvent(new Event('change'));
-        });
-
-        document.getElementById('address-building_type_id').addEventListener('change', function () {
-            const buildingTypeId = this.value;
-            const dynamicFields = document.getElementById('dynamic_fields');
-            dynamicFields.innerHTML = '';
-
-            if (buildingTypeId) {
-                if (buildingTypeId === '1') { // Тип "Apartment"
-                    dynamicFields.innerHTML += `
-                    <div class="form-group">
-                        <label for="apartment_number">ბინის ნომერი</label>
-                        <input type="text" name="apartment_number" class="form-control" required>
-                    </div>`;
-                } else if (buildingTypeId === '2') { // Тип "Building"
-                    dynamicFields.innerHTML += `
-                    <div class="form-group">
-                        <label for="entrance_number">სადარბაზო</label>
-                        <input type="number" name="entrance_number" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="floor_number">სართული</label>
-                        <input type="number" name="floor_number" class="form-control">
-                    </div>`;
-                }
-            }
-        });
-    </script>
 {% endblock %}
