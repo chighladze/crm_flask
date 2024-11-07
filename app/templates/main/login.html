@@ -16,6 +16,14 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="{{ url_for('static', filename='/dist/css/adminlte.min.css') }}">
     <style>
+
+        .logo-img {
+            display: block;
+            margin: 0 auto; /* Центрирование по горизонтали */
+            width: 150px; /* Увеличьте значение для большего размера */
+            height: auto;
+        }
+
         input:-webkit-autofill,
         input:-webkit-autofill:hover,
         input:-webkit-autofill:focus,
@@ -24,13 +32,6 @@
             -webkit-text-fill-color: inherit !important;
             transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
             caret-color: inherit;
-        }
-
-        #togglePassword {
-            background: none;
-            border: none;
-            cursor: pointer;
-            outline: none;
         }
 
         #togglePassword {
@@ -51,19 +52,19 @@
 </head>
 <body class="hold-transition login-page dark-mode">
 <div class="login-box">
-        {% with messages = get_flashed_messages() %}
-            <div class="login-box-msg">
-                {% if messages %}
-                    <p class="login-box-msg">
-                        {% for message in messages %}
-                            {{ message }}
-                        {% endfor %}
-                    </p>
-                {% endif %}
-            </div>
-        {% endwith %}
+    {% with messages = get_flashed_messages() %}
+        <div class="login-box-msg">
+            {% if messages %}
+                <p class="login-box-msg">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </p>
+            {% endif %}
+        </div>
+    {% endwith %}
     <div class="login-logo">
-        <a><b>GoNET</b><span style="color: red">CRM</span></a>
+        <a><img src="{{ url_for('static', filename='dist/img/GoNET-LOGO.png') }}" alt="GoNET CRM Logo" class="logo-img"></a>
     </div>
     <!-- /.login-logo -->
     <div class="card">
@@ -113,7 +114,6 @@
                     </div>
                 </div>
             </form>
-
         </div>
         <!-- /.login-card-body -->
     </div>
