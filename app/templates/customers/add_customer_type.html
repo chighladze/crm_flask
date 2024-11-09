@@ -1,0 +1,55 @@
+<!-- crm_flask/app/templates/add_customer_types.html -->
+{% extends 'main/base.html' %}
+
+{% block title %}Add New Customer Type{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">Add New Customer Type</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('customer_types.add_type') }}">
+                            {{ form.hidden_tag() }}
+
+                            <!-- Name field -->
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                {{ form.name(class="form-control", placeholder="Enter name") }}
+                                {% if form.name.errors %}
+                                    <small class="text-danger">{{ form.name.errors[0] }}</small>
+                                {% endif %}
+                            </div>
+
+                            <!-- Short Name field -->
+                            <div class="form-group">
+                                <label for="shortName">Short Name</label>
+                                {{ form.shortName(class="form-control", placeholder="Enter short name") }}
+                                {% if form.shortName.errors %}
+                                    <small class="text-danger">{{ form.shortName.errors[0] }}</small>
+                                {% endif %}
+                            </div>
+
+                            <!-- Category field -->
+                            <div class="form-group">
+                                <label for="category_id">Category</label>
+                                {{ form.category_id(class="form-control") }}
+                                {% if form.category_id.errors %}
+                                    <small class="text-danger">{{ form.category_id.errors[0] }}</small>
+                                {% endif %}
+                            </div>
+
+                            <!-- Submit and Cancel buttons -->
+                            <button type="submit" class="btn btn-primary">Add Customer Type</button>
+                            <a href="{{ url_for('customer_types.types_list') }}" class="btn btn-secondary">Cancel</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

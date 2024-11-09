@@ -1,3 +1,4 @@
+# crm_flask/app/models/customers_type.py
 from ..extensions import db
 from datetime import datetime
 
