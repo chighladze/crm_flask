@@ -5,10 +5,9 @@ import redis
 
 load_dotenv('.env')
 
-
 class Config(object):
-    DEBUG = True
-    PROPAGATE_EXCEPTIONS = True
+    DEBUG = True  # Чтобы видеть ошибки в консоли
+    PROPAGATE_EXCEPTIONS = True  # Проксификация исключений для полного логирования
     APPNAME = 'app'
     ROOT = os.path.abspath(APPNAME)
     UPLOAD_PATH = '/static/upload/'
@@ -27,12 +26,11 @@ class Config(object):
     SESSION_PERMANENT = os.environ.get('SESSION_PERMANENT') == 'True'
     SESSION_USE_SIGNER = os.environ.get('SESSION_USE_SIGNER') == 'True'
     SESSION_KEY_PREFIX = os.environ.get('SESSION_KEY_PREFIX', 'session')
-    PERMANENT_SESSION_LIFETIME = int(os.environ.get('PERMANENT_SESSION_LIFETIME', 86400))  # 24 hours
+    PERMANENT_SESSION_LIFETIME = int(os.environ.get('PERMANENT_SESSION_LIFETIME', 86400))  # 24 часа
 
-    # Настройка подключения к Redis
     SESSION_REDIS_HOST = os.environ.get('SESSION_REDIS_HOST', '127.0.0.1')
     SESSION_REDIS_PORT = os.environ.get('SESSION_REDIS_PORT', '6379')
     SESSION_REDIS = redis.StrictRedis(host=SESSION_REDIS_HOST, port=SESSION_REDIS_PORT)
 
-    # Добавление Redis в конфигурацию сессий
+    # Применение Redis к сессиям
     SESSION_REDIS = SESSION_REDIS
