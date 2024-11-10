@@ -5,3 +5,4 @@ migrations/
 .env
 .flaskenv
 flask_session/
+logs/
