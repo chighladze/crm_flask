@@ -21,15 +21,24 @@ def create_app(config_class=Config):
 
     file_handler = RotatingFileHandler('logs/error.log', maxBytes=10240, backupCount=5)
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-    file_handler.setLevel(logging.DEBUG)  # Устанавливаем более высокий уровень логирования
+    file_handler.setLevel(logging.DEBUG)  # Устанавливаем уровень логирования на DEBUG
     app.logger.addHandler(file_handler)
 
-    # Устанавливаем уровень логирования для всего приложения
+    # Уровень логирования приложения
     app.logger.setLevel(logging.DEBUG)
     app.logger.error("Application has started in production mode.")  # Тестовая запись
 
     # Полная обработка исключений
     app.config['PROPAGATE_EXCEPTIONS'] = True
+
+    # Перенаправление ошибок в лог
+    app.logger.addHandler(logging.StreamHandler())
+
+    # Обработчик для записи всех ошибок в лог
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        app.logger.error(f"Unhandled Exception: {e}", exc_info=True)  # Лог всех исключений
+        return "Internal Server Error", 500
 
     @app.before_request
     def update_last_activity():
