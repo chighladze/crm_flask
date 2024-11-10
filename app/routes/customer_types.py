@@ -12,6 +12,10 @@ customer_types = Blueprint('customer_types', __name__)
 @customer_types.route('/customers/customer_types/types_list', methods=['GET'])
 @login_required
 def types_list():
+    # Check permissions
+    if 'customers_types_list' not in [perm['name'] for perm in current_user.get_permissions(current_user.id)]:
+        flash("Access denied. Permission required: 'customers_types_list'", 'danger')
+        return redirect(url_for('dashboard.index'))
     search_query = request.args.get('search', '')
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
@@ -58,6 +62,10 @@ def types_list():
 @customer_types.route('/customers/customer_types/add_type', methods=['GET', 'POST'])
 @login_required
 def add_type():
+    # Check permissions
+    if 'customers_type_add' not in [perm['name'] for perm in current_user.get_permissions(current_user.id)]:
+        flash("Access denied. Permission required: 'customers_type_add'", 'danger')
+        return redirect(url_for('dashboard.index'))
     form = CustomerTypeForm()
     if form.validate_on_submit():
         new_customer_type = CustomersType(
