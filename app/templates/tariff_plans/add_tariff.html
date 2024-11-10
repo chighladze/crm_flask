@@ -1,0 +1,112 @@
+{% extends 'main/base.html' %}
+
+{% block title %}ტარიფის შექმნა{% endblock %} <!-- Title: Create New Tariff -->
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <!-- Card header for the form -->
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="text-center">ტარიფის შექმნა</h3> <!-- Form Header: Create New Tariff -->
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('tariff_plans.add_tariff') }}">
+                            {{ form.hidden_tag() }}
+
+                            <!-- Form rows organized into two columns -->
+                            <div class="row">
+                                <!-- Left Column -->
+                                <div class="col-md-6">
+                                    <!-- Tariff Name -->
+                                    <div class="form-group">
+                                        {{ form.name.label(class="form-label", text="ტარიფის სახელი") }}
+                                        {{ form.name(class="form-control", placeholder="ტარიფის სახელი") }}
+                                    </div>
+
+                                    <!-- Customer Type -->
+                                    <div class="form-group">
+                                        {{ form.customer_type_id.label(class="form-label", text="კლიენტის ტიპი") }}
+                                        {{ form.customer_type_id(class="form-control") }}
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="form-group">
+                                        {{ form.price.label(class="form-label", text="ფასი") }}
+                                        {{ form.price(class="form-control", placeholder="შეიყვანეთ ფასი") }}
+                                    </div>
+
+                                    <!-- Currency -->
+                                    <div class="form-group">
+                                        {{ form.currency_id.label(class="form-label", text="ვალუტა") }}
+                                        {{ form.currency_id(class="form-control") }}
+                                    </div>
+
+                                    <!-- Download Speed -->
+                                    <div class="form-group">
+                                        {{ form.internet_download_speed.label(class="form-label", text="ჩამოტვირთვის სიჩქარე") }}
+                                        {{ form.internet_download_speed(class="form-control", placeholder="მბ/წმ") }}
+                                    </div>
+
+                                    <!-- Upload Speed -->
+                                    <div class="form-group">
+                                        {{ form.internet_upload_speed.label(class="form-label", text="ატვირთვის სიჩქარე") }}
+                                        {{ form.internet_upload_speed(class="form-control", placeholder="მბ/წმ") }}
+                                    </div>
+                                </div>
+
+                                <!-- Right Column -->
+                                <div class="col-md-6">
+                                    <!-- Connection Technology -->
+                                    <div class="form-group">
+                                        {{ form.technology_id.label(class="form-label", text="დაკავშირების ტექნოლოგია") }}
+                                        {{ form.technology_id(class="form-control") }}
+                                    </div>
+
+                                    <!-- Minimum Download Speed -->
+                                    <div class="form-group">
+                                        {{ form.internet_min_download_speed.label(class="form-label", text="მინ. ჩამოტვირთვის სიჩქარე") }}
+                                        {{ form.internet_min_download_speed(class="form-control", placeholder="მბ/წმ") }}
+                                    </div>
+
+                                    <!-- Minimum Upload Speed -->
+                                    <div class="form-group">
+                                        {{ form.internet_min_upload_speed.label(class="form-label", text="მინ. ატვირთვის სიჩქარე") }}
+                                        {{ form.internet_min_upload_speed(class="form-control", placeholder="მბ/წმ") }}
+                                    </div>
+
+                                    <!-- Data Limit -->
+                                    <div class="form-group">
+                                        {{ form.internet_data_limit.label(class="form-label", text="მონაცემთა ლიმიტი") }}
+                                        {{ form.internet_data_limit(class="form-control", placeholder="GB") }}
+                                    </div>
+
+                                    <!-- Unlimited Internet -->
+                                    <div class="form-group form-check">
+                                        {{ form.internet_unlimited(class="form-check-input") }}
+                                        {{ form.internet_unlimited.label(class="form-check-label", text="ულიმიტო ინტერნეტი") }}
+                                    </div>
+
+                                    <!-- Tariff Description -->
+                                    <div class="form-group">
+                                        {{ form.description.label(class="form-label", text="ტარიფის აღწერა") }}
+                                        {{ form.description(class="form-control", rows=3) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save and Cancel Buttons -->
+                            <div class="row mt-3">
+                                <div class="col text-center">
+                                    <button type="submit" class="btn btn-primary">შენახვა</button>
+                                    <a href="{{ url_for('tariff_plans.tariff_list') }}" class="btn btn-secondary">გაუქმება</a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

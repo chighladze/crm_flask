@@ -11,6 +11,7 @@ from ..routes.roles import roles
 from ..routes.customers import customers
 from ..routes.orders import orders
 from ..routes.customer_types import customer_types
+from ..routes.tariff_plans import tariff_plans
 
 
 def register_routes(app):
@@ -27,3 +28,4 @@ def register_routes(app):
     app.register_blueprint(orders)
     app.register_blueprint(customers)
     app.register_blueprint(customer_types)
+    app.register_blueprint(tariff_plans)

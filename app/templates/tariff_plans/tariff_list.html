@@ -1,0 +1,202 @@
+{% extends 'main/base.html' %}
+
+{% block title %}სატარიფო გეგმა{% endblock %}
+
+{% block content %}
+    <div class="card mb-2">
+        <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+            <div>
+                <a href="{{ url_for('tariff_plans.add_tariff') }}" class="btn btn-success" title="ტარიფის დამატება">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+
+            <div class="mx-auto">
+                <a href="#" class="btn btn-info" title="ფილტრი" data-toggle="modal" data-target="#filterModal">
+                    <i class="fas fa-filter"></i>
+                </a>
+            </div>
+
+            <div>
+                <a href="{{ url_for('tariff_plans.export_tariffs', search=search_query) }}"
+                   class="btn btn-outline-success" title="Экспорт в Excel">
+                    <i class="fas fa-file-excel"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="filterModalLabel">ფილტრის პარამეტრები</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="დახურვა">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="GET" action="{{ url_for('tariff_plans.tariff_list') }}" class="mb-4">
+                        <div class="input-group mb-3">
+                            <textarea name="search" class="form-control" placeholder="ძიება"
+                                      rows="3">{{ search_query }}</textarea>
+                            <div class="input-group-append">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <select name="currency_id" class="form-control">
+                                <option value="">ყველა ვალუტა</option>
+                                {% for currency in currencies %}
+                                    <option value="{{ currency.id }}"
+                                            {% if currency.id == currency_id %}selected{% endif %}>
+                                        {{ currency.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="input-group-append">
+                                <span class="input-group-text">
+                                    <i class="fas fa-coins"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary" title="გამოყენება">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button type="button" class="btn btn-danger" id="resetFilters" title="გასუფთავება">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card-header">
+                    <div class="card-tools">
+                        <form method="GET" action="{{ url_for('tariff_plans.tariff_list') }}"
+                              style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="search" class="form-control" placeholder="ძებნა"
+                                       value="{{ search_query }}">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-default">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="input-group input-group-sm mr-2 ml-2" style="width: 100px;">
+                                <select name="per_page" id="per_page" class="form-control form-control-sm"
+                                        onchange="this.form.submit()">
+                                    <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                        <tr>
+                            <th class="text-center">ID</th>
+                            <th class="text-center">სახელი</th>
+                            <th class="text-center">ფასი</th>
+                            <th class="text-center">ვალუტა</th>
+                            <th class="text-center">ჩამოტვირთვა (ლოკ.)</th>
+                            <th class="text-center">ატვირთვა (ლოკ.)</th>
+                            <th class="text-center">ჩამოტვირთვა (გლობ.)</th>
+                            <th class="text-center">ატვირთვა (გლობ.)</th>
+                            <th class="text-center">მოქმედება</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for tariff in tariffs %}
+                            <tr>
+                                <td class="text-center">{{ tariff.id }}</td>
+                                <td class="text-center">{{ tariff.name }}</td>
+                                <td class="text-center">{{ tariff.price }}</td>
+                                <td class="text-center">
+                                    {% if tariff.currency.symbol == "$" %}
+                                        <span style="color: #00A86B; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% elif tariff.currency.symbol == "€" %}
+                                        <span style="color: #0033A0; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% elif tariff.currency.symbol == "₾" %}
+                                        <span style="color: #800020; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% elif tariff.currency.symbol == "£" %}
+                                        <span style="color: #00247D; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% elif tariff.currency.symbol == "¥" %}
+                                        <span style="color: #BC002D; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% elif tariff.currency.symbol == "₽" %}
+                                        <span style="color: #3C3C3B; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% elif tariff.currency.symbol == "₣" %}
+                                        <span style="color: #808080; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% elif tariff.currency.symbol == "C$" %}
+                                        <span style="color: #A52A2A; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% elif tariff.currency.symbol == "A$" %}
+                                        <span style="color: #1E90FF; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% else %}
+                                        <span style="color: #0033A0; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ tariff.internet_download_speed }} მბ/წმ</td>
+                                <td class="text-center">{{ tariff.internet_upload_speed }} მბ/წმ</td>
+                                <td class="text-center">{{ tariff.internet_global_download_speed }} მბ/წმ</td>
+                                <td class="text-center">{{ tariff.internet_global_upload_speed }} მბ/წმ</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('tariff_plans.edit_tariff', id=tariff.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer">
+                    <ul class="pagination">
+                        {% if pagination.pages > 1 %}
+                            {% if pagination.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="{{ url_for('tariff_plans.tariff_list', search=search_query, page=pagination.prev_num, per_page=per_page) }}"
+                                       aria-label="Previous">
+                                        &laquo;
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% for page_num in pagination.iter_pages() %}
+                                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                    <a class="page-link"
+                                       href="{{ url_for('tariff_plans.tariff_list', search=search_query, page=page_num, per_page=per_page) }}">{{ page_num }}</a>
+                                </li>
+                            {% endfor %}
+                            {% if pagination.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="{{ url_for('tariff_plans.tariff_list', search=search_query, page=pagination.next_num, per_page=per_page) }}"
+                                       aria-label="Next">
+                                        &raquo;
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

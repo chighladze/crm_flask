@@ -41,10 +41,10 @@ class TariffPlan(db.Model):
     #
     # time_restriction_start = db.Column(db.Time)  # Время начала ограничений
     # time_restriction_end = db.Column(db.Time)  # Время окончания ограничений
-    # description = db.Column(db.Text)  # Описание тарифа
-    # created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)  # Дата создания
-    # updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow,
-    #                        nullable=False)  # Дата обновления
+    description = db.Column(db.Text)  # Описание тарифа
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)  # Дата создания
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow,
+                           nullable=False)  # Дата обновления
 
     # Определение отношений с другими таблицами
     connection_technology = db.relationship('ConnectionTechnology', back_populates='tariff_plans')

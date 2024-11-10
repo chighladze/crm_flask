@@ -1,27 +1,29 @@
+# crm_flask/app/forms/tariff_plan.py
+
 from flask_wtf import FlaskForm
-from wtforms import StringField, DecimalField, SelectField, IntegerField, TextAreaField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Optional
+from wtforms import StringField, DecimalField, IntegerField, BooleanField, SelectField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, NumberRange, Length, Optional
 
 
 class TariffPlanForm(FlaskForm):
-    name = StringField('Название тарифа', validators=[DataRequired()])
-    client_type_id = SelectField('Тип клиента', coerce=int, validators=[DataRequired()])
-    price = DecimalField('Цена', validators=[DataRequired()])
+    name = StringField('Название', validators=[DataRequired(), Length(max=100)])
+    customer_type_id = SelectField('Тип клиента', coerce=int, validators=[DataRequired()])
+    price = DecimalField('Цена', validators=[DataRequired(), NumberRange(min=0)], places=2)
     currency_id = SelectField('Валюта', coerce=int, validators=[DataRequired()])
-    technology_id = SelectField('Технология', coerce=int, validators=[DataRequired()])
+    technology_id = SelectField('Технология подключения', coerce=int, validators=[DataRequired()])
 
-    internet_download_speed = IntegerField('Скорость скачивания (Мбит/с)', validators=[Optional()])
-    internet_upload_speed = IntegerField('Скорость отправки (Мбит/с)', validators=[Optional()])
-    internet_data_limit = IntegerField('Лимит данных (ГБ)', validators=[Optional()])
-    internet_unlimited = BooleanField('Безлимитный интернет', default=False)
+    internet_download_speed = IntegerField('Скорость скачивания', validators=[NumberRange(min=0)])
+    internet_upload_speed = IntegerField('Скорость отправки', validators=[NumberRange(min=0)])
+    internet_min_download_speed = IntegerField('Мин. скорость скачивания', validators=[NumberRange(min=0)])
+    internet_min_upload_speed = IntegerField('Мин. скорость отправки', validators=[NumberRange(min=0)])
+    internet_data_limit = IntegerField('Лимит данных (в ГБ)', validators=[NumberRange(min=0)])
+    internet_unlimited = BooleanField('Безлимитный интернет')
 
-    tv_service = BooleanField('ТВ-сервис', default=False)
-    tv_channels = IntegerField('Количество каналов', validators=[Optional()])
-    tv_hd_channels = IntegerField('Количество HD-каналов', validators=[Optional()])
-    tv_package_id = SelectField('Пакет ТВ', coerce=int, validators=[Optional()])
+    # Новое поле для описания тарифа
+    description = TextAreaField('Описание тарифа', validators=[Optional(), Length(max=2000)])
 
-    phone_service = BooleanField('Телефонный сервис', default=False)
-    phone_minutes = IntegerField('Количество минут', validators=[Optional()])
+    # Поля только для отображения дат, не обязательны к редактированию
+    created_at = StringField('Дата создания', render_kw={'readonly': True})
+    updated_at = StringField('Дата обновления', render_kw={'readonly': True})
 
-    description = TextAreaField('Описание', validators=[Optional()])
-
+    submit = SubmitField('Сохранить тариф')
