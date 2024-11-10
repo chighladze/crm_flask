@@ -109,7 +109,7 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item {% if active_menu == 'accounts' %}menu-open{% endif %}">
+                <li class="nav-item {% if active_menu == 'tariff_plans' %}menu-open{% endif %}">
                     <a href="#" class="nav-link {% if active_menu == 'accounts' %}active{% endif %}">
                         <i class="fas fa-money-bill-wave nav-icon"></i>
                         <p>
@@ -119,7 +119,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('tariff_plans.tariff_list') }}" class="nav-link {% if request.path.split('/')[2] == 'list' %}active{% endif %}">
+                            <a href="{{ url_for('tariff_plans.tariff_list') }}" class="nav-link {% if request.path.split('/')[2] in ('add_tariff', 'edit_tariff', 'tariff_list') %}active{% endif %}">
                                 <i class="fas fa-users nav-icon"></i>
                                 <p>ყველა ტარიფი</p>
                             </a>

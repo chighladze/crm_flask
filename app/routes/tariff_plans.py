@@ -48,12 +48,12 @@ def tariff_list():
         search_query=search_query,
         currency_id=currency_id,
         currencies=currencies,
-        per_page=per_page
+        per_page=per_page,
+        active_menu='tariff_plans',
     )
 
 
-
-@tariff_plans.route('/tariff_plan/add_tariff', methods=['GET'])
+@tariff_plans.route('/tariff_plans/add_tariff', methods=['GET'])
 def add_tariff():
     form = TariffPlanForm()
     # Populate select fields with choices from the database, including currency symbol
@@ -83,11 +83,11 @@ def add_tariff():
         flash('ტარიფი წარმატებით შეიქმნა!', 'success')
         return redirect(url_for('tariff_plans.tariff_list'))
 
-    return render_template('tariff_plans/add_tariff.html', form=form)
+    return render_template('tariff_plans/add_tariff.html', form=form, active_menu='tariff_plans')
 
 
 # Route for editing an existing tariff
-@tariff_plans.route('/tariff_plan/edit/<int:id>', methods=['GET', 'POST'])
+@tariff_plans.route('/tariff_plans/edit_tariff/<int:id>', methods=['GET', 'POST'])
 def edit_tariff(id):
     tariff = TariffPlan.query.get_or_404(id)
     form = TariffPlanForm(obj=tariff)
@@ -118,10 +118,10 @@ def edit_tariff(id):
         flash('ტარიფი წარმატებით განახლდა!', 'success')
         return redirect(url_for('tariff_plans.tariff_list'))
 
-    return render_template('tariff_plans/edit_tariff.html', form=form, tariff=tariff)
+    return render_template('tariff_plans/edit_tariff.html', form=form, tariff=tariff, active_menu='tariff_plans')
 
 
-@tariff_plans.route('/tariffs/export', methods=['GET'])
+@tariff_plans.route('/tariff_plans/export', methods=['GET'])
 def export_tariffs():
     # Retrieve all tariffs from the database
     tariffs = TariffPlan.query.all()
