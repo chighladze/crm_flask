@@ -1,58 +1,62 @@
 {% extends 'main/base.html' %}
 
-{% block title %}სატარიფო გეგმა{% endblock %}
+{% block title %}სატარიფო გეგმა{% endblock %} <!-- Title: Tariff Plan -->
 
 {% block content %}
+    <!-- Main Action Card -->
     <div class="card mb-2">
         <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+            <!-- Button to Add New Tariff -->
             <div>
                 <a href="{{ url_for('tariff_plans.add_tariff') }}" class="btn btn-success" title="ტარიფის დამატება">
                     <i class="fas fa-plus"></i>
                 </a>
             </div>
 
+            <!-- Button to Open Filter Modal -->
             <div class="mx-auto">
                 <a href="#" class="btn btn-info" title="ფილტრი" data-toggle="modal" data-target="#filterModal">
                     <i class="fas fa-filter"></i>
                 </a>
             </div>
 
+            <!-- Button to Export Tariffs to Excel -->
             <div>
                 <a href="{{ url_for('tariff_plans.export_tariffs', search=search_query) }}"
-                   class="btn btn-outline-success" title="Экспорт в Excel">
+                   class="btn btn-outline-success" title="Excel-ში ექსპორტი">
                     <i class="fas fa-file-excel"></i>
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Filter Modal -->
+    <!-- Filter Modal for Filtering Tariffs -->
     <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="filterModalLabel">ფილტრის პარამეტრები</h5>
+                    <h5 class="modal-title" id="filterModalLabel">ფილტრის პარამეტრები</h5> <!-- Filter Parameters -->
                     <button type="button" class="close" data-dismiss="modal" aria-label="დახურვა">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
                     <form method="GET" action="{{ url_for('tariff_plans.tariff_list') }}" class="mb-4">
+                        <!-- Search Field -->
                         <div class="input-group mb-3">
-                            <textarea name="search" class="form-control" placeholder="ძიება"
-                                      rows="3">{{ search_query }}</textarea>
+                            <textarea name="search" class="form-control" placeholder="ძიება" rows="3">{{ search_query }}</textarea>
                             <div class="input-group-append">
                                 <span class="input-group-text">
                                     <i class="fas fa-search"></i>
                                 </span>
                             </div>
                         </div>
+                        <!-- Currency Filter Dropdown -->
                         <div class="input-group mb-3">
                             <select name="currency_id" class="form-control">
-                                <option value="">ყველა ვალუტა</option>
+                                <option value="">ყველა ვალუტა</option> <!-- All Currencies -->
                                 {% for currency in currencies %}
-                                    <option value="{{ currency.id }}"
-                                            {% if currency.id == currency_id %}selected{% endif %}>
+                                    <option value="{{ currency.id }}" {% if currency.id == currency_id %}selected{% endif %}>
                                         {{ currency.name }}
                                     </option>
                                 {% endfor %}
@@ -63,12 +67,13 @@
                                 </span>
                             </div>
                         </div>
+                        <!-- Filter Actions -->
                         <div class="modal-footer">
                             <button type="submit" class="btn btn-primary" title="გამოყენება">
-                                <i class="fas fa-check"></i>
+                                <i class="fas fa-check"></i> <!-- Apply Filter -->
                             </button>
                             <button type="button" class="btn btn-danger" id="resetFilters" title="გასუფთავება">
-                                <i class="fas fa-trash"></i>
+                                <i class="fas fa-trash"></i> <!-- Reset Filter -->
                             </button>
                         </div>
                     </form>
@@ -77,25 +82,25 @@
         </div>
     </div>
 
+    <!-- Tariffs Table with Pagination -->
     <div class="card">
         <div class="row">
             <div class="col-sm-12">
                 <div class="card-header">
                     <div class="card-tools">
-                        <form method="GET" action="{{ url_for('tariff_plans.tariff_list') }}"
-                              style="display: flex; justify-content: space-between; align-items: center;">
+                        <!-- Form to Select Number of Items Per Page -->
+                        <form method="GET" action="{{ url_for('tariff_plans.tariff_list') }}" style="display: flex; justify-content: space-between; align-items: center;">
                             <div class="input-group input-group-sm">
-                                <input type="text" name="search" class="form-control" placeholder="ძებნა"
-                                       value="{{ search_query }}">
+                                <input type="text" name="search" class="form-control" placeholder="ძებნა" value="{{ search_query }}">
                                 <div class="input-group-append">
                                     <button type="submit" class="btn btn-default">
                                         <i class="fas fa-search"></i>
                                     </button>
                                 </div>
                             </div>
+                            <!-- Dropdown for Items Per Page -->
                             <div class="input-group input-group-sm mr-2 ml-2" style="width: 100px;">
-                                <select name="per_page" id="per_page" class="form-control form-control-sm"
-                                        onchange="this.form.submit()">
+                                <select name="per_page" id="per_page" class="form-control form-control-sm" onchange="this.form.submit()">
                                     <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
                                     <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
                                     <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
@@ -106,6 +111,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Table Body for Tariff Data -->
         <div class="row">
             <div class="col-12">
                 <div class="card-body table-responsive p-0">
@@ -113,22 +120,24 @@
                         <thead>
                         <tr>
                             <th class="text-center">ID</th>
-                            <th class="text-center">სახელი</th>
-                            <th class="text-center">ფასი</th>
-                            <th class="text-center">ვალუტა</th>
-                            <th class="text-center">ჩამოტვირთვა (ლოკ.)</th>
-                            <th class="text-center">ატვირთვა (ლოკ.)</th>
-                            <th class="text-center">ჩამოტვირთვა (გლობ.)</th>
-                            <th class="text-center">ატვირთვა (გლობ.)</th>
-                            <th class="text-center">მოქმედება</th>
+                            <th class="text-center">სახელი</th> <!-- Name -->
+                            <th class="text-center">ფასი</th> <!-- Price -->
+                            <th class="text-center">ვალუტა</th> <!-- Currency -->
+                            <th class="text-center">ჩამოტვირთვის სიჩქარე</th> <!-- Local Download Speed -->
+                            <th class="text-center">ატვირთვის სიჩქარე</th> <!-- Local Upload Speed -->
+                            <th class="text-center">მინ. ჩამოტვირთვის სიჩქარე</th> <!-- Min. Download Speed -->
+                            <th class="text-center">მინ. ატვირთვის სიჩქარე</th> <!-- Min. Upload Speed -->
+                            <th class="text-center">მოქმედება</th> <!-- Actions -->
                         </tr>
                         </thead>
                         <tbody>
                         {% for tariff in tariffs %}
                             <tr>
+                                <!-- Tariff Data Rows -->
                                 <td class="text-center">{{ tariff.id }}</td>
                                 <td class="text-center">{{ tariff.name }}</td>
                                 <td class="text-center">{{ tariff.price }}</td>
+                                <!-- Display Currency Symbol with Specific Color Based on Currency Type -->
                                 <td class="text-center">
                                     {% if tariff.currency.symbol == "$" %}
                                         <span style="color: #00A86B; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
@@ -152,10 +161,11 @@
                                         <span style="color: #0033A0; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-center">{{ tariff.internet_download_speed }} მბ/წმ</td>
-                                <td class="text-center">{{ tariff.internet_upload_speed }} მბ/წმ</td>
-                                <td class="text-center">{{ tariff.internet_global_download_speed }} მბ/წმ</td>
-                                <td class="text-center">{{ tariff.internet_global_upload_speed }} მბ/წმ</td>
+                                <td class="text-center">{{ tariff.internet_download_speed }} მბ/წმ</td> <!-- Local Download Speed -->
+                                <td class="text-center">{{ tariff.internet_upload_speed }} მბ/წმ</td> <!-- Local Upload Speed -->
+                                <td class="text-center">{{ tariff.internet_min_download_speed }} მბ/წმ</td> <!-- Min. Download Speed -->
+                                <td class="text-center">{{ tariff.internet_min_upload_speed }} მბ/წმ</td> <!-- Min. Upload Speed -->
+                                <!-- Action Button for Editing Tariff -->
                                 <td class="text-center">
                                     <a href="{{ url_for('tariff_plans.edit_tariff', id=tariff.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება">
                                         <i class="fas fa-edit"></i>
@@ -166,6 +176,8 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Pagination Controls -->
                 <div class="card-footer">
                     <ul class="pagination">
                         {% if pagination.pages > 1 %}

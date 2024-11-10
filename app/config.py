@@ -6,8 +6,8 @@ import redis
 load_dotenv('.env')
 
 class Config(object):
-    DEBUG = True  # Чтобы видеть ошибки в консоли
-    PROPAGATE_EXCEPTIONS = True  # Проксификация исключений для полного логирования
+    DEBUG = True
+    PROPAGATE_EXCEPTIONS = True
     APPNAME = 'app'
     ROOT = os.path.abspath(APPNAME)
     UPLOAD_PATH = '/static/upload/'
