@@ -15,22 +15,21 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Настройка логирования
+    # Логирование
     if not os.path.exists('logs'):
-        os.mkdir('logs')  # Создаем папку для логов, если её нет
+        os.mkdir('logs')
 
-    # Настройка обработчика логов с ротацией
     file_handler = RotatingFileHandler('logs/error.log', maxBytes=10240, backupCount=5)
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-    file_handler.setLevel(logging.ERROR)  # Логируем только ошибки и выше
-
-    # Добавляем обработчик к логам приложения
+    file_handler.setLevel(logging.DEBUG)  # Устанавливаем более высокий уровень логирования
     app.logger.addHandler(file_handler)
-    app.logger.setLevel(logging.DEBUG)  # Устанавливаем уровень логирования для всего приложения
 
-    # Для полной информации об ошибках включаем режим отладки и propagation of exceptions
+    # Устанавливаем уровень логирования для всего приложения
+    app.logger.setLevel(logging.DEBUG)
+    app.logger.error("Application has started in production mode.")  # Тестовая запись
+
+    # Полная обработка исключений
     app.config['PROPAGATE_EXCEPTIONS'] = True
-    app.debug = True  # Режим отладки включен
 
     @app.before_request
     def update_last_activity():
@@ -46,7 +45,7 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
-    # LOGIN MANAGER
+
     login_manager.login_view = 'users.login'
     login_manager.login_message = False
 
