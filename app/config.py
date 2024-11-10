@@ -1,3 +1,4 @@
+# crm_flask/app/config.py
 import os
 from dotenv import load_dotenv
 import redis
@@ -7,6 +8,7 @@ load_dotenv('.env')
 
 class Config(object):
     DEBUG = True
+    PROPAGATE_EXCEPTIONS = True
     APPNAME = 'app'
     ROOT = os.path.abspath(APPNAME)
     UPLOAD_PATH = '/static/upload/'
