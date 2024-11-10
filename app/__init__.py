@@ -1,6 +1,10 @@
+import os
+
 from flask import Flask, session
 from flask_session import Session
 from flask_login import current_user
+import logging
+from logging.handlers import RotatingFileHandler
 from .extensions import db, migrate, login_manager, csrf
 from .config import Config
 from datetime import datetime
@@ -11,6 +15,22 @@ from .routes import register_routes
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Настройка логирования
+    if not app.debug:  # Логирование только в режиме продакшн
+        if not os.path.exists('logs'):
+            os.mkdir('logs')  # Создаем папку для логов, если её нет
+
+        # Настройка обработчика логов с ротацией
+        file_handler = RotatingFileHandler('logs/error.log', maxBytes=10240,
+                                           backupCount=5)  # Ограничение до 10MB на файл с 5 резервными файлами
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        ))
+        file_handler.setLevel(logging.ERROR)  # Логируем только ошибки и выше
+
+        # Добавляем обработчик к логам приложения
+        app.logger.addHandler(file_handler)
 
     @app.before_request
     def update_last_activity():
