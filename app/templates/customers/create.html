@@ -2,6 +2,9 @@
 {% extends "main/base.html" %}
 
 {% block title %}კლიენტის რეგისტრაცია{% endblock %}
+{% block styles %}
+	<link rel="icon" href="{{ url_for('static', filename='dist/css/custom/customers/create.css') }}" type="image/x-icon">
+{% endblock %}
 {% block script %}
     <script src="{{ url_for('static', filename='dist/js/custom/customers/create.js') }}"></script>
 {% endblock %}
