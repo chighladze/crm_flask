@@ -305,16 +305,13 @@ def edit(id):
 @login_required
 def check_identification():
     identification_number = request.json.get('identification_number')
-    print("Получен identification_number:", identification_number)  # Отладочный вывод
 
     if identification_number:
         customer = Customers.query.filter_by(identification_number=identification_number).first()
         if customer:
-            print("Клиент найден:", customer.name)  # Еще один отладочный вывод
             return jsonify({
                 'exists': True,
                 'name': customer.name,
                 'id': customer.id
             }), 200
-    print("Клиент не найден")  # Если клиент не найден
     return jsonify({'exists': False}), 200
