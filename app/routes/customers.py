@@ -1,3 +1,4 @@
+# crm_flask/app/routes/customers.py
 from datetime import datetime
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, send_file
 from flask_login import login_required, current_user
@@ -113,38 +114,6 @@ def view(id):
     orders = Orders.query.filter_by(customer_id=customer.id).all()  # Получаем заказы клиента
     customer.orders = orders  # Добавляем заказы к объекту клиента
     return render_template('customers/view.html', customer=customer, active_menu='customers')
-
-
-@customers.route('/check_customer_id', methods=['POST'])
-def check_customer_id():
-    data = request.get_json()
-    id_number = data.get('id_number')
-
-    if not id_number:
-        return jsonify({"exists": False})
-
-    customer = Customers.query.filter_by(identification_number=id_number).first()
-
-    if customer:
-        # Get the name of the client type
-        customer_type = CustomersType.query.filter_by(id=customer.type_id).first()
-        type_name = customer_type.name if customer_type else "Unknown"  # Или любое другое значение по умолчанию
-
-        return jsonify({
-            "exists": True,
-            "customer": {
-                "id": customer.id,
-                "type_id": customer.type_id,
-                "type_name": type_name,  # Adding a client type name
-                "email": customer.email,
-                "mobile": customer.mobile,
-                "mobile_second": customer.mobile_second,
-                "identification_number": customer.identification_number,
-                "name": customer.name
-            }
-        })
-    else:
-        return jsonify({"exists": False})
 
 
 @customers.route('/customers/list', methods=['GET', 'POST'])
@@ -330,3 +299,22 @@ def edit(id):
         return redirect(url_for('customers.view', id=customer.id))
 
     return render_template('customers/edit.html', form=form, customer=customer, active_menu='customers')
+
+
+@customers.route('/customers/check_identification', methods=['POST'])
+@login_required
+def check_identification():
+    identification_number = request.json.get('identification_number')
+    print("Получен identification_number:", identification_number)  # Отладочный вывод
+
+    if identification_number:
+        customer = Customers.query.filter_by(identification_number=identification_number).first()
+        if customer:
+            print("Клиент найден:", customer.name)  # Еще один отладочный вывод
+            return jsonify({
+                'exists': True,
+                'name': customer.name,
+                'id': customer.id
+            }), 200
+    print("Клиент не найден")  # Если клиент не найден
+    return jsonify({'exists': False}), 200
