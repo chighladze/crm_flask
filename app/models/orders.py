@@ -1,3 +1,4 @@
+# crm_flask/app/models/orders.py
 from ..extensions import db
 from datetime import datetime
 
@@ -15,3 +16,6 @@ class Orders(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    customer = db.relationship('Customers', backref='orders', lazy='joined')
+    tariff_plan = db.relationship('TariffPlan', backref='orders', lazy='joined')

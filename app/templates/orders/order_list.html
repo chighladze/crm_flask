@@ -1,0 +1,57 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Order List{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <form method="GET" action="{{ url_for('orders.orders_list') }}" class="d-flex align-items-center">
+            <input type="text" name="search" class="form-control mr-2" placeholder="Search by name or mobile" value="{{ search_query }}">
+            <input type="text" name="mobile" class="form-control mr-2" placeholder="Mobile number" value="{{ mobile }}">
+            <select name="tariff_plan_id" class="form-control mr-2">
+                <option value="">All Tariff Plans</option>
+                {% for plan in tariff_plans %}
+                    <option value="{{ plan.id }}" {% if plan.id == tariff_plan_id %}selected{% endif %}>{{ plan.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="date" name="start_date" class="form-control mr-2" value="{{ start_date }}">
+            <input type="date" name="end_date" class="form-control mr-2" value="{{ end_date }}">
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Mobile</th>
+                    <th>Alt Mobile</th>
+                    <th>Tariff Plan</th>
+                    <th>Created At</th>
+                    <th>მოქმედება</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.customer.name }}</td>
+                        <td>{{ order.mobile }}</td>
+                        <td>{{ order.alt_mobile }}</td>
+                        <td>{{ order.tariff_plan.name }}</td>
+                        <td>{{ order.created_at }}</td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('orders.order_view', order_id=order.id) }}"
+                                   class="btn btn-info btn-sm" title="ნახვა"><i class="fas fa-eye"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

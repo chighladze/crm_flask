@@ -1,0 +1,40 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Просмотр заказа{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Заказ №{{ order.id }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h5>Клиент</h5>
+                    <p><strong>Имя:</strong> {{ order.customer.name }}</p>
+                    <p><strong>Адрес:</strong> {{ order.address_id }}</p> <!-- Подробный адрес можно добавить здесь -->
+                    <p><strong>Мобильный:</strong> {{ order.mobile }}</p>
+                    <p><strong>Альтернативный номер:</strong> {{ order.alt_mobile }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Информация о заказе</h5>
+                    <p><strong>Тарифный план:</strong> {{ order.tariff_plan.name if order.tariff_plan else 'Не указан' }}</p>
+                    <p><strong>Комментарий:</strong> {{ order.comment or 'Нет комментария' }}</p>
+                    <p><strong>ID задачи:</strong> {{ order.task_id }}</p>
+                    <p><strong>Создан:</strong> {{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    <p><strong>Обновлён:</strong> {{ order.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+            <a href="{{ url_for('orders.orders_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Назад к списку заказов
+            </a>
+            <a href="{{ url_for('orders.edit_order', order_id=order.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-edit"></i> Редактировать
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
