@@ -12,9 +12,9 @@ division_positions = Blueprint('division_positions', __name__)
 @division_positions.route('/division/<int:div_id>/positions/list', methods=['GET'])
 @login_required
 def positions_list(div_id):
-    # if 'positions_list' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
-    #     flash("У вас нет доступа к этой странице.", 'danger')
-    #     return redirect(url_for('dashboard.index'))
+    if 'division_positions_list' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['division_positions_list']", 'danger')
+        return redirect(url_for('dashboard.index'))
 
     search_query = request.args.get('search', '')
     page = request.args.get('page', 1, type=int)
@@ -41,8 +41,8 @@ def positions_list(div_id):
 @division_positions.route('/division/<int:div_id>/positions/create', methods=['GET', 'POST'])
 @login_required
 def position_create(div_id):
-    if 'position_create' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
-        flash("У вас нет доступа к этой странице.", 'danger')
+    if 'division_position_create' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['division_position_create']", 'danger')
         return redirect(url_for('dashboard.index'))
 
     division = Divisions.query.get_or_404(div_id)
@@ -52,7 +52,7 @@ def position_create(div_id):
         position = DivisionPositions(name=form.name.data, division_id=division.id)
         db.session.add(position)
         db.session.commit()
-        flash('Позиция успешно добавлена!', 'success')
+        flash('პოზიცია დამატებულია!', 'success')
         return redirect(url_for('division_positions.positions_list', div_id=div_id))
 
     return render_template('division/positions/create.html', form=form, division=division,
@@ -62,8 +62,8 @@ def position_create(div_id):
 @division_positions.route('/division/<int:div_id>/positions/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def position_edit(div_id, id):
-    if 'position_edit' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
-        flash("У вас нет доступа к этой странице.", 'danger')
+    if 'division_position_edit' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['division_position_edit']", 'danger')
         return redirect(url_for('dashboard.index'))
 
     division = Divisions.query.get_or_404(div_id)
@@ -73,7 +73,7 @@ def position_edit(div_id, id):
     if form.validate_on_submit():
         position.name = form.name.data
         db.session.commit()
-        flash('Позиция успешно обновлена!', 'success')
+        flash('პოზიცია განახლებულია!', 'success')
         return redirect(url_for('division_positions.positions_list', div_id=div_id))
 
     return render_template('division/positions/edit.html', form=form, division=division, position=position,
