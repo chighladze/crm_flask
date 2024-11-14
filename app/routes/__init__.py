@@ -1,3 +1,4 @@
+# crm_flask/app/routes/__init__.py
 from ..routes.users import users
 from ..routes.dashboard import dashboard
 from ..routes.map import map
@@ -12,6 +13,7 @@ from ..routes.customers import customers
 from ..routes.orders import orders
 from ..routes.customer_types import customer_types
 from ..routes.tariff_plans import tariff_plans
+from ..routes.division_positions import division_positions
 
 
 def register_routes(app):
@@ -29,3 +31,4 @@ def register_routes(app):
     app.register_blueprint(customers)
     app.register_blueprint(customer_types)
     app.register_blueprint(tariff_plans)
+    app.register_blueprint(division_positions)

@@ -1,3 +1,9 @@
+from .departments import Departments
+from .division import Divisions
+from .department_positions import DepartmentPositions
+from .division_positions import DivisionPositions
+from .task_categories import TaskCategories
+# остальной импорт
 from .users import Users
 from .roles import Roles
 from .users_roles import UsersRoles
@@ -6,14 +12,11 @@ from .roles_permissions import RolesPermissions
 from .regions import Region
 from .districts import District
 from .settlements import Settlement
-from  .building_types import BuildingType
-from .departments import Departments
-from .division import Divisions
+from .building_types import BuildingType
 from .customers import Customers
 from .customer_type import CustomersType
 from .coordinates import Coordinates
 from .addresses import Addresses
-from .task_categories import TaskCategories
 from .task_types import TaskTypes
 from .task_statuses import TaskStatuses
 from .task_priorities import TaskPriorities
@@ -21,4 +24,4 @@ from .tasks import Tasks
 from .orders import Orders
 from .tariff_plans import TariffPlan
 from .currencies import Currencies
-from.connection_technology import ConnectionTechnology
+from .connection_technology import ConnectionTechnology

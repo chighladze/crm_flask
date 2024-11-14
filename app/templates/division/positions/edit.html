@@ -1,0 +1,27 @@
+<!-- crm_flask/app/templates/divisions/positions/edit.html -->
+{% extends 'main/base.html' %}
+
+{% block title %}Редактировать позицию{% endblock %}
+
+{% block content %}
+    <div class="card col-md-6">
+        <div class="card-header">
+            <h3 class="card-title">Редактировать позицию</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('division_positions.position_edit', div_id=division.id, id=position.id) }}">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                    {% for error in form.name.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

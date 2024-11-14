@@ -21,7 +21,6 @@
                     <div class="card-tools">
                         <form method="GET" action="{{ url_for('divisions.div_list', dep_id=department.id) }}"
                               style="display: flex; justify-content: space-between; align-items: center;">
-                            <!-- Поиск -->
                             <div class="input-group input-group-sm" style="width: 200px;">
                                 <input type="text" name="search" class="form-control" placeholder="ძებნა"
                                        value="{{ request.args.get('search', '') }}">
@@ -100,8 +99,10 @@
                                 <td class="text-center">{{ division.updated_at }}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group" aria-label="Actions">
-                                        <a href="{{ url_for('divisions.edit', id=division.id) }}" class="btn btn-primary btn-sm" title="რედაქტირება"><i class="fas fa-edit"></i></a>
-                                        <a href="#" class="btn btn-warning btn-sm"><i class="fas fa-user-tag" title="როლები"></i></a>
+                                        <a href="{{ url_for('divisions.edit', id=division.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება"><i class="fas fa-edit"></i></a>
+                                        <a href="{{ url_for('division_positions.positions_list', div_id=division.id) }}" class="btn btn-success btn-sm" title="პოზიციები">
+                                            <i class="fas fa-user-friends"></i>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
