@@ -70,7 +70,8 @@ def div_list(dep_id):
     return render_template(
         'division/list.html',
         divisions=divisions_list,
-        active_menu='administration',
+        active_menu='departments',
+        menu_open='administration',
         pagination=pagination,
         department=department,
         per_page=per_page,

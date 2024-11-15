@@ -1,7 +1,7 @@
+# crm_flask/app/forms/division.py
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed
-from wtforms import StringField, PasswordField, SubmitField, FileField, ValidationError, BooleanField, SelectField
-from wtforms.validators import DataRequired, Length, EqualTo, Email, Optional
+from wtforms import StringField, SubmitField, ValidationError, SelectField
+from wtforms.validators import DataRequired, Length, Optional
 from ..models.division import Divisions
 from ..models.departments import Departments
 
@@ -14,6 +14,7 @@ class DivisionCreateForm(FlaskForm):
 
     def __init__(self, department_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         # If department_id is passed, set only that department in the selection list
         if department_id is not None:
             department = Departments.query.get(department_id)

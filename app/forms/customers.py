@@ -1,3 +1,4 @@
+# crm_flask/app/forms/customers.py
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length
@@ -10,7 +11,7 @@ class CustomerForm(FlaskForm):
     name = StringField('სახელი და გვარი', validators=[DataRequired(), Length(max=255)])
     email = StringField('ელ. ფოსტა', validators=[Length(max=100)])
     mobile = StringField('მობილური ნომერი', validators=[DataRequired(), Length(max=20)])
-    mobile_second = StringField('დამატებითი საკონტაქტო', validators=[Length(max=20)])  # Необязательное поле
+    mobile_second = StringField('დამატებითი საკონტაქტო', validators=[Length(max=20)])
     resident = SelectField('რეზიდენტი', choices=[(1, 'კი'), (0, 'არა')], coerce=int, default=1)
     submit = SubmitField('რეგისტრაცია')
 

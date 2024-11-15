@@ -47,9 +47,17 @@ class TariffPlan(db.Model):
                            nullable=False)  # Дата обновления
 
     # Определение отношений с другими таблицами
-    connection_technology = db.relationship('ConnectionTechnology', back_populates='tariff_plans')
+    connection_technology = db.relationship(
+        'ConnectionTechnology',
+        back_populates='tariff_plans',
+        overlaps='technology'
+    )
     customer_type = db.relationship('CustomersType', back_populates='tariff_plans')
     currency = db.relationship('Currencies', back_populates='tariff_plans')
-    technology = db.relationship('ConnectionTechnology', back_populates='tariff_plans')
+    technology = db.relationship(
+        'ConnectionTechnology',
+        back_populates='tariff_plans',
+        overlaps='connection_technology'
+    )
     # tv_package = db.relationship('TVPackage', back_populates='tariff_plans')
 

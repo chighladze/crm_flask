@@ -1,10 +1,11 @@
 {% extends 'main/base.html' %}
 
-{% block title %}{{ department.name }}: განყოფილებები{% endblock %}
+{% block title %}დეპარტამენტი — {{ department.name }}{% endblock %}
 
 {% block content %}
     <div class="car mb-2 btn-group">
-        <a href="{{ url_for('divisions.create', dep_id=department.id) }}" class="btn btn-success" title="განყოფილების დამატება"><i class="fas fa-plus"></i></a>
+        <a href="{{ url_for('divisions.create', dep_id=department.id) }}" class="btn btn-success"
+           title="განყოფილების დამატება"><i class="fas fa-plus"></i></a>
     </div>
     <div class="card">
         <div class="card-header">
@@ -99,8 +100,11 @@
                                 <td class="text-center">{{ division.updated_at }}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group" aria-label="Actions">
-                                        <a href="{{ url_for('divisions.edit', id=division.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება"><i class="fas fa-edit"></i></a>
-                                        <a href="{{ url_for('division_positions.positions_list', div_id=division.id) }}" class="btn btn-success btn-sm" title="პოზიციები">
+                                        <a href="{{ url_for('divisions.edit', id=division.id) }}"
+                                           class="btn btn-warning btn-sm" title="რედაქტირება"><i
+                                                class="fas fa-edit"></i></a>
+                                        <a href="{{ url_for('division_positions.positions_list', div_id=division.id) }}"
+                                           class="btn btn-success btn-sm" title="პოზიციები">
                                             <i class="fas fa-user-friends"></i>
                                         </a>
                                     </div>

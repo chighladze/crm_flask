@@ -1,7 +1,7 @@
+# crm_flask/app/forms/departments.py
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed
-from wtforms import StringField, PasswordField, SubmitField, FileField, ValidationError, BooleanField
-from wtforms.validators import DataRequired, Length, EqualTo, Email, Optional
+from wtforms import StringField, SubmitField, ValidationError
+from wtforms.validators import DataRequired, Length, Optional
 from ..models.departments import Departments
 
 

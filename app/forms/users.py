@@ -1,6 +1,6 @@
+# crm_flask/app/forms/users.py
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed
-from wtforms import StringField, PasswordField, SubmitField, FileField, ValidationError, BooleanField, SelectField
+from wtforms import StringField, PasswordField, SubmitField, ValidationError, BooleanField, SelectField
 from wtforms.validators import DataRequired, Length, EqualTo, Email, Optional
 from ..models.users import Users
 

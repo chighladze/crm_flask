@@ -13,14 +13,14 @@ def coerce_to_int(value):
         return None
 
 class OrderForm(FlaskForm):
-    customer_id = IntegerField('Customer ID', validators=[Optional()], )
+    customer_id = IntegerField('კლიენტის ID', validators=[Optional()], )
     address = FormField(AddressForm)
-    mobile = TelField('Mobile', validators=[DataRequired(), Length(max=20)])
-    alt_mobile = TelField('Alternative Mobile', validators=[Optional()])
-    tariff_plan_id = SelectField('Tariff Plan', validators=[DataRequired()], coerce=coerce_to_int)
-    comment = TextAreaField('Comment')
-    task_id = IntegerField('Task ID', validators=[Optional()])
-    submit = SubmitField('Create Order')
+    mobile = TelField('მობილური', validators=[DataRequired(), Length(max=20)])
+    alt_mobile = TelField('ალტერნატიული მობილური', validators=[Optional()])
+    tariff_plan_id = SelectField('სატარიფო გეგმა', validators=[DataRequired()], coerce=coerce_to_int)
+    comment = TextAreaField('კომენტარი')
+    task_id = IntegerField('დავალების ID', validators=[Optional()])
+    submit = SubmitField('შეკვეთის შენახვა')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

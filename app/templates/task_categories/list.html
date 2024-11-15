@@ -1,0 +1,43 @@
+{% extends 'main/base.html' %}
+
+{% block title %}კატეგორიები{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3>კატეგორიების სია</h3>
+            <a href="{{ url_for('task_categories.create_task_category') }}" class="btn btn-success">Добавить
+                категорию</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>სახელი</th>
+                    <th>განყოფილების პოზიცია</th>
+                    <th>მოქმედება</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for category in categories %}
+                    <tr>
+                        <td>{{ category.id }}</td>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.division_position.name if category.division_position else 'Не указана' }}</td>
+                        <td>
+                            <a href="{{ url_for('task_categories.edit_task_category', id=category.id) }}"
+                               class="btn btn-primary btn-sm">Редактировать</a>
+                            <form action="{{ url_for('task_categories.hide_task_category', id=category.id) }}"
+                                  method="POST" style="display: inline;">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-warning btn-sm">დაფარვა</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
