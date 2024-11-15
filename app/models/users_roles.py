@@ -11,7 +11,6 @@ class UsersRoles(db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
-    # Определяем связи с моделями Users и Roles
     user = db.relationship('Users', backref='roles', lazy=True)
     role = db.relationship('Roles', backref='users', lazy=True)
 

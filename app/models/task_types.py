@@ -1,3 +1,4 @@
+# crm_flask/app/models/task_types.py
 from ..extensions import db
 
 

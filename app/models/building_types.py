@@ -1,5 +1,5 @@
+# crm_flask/app/models/building_types.py
 from ..extensions import db
-from datetime import datetime
 
 
 class BuildingType(db.Model):

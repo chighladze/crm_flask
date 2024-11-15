@@ -1,6 +1,6 @@
+# crm_flask/app/models/customers.py
 from ..extensions import db
 from datetime import datetime
-from ..models.customer_type import CustomersType  # Ensure import is above usage
 
 
 class Customers(db.Model):

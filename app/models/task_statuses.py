@@ -1,3 +1,4 @@
+# crm_flask/app/models/task_statuses.py
 from ..extensions import db
 
 

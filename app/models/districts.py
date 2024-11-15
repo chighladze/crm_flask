@@ -1,6 +1,6 @@
-from datetime import datetime
-
+# crm_flask/app/models/districts.py
 from ..extensions import db
+from datetime import datetime
 
 
 class District(db.Model):

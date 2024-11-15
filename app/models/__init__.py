@@ -1,9 +1,9 @@
+# crm_flask/app/models/__init__.py
 from .departments import Departments
 from .division import Divisions
 from .department_positions import DepartmentPositions
 from .division_positions import DivisionPositions
 from .task_categories import TaskCategories
-# остальной импорт
 from .users import Users
 from .roles import Roles
 from .users_roles import UsersRoles

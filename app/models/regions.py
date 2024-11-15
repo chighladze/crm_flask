@@ -1,5 +1,5 @@
+# crm_flask/app/models/regions.py
 from datetime import datetime
-
 from ..extensions import db
 
 

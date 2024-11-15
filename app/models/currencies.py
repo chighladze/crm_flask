@@ -1,3 +1,4 @@
+# crm_flask/app/models/currencies.py
 from ..extensions import db
 from datetime import datetime
 

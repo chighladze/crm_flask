@@ -1,3 +1,4 @@
+# crm_flask/app/models/addresses.py
 from ..extensions import db
 from datetime import datetime
 
@@ -6,7 +7,7 @@ class Addresses(db.Model):
     __tablename__ = 'addresses'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    settlement_id = db.Column(db.Integer, db.ForeignKey('settlements.id'), nullable=False)  # Обратите внимание на ForeignKey
+    settlement_id = db.Column(db.Integer, db.ForeignKey('settlements.id'), nullable=False)
     building_type_id = db.Column(db.Integer, db.ForeignKey('building_types.id'), nullable=False)
     street = db.Column(db.String(100), nullable=False)
     building_number = db.Column(db.String(10), nullable=False)
@@ -20,7 +21,7 @@ class Addresses(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    settlement = db.relationship('Settlement', backref='addresses')  # Добавлено для settlement_id
+    settlement = db.relationship('Settlement', backref='addresses')
     building_type = db.relationship('BuildingType', backref='addresses')
     coordinates = db.relationship('Coordinates', backref='addresses')
 

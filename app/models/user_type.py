@@ -1,0 +1,1 @@
+# crm_flask/app/models/user_type.py

@@ -1,3 +1,4 @@
+# crm_flask/app/models/users.py
 from .roles import Roles
 from ..extensions import db, login_manager
 from datetime import datetime
@@ -46,7 +47,6 @@ class Users(UserMixin, db.Model):
             .all()
         )
 
-        # Преобразуем в список словарей
         permissions_dict_list = [{'id': permission.id, 'name': permission.name} for permission in permissions]
 
         return permissions_dict_list
@@ -72,7 +72,5 @@ def log_action(user, action):
     try:
         db.session.add(log)
         db.session.commit()
-        print("Запись в лог успешно добавлена.")
     except SQLAlchemyError as e:
         db.session.rollback()
-        print(f"Ошибка при добавлении записи в лог: {e}")
