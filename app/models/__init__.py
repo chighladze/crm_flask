@@ -14,7 +14,7 @@ from .districts import District
 from .settlements import Settlement
 from .building_types import BuildingType
 from .customers import Customers
-from .customer_type import CustomersType
+from .customers_type import CustomersType
 from .coordinates import Coordinates
 from .addresses import Addresses
 from .task_types import TaskTypes

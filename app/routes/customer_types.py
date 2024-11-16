@@ -4,7 +4,7 @@ from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
 from ..forms.customer_type import CustomerTypeForm
-from ..models.customer_type import CustomersType
+from ..models.customers_type import CustomersType
 
 customer_types = Blueprint('customer_types', __name__)
 

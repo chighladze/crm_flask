@@ -1,4 +1,4 @@
-# crm_flask/app/forms/customer_type.py
+# crm_flask/app/forms/customers_type.py
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SubmitField
 from wtforms.validators import DataRequired, Length

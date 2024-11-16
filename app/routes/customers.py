@@ -7,7 +7,7 @@ from ..extensions import db
 from ..forms.customers import CustomerForm
 from ..forms.orders import OrderForm
 from ..models.customers import Customers
-from ..models.customer_type import CustomersType
+from ..models.customers_type import CustomersType
 from ..models.addresses import Addresses
 from ..models.orders import Orders
 from sqlalchemy.exc import SQLAlchemyError

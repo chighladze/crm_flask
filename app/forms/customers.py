@@ -2,7 +2,7 @@
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length
-from ..models.customer_type import CustomersType
+from ..models.customers_type import CustomersType
 
 
 class CustomerForm(FlaskForm):
