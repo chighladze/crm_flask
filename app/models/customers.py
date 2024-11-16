@@ -18,4 +18,4 @@ class Customers(db.Model):
     updated_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Define the relationship with the CustomersType model
-    customer_type = db.relationship('CustomersType', back_populates='customers', lazy='joined')
+    # customer_type = db.relationship('CustomersType', back_populates='customers', lazy='joined')

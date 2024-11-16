@@ -5,7 +5,7 @@ from io import BytesIO
 import pandas as pd
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_file
 from ..models.tariff_plans import TariffPlan
-from ..models.customers import CustomersType
+from ..models.customers_type import CustomersType
 from ..models.currencies import Currencies
 from ..models.connection_technology import ConnectionTechnology
 from ..extensions import db
