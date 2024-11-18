@@ -1,12 +1,22 @@
 <!-- crm_flask/app/templates/divisions/positions/edit.html -->
 {% extends 'main/base.html' %}
 
-{% block title %}Редактировать позицию{% endblock %}
+{% block title %}პოზიციის რედაქტირება{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item">
+        <a href="{{ url_for('divisions.div_list', dep_id=division.department_id) }}">განყოფილებები</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ url_for('division_positions.positions_list', div_id=division.id) }}">პოზიციები</a>
+    </li>
+    <li class="breadcrumb-item active">პოზიციის რედაქტირება</li>
+{% endblock %}
 
 {% block content %}
     <div class="card col-md-6">
         <div class="card-header">
-            <h3 class="card-title">Редактировать позицию</h3>
+            <h3 class="card-title">დარედაქტირება</h3>
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('division_positions.position_edit', div_id=division.id, id=position.id) }}">

@@ -2,42 +2,154 @@
 
 {% block title %}კატეგორიები{% endblock %}
 
+{% block styles %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+{% endblock %}
+
 {% block content %}
-    <div class="card">
-        <div class="card-header">
-            <h3>კატეგორიების სია</h3>
-            <a href="{{ url_for('task_categories.create_task_category') }}" class="btn btn-success">Добавить
-                категорию</a>
+<style>
+    .btn:hover {
+        transition: transform 0.2s;
+        transform: scale(1.1);
+    }
+</style>
+<div class="card mb-2">
+    <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+        <div>
+            <a href="{{ url_for('task_categories.create_task_category') }}" class="btn btn-success" title="დამატება">
+                <i class="fas fa-plus"></i>
+            </a>
         </div>
-        <div class="card-body">
-            <table class="table table-hover">
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>სახელი</th>
-                    <th>განყოფილების პოზიცია</th>
-                    <th>მოქმედება</th>
-                </tr>
-                </thead>
-                <tbody>
+        <div class="mx-auto">
+            <a href="#" class="btn btn-info" title="ფილტრი" data-toggle="modal" data-target="#filterModal">
+                <i class="fas fa-filter"></i>
+            </a>
+        </div>
+        <div>
+            <a href="{{ url_for('task_categories.export_task_categories', search=search_query) }}" class="btn btn-outline-success" title="ექსპორტი Excel-ში">
+                <i class="fas fa-file-excel"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Modal -->
+<div class="modal fade animate__animated animate__fadeInDown" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">ფილტრის პარამეტრები</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="დახურვა">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="GET" action="{{ url_for('task_categories.list_task_categories') }}" class="mb-4">
+                    <div class="input-group mb-3">
+                        <textarea name="search" class="form-control" placeholder="ძებნა"
+                                  rows="3">{{ search_query }}</textarea>
+                        <div class="input-group-append">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>სორტირება:</label>
+                        <div class="d-flex align-items-center">
+                            <a href="{{ url_for('task_categories.list_task_categories', sort_by='name_asc', search=search_query, per_page=per_page) }}"
+                               class="btn {% if sort_by == 'name_asc' %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm mr-2"
+                               title="სახელი ზრდადობით">
+                                <i class="fas fa-arrow-up"></i>
+                            </a>
+                            <a href="{{ url_for('task_categories.list_task_categories', sort_by='name_desc', search=search_query, per_page=per_page) }}"
+                               class="btn {% if sort_by == 'name_desc' %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm"
+                               title="სახელი კლებადობით">
+                                <i class="fas fa-arrow-down"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" title="ფილტრის გამოყენება">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <a href="{{ url_for('task_categories.list_task_categories') }}" class="btn btn-danger" title="ფილტრის გასუფთავება">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+<div class="card-body table-responsive p-0">
+    <table class="table table-hover text-nowrap">
+        <thead>
+            <tr>
+                <th class="text-center">ID</th>
+                <th class="text-center">სახელი</th>
+                <th class="text-center">განყოფილების პოზიცია</th>
+                <th class="text-center">დეპარტამენტი</th>
+                <th class="text-center">მოქმედება</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if categories %}
                 {% for category in categories %}
                     <tr>
-                        <td>{{ category.id }}</td>
-                        <td>{{ category.name }}</td>
-                        <td>{{ category.division_position.name if category.division_position else 'Не указана' }}</td>
-                        <td>
-                            <a href="{{ url_for('task_categories.edit_task_category', id=category.id) }}"
-                               class="btn btn-primary btn-sm">Редактировать</a>
-                            <form action="{{ url_for('task_categories.hide_task_category', id=category.id) }}"
-                                  method="POST" style="display: inline;">
-                                {{ csrf_token() }}
-                                <button type="submit" class="btn btn-warning btn-sm">დაფარვა</button>
-                            </form>
+                        <td class="text-center">{{ category.id }}</td>
+                        <td class="text-center">{{ category.name }}</td>
+                        <td class="text-center">
+                            {{ category.division_position.name if category.division_position else 'Не указана' }}
+                        </td>
+                        <td class="text-center">
+                            {{ category.division_position.division.department.name if category.division_position and category.division_position.division.department else 'Не указан' }}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('task_categories.edit_task_category', id=category.id) }}"
+                                   class="btn btn-primary btn-sm" title="შეცვლა"><i class="fas fa-edit"></i></a>
+                                <form action="{{ url_for('task_categories.hide_task_category', id=category.id) }}" method="POST" style="display: inline;">
+                                    {{ csrf_token() }}
+                                    <button type="submit" class="btn btn-warning btn-sm" title="დაფარვა">
+                                        <i class="fas fa-eye-slash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">კატეგორიები არ არსებობს</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+    <div class="card-footer">
+        <ul class="pagination justify-content-center">
+            {% if pagination.pages > 1 %}
+                {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('task_categories.list_task_categories', search=search_query, page=pagination.prev_num, per_page=per_page) }}">&laquo;</a>
+                    </li>
+                {% endif %}
+                {% for page_num in range(1, pagination.pages + 1) %}
+                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('task_categories.list_task_categories', search=search_query, page=page_num, per_page=per_page) }}">{{ page_num }}</a>
+                    </li>
+                {% endfor %}
+                {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('task_categories.list_task_categories', search=search_query, page=pagination.next_num, per_page=per_page) }}">&raquo;</a>
+                    </li>
+                {% endif %}
+            {% endif %}
+        </ul>
     </div>
+</div>
 {% endblock %}

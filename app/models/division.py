@@ -13,10 +13,8 @@ class Divisions(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
-    # Relationship the Departments model
-    department = db.relationship('Departments', backref=db.backref('divisions', cascade='all, delete'))
+    # Relationship with Departments model
+    department = db.relationship('Departments', back_populates='divisions')
 
     def __repr__(self):
         return f'<Division {self.name}>'
-
-

@@ -1,12 +1,12 @@
 <!-- crm_flask/app/templates/divisions/positions/create.html -->
 {% extends 'main/base.html' %}
 
-{% block title %}Добавить позицию{% endblock %}
+{% block title %}პოზიციის დდამატება{% endblock %}
 
 {% block content %}
     <div class="card col-md-6">
         <div class="card-header">
-            <h3 class="card-title">Создать позицию</h3>
+            <h3 class="card-title">პოზიციის შექმნა</h3>
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('division_positions.position_create', div_id=division.id) }}">
