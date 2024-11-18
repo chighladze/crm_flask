@@ -175,6 +175,7 @@ def edit_user(user_id):
 
     return render_template('users/edit.html',
                            form=form,
+                           user=user,
                            active_menu='administration')
 
 

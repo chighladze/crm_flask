@@ -1,0 +1,52 @@
+.elegant-breadcrumb {
+    display: flex;
+    align-items: center;
+    list-style: none;
+    padding: 0.3rem 0.8rem; /* Уменьшены отступы */
+    margin: 0;
+    background: rgba(255, 255, 255, 0.8); /* Полупрозрачный фон */
+    border-radius: 0.4rem; /* Слегка уменьшен радиус */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Уменьшен размер тени */
+    max-width: 100%;
+    overflow-x: auto; /* Горизонтальная прокрутка при необходимости */
+    white-space: nowrap; /* Запрет на перенос текста */
+    font-size: 0.85rem; /* Слегка уменьшен размер шрифта */
+    scrollbar-width: thin; /* Тонкая полоса прокрутки для Firefox */
+}
+
+.elegant-breadcrumb::-webkit-scrollbar {
+    height: 4px; /* Тонкая полоса прокрутки */
+}
+
+.elegant-breadcrumb::-webkit-scrollbar-thumb {
+    background: #d1d1d1; /* Светло-серый цвет для полосы прокрутки */
+    border-radius: 10px;
+}
+
+.elegant-breadcrumb::-webkit-scrollbar-thumb:hover {
+    background: #a9a9a9; /* Темнее при наведении */
+}
+
+.elegant-breadcrumb .breadcrumb-item {
+    color: #6c757d; /* Серый цвет текста */
+    padding: 0 0.2rem; /* Уменьшены отступы между элементами */
+    text-overflow: ellipsis; /* Добавление троеточия для длинных элементов */
+    overflow: hidden;
+}
+
+.elegant-breadcrumb .breadcrumb-item a {
+    color: #007bff; /* Цвет ссылок */
+    text-decoration: none;
+    transition: color 0.3s ease;
+    white-space: nowrap;
+}
+
+.elegant-breadcrumb .breadcrumb-item a:hover {
+    color: #0056b3; /* Более темный синий при наведении */
+}
+
+.elegant-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: #6c757d; /* Цвет разделителя */
+    margin: 0 0.2rem; /* Уменьшено расстояние между текстом и разделителем */
+}

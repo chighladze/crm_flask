@@ -2,6 +2,10 @@
 
 {% block title %}დეპარტამენტი — {{ department.name }}{% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item active">დეპარტამენტები</li>
+{% endblock %}
+
 {% block content %}
     <div class="car mb-2 btn-group">
         <a href="{{ url_for('divisions.create', dep_id=department.id) }}" class="btn btn-success"

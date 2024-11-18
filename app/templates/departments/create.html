@@ -2,6 +2,13 @@
 
 {% block title %}დეპარტამენტის შექმნა{% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item">
+        <a href="{{ url_for('departments.dep_list') }}">დეპარტამენტები</a>
+    </li>
+    <li class="breadcrumb-item active">დეპარტამენტის შექმნა</li>
+{% endblock %}
+
 {% block content %}
     <div class="card col-md-6">
         <div class="card-header">

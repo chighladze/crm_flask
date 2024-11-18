@@ -2,10 +2,18 @@
 
 {% block title %}დეპარტამენტის რედაქტირება{% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item">
+        <a href="{{ url_for('departments.dep_list') }}">დეპარტამენტები</a>
+    </li>
+    <li class="breadcrumb-item active">დეპარტამენტის რედაქტირება
+</li>
+{% endblock %}
+
 {% block content %}
     <div class="card col-md-6">
         <div class="card-header">
-            <h3 class="card-title">დეპარტამენტის რედაქტირება</h3>
+            <h3 class="card-title">რედაქტირება</h3>
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('departments.edit', id=department.id) }}">

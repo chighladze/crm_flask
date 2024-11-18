@@ -2,6 +2,13 @@
 
 {% block title %}დეპარტამენტები{% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item">
+        <a href="{{ url_for('departments.dep_list') }}">{{  }}</a>
+    </li>
+    <li class="breadcrumb-item active">განყოფილებების სია</li>
+{% endblock %}
+
 {% block content %}
     <div class="car mb-2 btn-group">
         <a href="{{ url_for('departments.create') }}" class="btn btn-success" title="დეპარტამენტსი დამატება"><i class="fas fa-plus"></i></a>

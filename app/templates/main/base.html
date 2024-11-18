@@ -7,8 +7,9 @@
     {% block styles %}{% endblock %}
     <link rel="icon" href="{{ url_for('static', filename='dist/img/8020943.png') }}" type="image/x-icon">
     <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome Free -->
     <link rel="stylesheet" href="{{ url_for('static', filename='plugins/fontawesome-free/css/all.min.css') }}">
     <!-- Tempusdominus Bootstrap 4 -->
     <link rel="stylesheet"
@@ -26,6 +27,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='plugins/daterangepicker/daterangepicker.css') }}">
     <!-- summernote -->
     <link rel="stylesheet" href="{{ url_for('static', filename='plugins/summernote/summernote-bs4.min.css') }}">
+    <!-- custom -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='dist/css/custom/main/base.css') }}">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed dark-light">
 <div class="wrapper">
@@ -42,92 +45,15 @@
                     <div class="col-sm-6">
                         <h1 class="title-shadow">{{ self.title() }}</h1>
                     </div>
-                    <style>
-                        /* Title style with shadow */
-                        .title-shadow {
-                            font-size: 1.5rem;
-                            font-weight: bold;
-                            color: #343a40;
-                            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-                        }
-                    </style>
                     <!-- Breadcrumb section -->
                     <div class="col-sm-6">
                         <ol class="breadcrumb elegant-breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">მთავარი გვერდი</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">მთავარი გვერდი</a>
+                            </li>
                             {% block breadcrumb %}
                             {% endblock %}
                         </ol>
                     </div>
-
-                    <style>
-                        /* General breadcrumb styles */
-                        .elegant-breadcrumb {
-                            display: flex;
-                            align-items: center;
-                            list-style: none;
-                            padding: 0.5rem 1rem;
-                            margin: 0;
-                            background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
-                            border-radius: 0.5rem;
-                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                            overflow: hidden;
-                            flex-wrap: nowrap;
-                            max-width: 100%;
-                        }
-
-                        .elegant-breadcrumb .breadcrumb-item {
-                            font-size: 0.9rem;
-                            color: #6c757d; /* Gray text */
-                            padding: 0 0.5rem;
-                            white-space: nowrap; /* Prevent text wrapping */
-                            text-overflow: ellipsis; /* Add ellipsis for overflow */
-                            overflow: hidden;
-                        }
-
-                        .elegant-breadcrumb .breadcrumb-item a {
-                            color: #007bff; /* Blue link */
-                            text-decoration: none;
-                            transition: color 0.3s ease;
-                        }
-
-                        .elegant-breadcrumb .breadcrumb-item a:hover {
-                            color: #0056b3; /* Darker blue on hover */
-                        }
-
-                        .elegant-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
-                            content: ">";
-                            color: #6c757d; /* Separator color */
-                            margin: 0 0.5rem;
-                        }
-
-                        /* Responsive styles */
-                        @media (max-width: 768px) {
-                            .elegant-breadcrumb {
-                                padding: 0.5rem;
-                                overflow-x: auto;
-                                scrollbar-width: thin; /* Thin scrollbar for Firefox */
-                            }
-
-                            .elegant-breadcrumb::-webkit-scrollbar {
-                                height: 4px;
-                            }
-
-                            .elegant-breadcrumb::-webkit-scrollbar-thumb {
-                                background: #007bff; /* Scrollbar thumb color */
-                                border-radius: 10px;
-                            }
-
-                            .elegant-breadcrumb::-webkit-scrollbar-thumb:hover {
-                                background: #0056b3;
-                            }
-
-                            .elegant-breadcrumb .breadcrumb-item {
-                                font-size: 0.8rem; /* Smaller font on mobile */
-                                padding: 0 0.3rem;
-                            }
-                        }
-                    </style>
                 </div>
             </div>
         </div>
@@ -165,5 +91,6 @@
     <script src="{{ url_for('static', filename='dist/js/adminlte.js') }}"></script>
     <script src="{{ url_for('static', filename='dist/js/custom/main/footer.js') }}"></script>
     {% block script %}{% endblock %}
+</div>
 </body>
 </html>
