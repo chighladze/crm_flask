@@ -59,10 +59,14 @@
                         </tbody>
                     </table>
                 </div>
-
-                <div class="card-footer">
-                    <a href="{{ url_for('users.edit_user', user_id=user.id) }}" class="btn btn-warning">რედაქტირება</a>
-                    <a href="{{ url_for('users.users_list') }}" class="btn btn-primary">უკან სიისკენ</a>
+                <!-- Footer buttons -->
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="{{ url_for('users.users_list') }}" class="btn btn-primary" title="შეკვეთების სიაში">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <a href="{{ url_for('users.edit_user', user_id=user.id) }}"" class="btn btn-warning ml-auto" title="რედაქტირება">
+                        <i class="fas fa-edit"></i>
+                    </a>
                 </div>
             </div>
         </div>

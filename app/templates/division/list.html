@@ -3,7 +3,10 @@
 {% block title %}დეპარტამენტი — {{ department.name }}{% endblock %}
 
 {% block breadcrumb %}
-    <li class="breadcrumb-item active">დეპარტამენტები</li>
+    <li class="breadcrumb-item">
+        <a href="{{ url_for('departments.dep_list') }}">დეპარტამენტები</a>
+    </li>
+    <li class="breadcrumb-item active">განყოფილებების სია</li>
 {% endblock %}
 
 {% block content %}

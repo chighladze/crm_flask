@@ -3,10 +3,7 @@
 {% block title %}დეპარტამენტები{% endblock %}
 
 {% block breadcrumb %}
-    <li class="breadcrumb-item">
-        <a href="{{ url_for('departments.dep_list') }}">{{  }}</a>
-    </li>
-    <li class="breadcrumb-item active">განყოფილებების სია</li>
+    <li class="breadcrumb-item active">დეპარტამენტები</li>
 {% endblock %}
 
 {% block content %}
@@ -65,24 +62,36 @@
                             </tr>
                         </thead>
                         <tbody>
-                        {% for department in departments %}
-                            <tr>
-                                <td>{{ department.id }}</td>
-                                <td>
-                                    <span>{{ department.name }}</span>
-                                    <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" title="{{ department.description }}"></i>
-                                </td>
-                                <td class="text-center">{{ department.createdAt }}</td>
-                                <td class="text-center">{{ department.updatedAt }}</td>
-                                <td class="text-center">
-                                    <div class="btn-group" role="group">
-                                        <a href="{{ url_for('departments.edit', id=department.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება"><i class="fas fa-edit"></i></a>
-                                        <a href="{{ url_for('divisions.div_list', dep_id=department.id) }}" class="btn btn-primary btn-sm" title="განყოფილებები"><i class="fas fa-project-diagram"></i></a>
-                                        <a href="{{ url_for('department_positions.positions_llist', dep_id=department.id) }}" class="btn btn-success btn-sm" title="პოზიციები"><i class="fas fa-user-friends"></i></a>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
+                            {% if departments %}
+                                {% for department in departments %}
+                                    <tr>
+                                        <td>{{ department.id }}</td>
+                                        <td>
+                                            <span>{{ department.name }}</span>
+                                            <i class="fas fa-info-circle" data-toggle="tooltip" data-placement="top" title="{{ department.description }}"></i>
+                                        </td>
+                                        <td class="text-center">{{ department.createdAt.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                        <td class="text-center">{{ department.updatedAt.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ url_for('departments.edit', id=department.id) }}" class="btn btn-warning btn-sm" title="რედაქტირება">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="{{ url_for('divisions.div_list', dep_id=department.id) }}" class="btn btn-primary btn-sm" title="განყოფილებები">
+                                                    <i class="fas fa-project-diagram"></i>
+                                                </a>
+                                                <a href="{{ url_for('department_positions.positions_llist', dep_id=department.id) }}" class="btn btn-success btn-sm" title="პოზიციები">
+                                                    <i class="fas fa-user-friends"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">მონაცემები არ არის</td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
