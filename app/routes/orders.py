@@ -57,17 +57,21 @@ def create_order(customer_id):
         db.session.add(order)
         db.session.commit()
 
-        # Создание задачи для нового заказа
+        # Create order task for installs
         task = Tasks(
-            task_category_id=1,  # Укажите категорию по умолчанию, если она требуется
-            task_type_id=1,  # Укажите тип задачи по умолчанию
+            task_category_id=1,
+            task_type_id=1,
             description=f"შეკვეთის №{order.id}-ისთვის ახალი დავალება შექმნილია",
-            status_id=1,  # Укажите статус задачи по умолчанию
-            task_priority_id=2,  # Укажите приоритет по умолчанию
-            created_by=current_user.id,  # Устанавливаем текущего пользователя как создателя
+            status_id=1,
+            task_priority_id=2,
+            created_by=current_user.id,
             created_division_id=current_user.division_id if hasattr(current_user, 'division_id') else None,
         )
         db.session.add(task)
+        db.session.commit()
+
+        # Update task_id in order table
+        order.task_id = task.id
         db.session.commit()
 
         flash('განაცხადი და დავალება წარმატებით დამატებულია!', 'success')
