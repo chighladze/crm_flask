@@ -6,12 +6,13 @@ import sqlalchemy as sa
 from ..extensions import db
 from ..forms.customers import CustomerForm
 from ..forms.orders import OrderForm
-from ..models import Customers, CustomersType, Addresses, Orders, Coordinates
+from ..models import Customers, CustomersType, Addresses, Orders, Coordinates, Tasks
 from sqlalchemy.exc import SQLAlchemyError
 from io import BytesIO
 import pandas as pd
 
 customers = Blueprint('customers', __name__)
+
 
 @customers.route('/customers/create', methods=['GET', 'POST'])
 @login_required
@@ -44,7 +45,6 @@ def create():
             db.session.add(customer)
             db.session.commit()
 
-            # Set customer_id in order_form
             if create_with_order:
                 order_form.customer_id.data = customer.id  # Set customer_id
 
@@ -77,7 +77,7 @@ def create():
 
                 # Create and save order linked to customer and address
                 order = Orders(
-                    customer_id=order_form.customer_id.data,  # Use customer_id from order_form
+                    customer_id=order_form.customer_id.data,
                     address_id=address.id,
                     mobile=order_form.mobile.data,
                     alt_mobile=order_form.alt_mobile.data,
@@ -87,7 +87,24 @@ def create():
                 db.session.add(order)
                 db.session.commit()
 
-                flash('Client and order created successfully!', 'success')
+                # Create task for the order
+                task = Tasks(
+                    task_category_id=1,
+                    task_type_id=1,
+                    description=f"შეკვეთის №{order.id}-ისთვის ახალი დავალება შექმნილია",
+                    status_id=1,
+                    task_priority_id=2,
+                    created_by=current_user.id,
+                    created_division_id=current_user.division_id if hasattr(current_user, 'division_id') else None,
+                )
+                db.session.add(task)
+                db.session.commit()
+
+                # Link task to the order
+                order.task_id = task.id
+                db.session.commit()
+
+                flash('Client, order, and task created successfully!', 'success')
             else:
                 flash('Client created successfully!', 'success')
 
@@ -114,7 +131,6 @@ def create():
         create_with_order=create_with_order,
         active_menu='customers'
     )
-
 
 
 @customers.route('/customer/<int:id>/view', methods=['GET'])
