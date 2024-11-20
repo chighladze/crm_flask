@@ -2,12 +2,15 @@
 {% extends "main/base.html" %}
 
 {% block title %}კლიენტის რეგისტრაცია{% endblock %}
+
 {% block styles %}
 	<link rel="icon" href="{{ url_for('static', filename='dist/css/custom/customers/create.css') }}" type="image/x-icon">
 {% endblock %}
+
 {% block script %}
-    <script src="{{ url_for('static', filename='dist/js/custom/customers/create.js') }}"></script>
+<script src="{{ url_for('static', filename='dist/js/custom/customers/create.js') }}"></script>
 {% endblock %}
+
 {% block content %}
     <!-- Форма регистрации клиента -->
     <form method="POST" id="customer-form" novalidate> <!-- Добавлен id="customer-form" -->
@@ -103,12 +106,19 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="building_type">შენობის ტიპი</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                <div class="form-group">
+                                    <label for="building_type">შენობის ტიპი</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-building"></i>
+                                            </span>
+                                        </div>
+                                        {{ order_form.address.building_type_id(class="form-control", required=True) }}
+                                        {% if order_form.address.building_type_id.errors %}
+                                            <div class="text-danger">{{ order_form.address.building_type_id.errors[0] }}</div>
+                                        {% endif %}
                                     </div>
-                                    {{ order_form.address.building_type_id(class="form-control", required=True) }}
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3" id="dynamic_fields"></div>
@@ -126,11 +136,11 @@
                         <div class="form-row">
                             <div class="col-md-6 mb-3">
                                 <label>გრძედი</label>
-                                {{ order_form.address.latitude(class="form-control", required=True) }}
+                                {{ order_form.address.latitude(class="form-control", required=False) }}
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label>განედი</label>
-                                {{ order_form.address.longitude(class="form-control", required=True) }}
+                                {{ order_form.address.longitude(class="form-control", required=False) }}
                             </div>
                         </div>
                         <div class="form-group">
@@ -234,4 +244,36 @@
             }
         }
     </style>
+    <script>
+        // Динамическое отображение полей на основе типа здания
+        document.getElementById('address-building_type_id').addEventListener('change', function () {
+            const buildingTypeId = this.value; // Получить выбранный тип здания
+            const dynamicFields = document.getElementById('dynamic_fields'); // Контейнер для дополнительных полей
+            dynamicFields.innerHTML = ''; // Очистить текущие поля
+
+            if (buildingTypeId) {
+                if (buildingTypeId === '1') { // Тип "ბინა"
+                    dynamicFields.innerHTML += `
+                                <div class="form-group">
+                                    <label for="apartment_number">ბინის ნომერი</label>
+                                    <input type="text" name="apartment_number" class="form-control" required>
+                                </div>`;
+                } else if (buildingTypeId === '2') { // Тип "კორპუსი"
+                    dynamicFields.innerHTML += `
+                                <div class="form-group">
+                                    <label for="entrance_number">სადარბაზო</label>
+                                    <input type="number" name="entrance_number" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="floor_number">სართული</label>
+                                    <input type="number" name="floor_number" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="apartment_number">ბინის ნომერი</label>
+                                    <input type="text" name="apartment_number" class="form-control" required>
+                                </div>`;
+                }
+            }
+        });
+    </script>
 {% endblock %}

@@ -163,10 +163,10 @@
                         <tbody>
                         {% for customer in customers %}
                             <tr>
-                                <td>{{ customer.id }}</td>
+                                <td class="text-center">{{ customer.id }}</td>
                                 <td>{{ customer.name }}</td>
-                                <td>{{ customer.identification_number }}</td>
-                                <td>{{ customer.customer_type.name }}</td>
+                                <td class="text-center">{{ customer.identification_number }}</td>
+                                <td class="text-center">{{ customer.customer_type.name }}</td>
                                 <td class="text-center">{{ customer.created_at }}</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">

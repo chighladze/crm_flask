@@ -6,10 +6,7 @@ import sqlalchemy as sa
 from ..extensions import db
 from ..forms.customers import CustomerForm
 from ..forms.orders import OrderForm
-from ..models.customers import Customers
-from ..models.customers_type import CustomersType
-from ..models.addresses import Addresses
-from ..models.orders import Orders
+from ..models import Customers, CustomersType, Addresses, Orders, Coordinates
 from sqlalchemy.exc import SQLAlchemyError
 from io import BytesIO
 import pandas as pd
@@ -51,6 +48,18 @@ def create():
             if create_with_order:
                 order_form.customer_id.data = customer.id  # Set customer_id
 
+                # Create coordinates only if latitude and longitude are provided
+                latitude = order_form.address.latitude.data
+                longitude = order_form.address.longitude.data
+                coordinates = None
+                if latitude is not None and longitude is not None:
+                    coordinates = Coordinates(
+                        latitude=latitude,
+                        longitude=longitude,
+                    )
+                    db.session.add(coordinates)
+                    db.session.commit()
+
                 # Create and save address
                 address = Addresses(
                     settlement_id=order_form.address.settlement_id.data,
@@ -60,7 +69,7 @@ def create():
                     entrance_number=order_form.address.entrance_number.data,
                     floor_number=order_form.address.floor_number.data,
                     apartment_number=order_form.address.apartment_number.data,
-                    coordinates_id=None,  # Set this as needed
+                    coordinates_id=coordinates.id if coordinates else None,
                     registry_code=order_form.address.registry_code.data,
                 )
                 db.session.add(address)
@@ -105,6 +114,7 @@ def create():
         create_with_order=create_with_order,
         active_menu='customers'
     )
+
 
 
 @customers.route('/customer/<int:id>/view', methods=['GET'])

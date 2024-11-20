@@ -1,6 +1,6 @@
 # crm_flask/app/routes/orders.py
 from flask import render_template, redirect, url_for, flash, request, jsonify
-from app.models import Orders, District, Settlement, BuildingType, Customers, Addresses, TariffPlan
+from app.models import Orders, District, Settlement, BuildingType, Customers, Addresses, TariffPlan, Coordinates
 from app.forms import OrderForm
 from flask import Blueprint
 import sqlalchemy as sa
@@ -11,14 +11,26 @@ orders = Blueprint('orders', __name__)
 
 
 @orders.route('/customer/<int:customer_id>/orders/create', methods=['GET', 'POST'])
+@login_required
 def create_order(customer_id):
     customer = Customers.query.get_or_404(customer_id)
     form = OrderForm()
 
     if form.validate_on_submit():
-        # Now you can get customer_id from the form data
-        customer_id = form.customer_id.data
+        latitude = form.address.latitude.data
+        longitude = form.address.longitude.data
 
+        # Создание записи Coordinates только если заданы значения
+        coordinates = None
+        if latitude is not None and longitude is not None:
+            coordinates = Coordinates(
+                latitude=latitude,
+                longitude=longitude,
+            )
+            db.session.add(coordinates)
+            db.session.commit()
+
+        # Создание записи Addresses
         address = Addresses(
             settlement_id=form.address.settlement_id.data,
             building_type_id=form.address.building_type_id.data,
@@ -27,26 +39,24 @@ def create_order(customer_id):
             entrance_number=form.address.entrance_number.data,
             floor_number=form.address.floor_number.data,
             apartment_number=form.address.apartment_number.data,
-            coordinates_id=None,  # Set this as needed
+            coordinates_id=coordinates.id if coordinates else None,
             registry_code=form.address.registry_code.data,
         )
-
-        # Add the address to the session and commit
         db.session.add(address)
         db.session.commit()
 
-        # Create an order with the newly created address
+        # Создание заказа
         order = Orders(
             customer_id=customer_id,
-            address_id=address.id,  # Link to the newly created address
+            address_id=address.id,
             mobile=form.mobile.data,
             alt_mobile=form.alt_mobile.data,
             tariff_plan_id=form.tariff_plan_id.data,
-            comment=form.comment.data,  # Add comment if needed
+            comment=form.comment.data,
         )
-
         db.session.add(order)
         db.session.commit()
+
         flash('განაცხადი წარმატებით დამატებულია!', 'success')
         return redirect(url_for('customers.view', id=customer_id))
     else:
@@ -57,6 +67,7 @@ def create_order(customer_id):
 
 
 @orders.route('/settlements/<int:district_id>')
+@login_required
 def get_settlements(district_id):
     settlements = Settlement.query.filter_by(district_id=district_id).all()
     return jsonify({'settlements': [{'id': settlement.id, 'name': settlement.name} for settlement in settlements]})
@@ -134,10 +145,80 @@ def orders_list():
 @orders.route('/orders/<int:order_id>/view', methods=['GET'])
 @login_required
 def order_view(order_id):
-    order = Orders.query.get_or_404(order_id)
+    order = Orders.query.options(
+        db.joinedload(Orders.address).joinedload(Addresses.coordinates)
+    ).get_or_404(order_id)
     return render_template('orders/order_view.html', order=order, active_menu='orders')
 
 @orders.route('/orders/<int:order_id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit_order(order_id):
-    # Логика для редактирования заказа
-    pass
+    order = Orders.query.get_or_404(order_id)
+    customer = Customers.query.get_or_404(order.customer_id)
+    address = Addresses.query.get_or_404(order.address_id)
+    coordinates = address.coordinates if address.coordinates_id else None
+
+    form = OrderForm(obj=order)
+
+    # Заполнить подформу адреса
+    if address:
+        form.address.district_id.data = address.settlement.district_id
+        form.address.settlement_id.data = address.settlement_id
+        form.address.building_type_id.data = address.building_type_id
+        form.address.street.data = address.street
+        form.address.building_number.data = address.building_number
+        form.address.entrance_number.data = address.entrance_number
+        form.address.floor_number.data = address.floor_number
+        form.address.apartment_number.data = address.apartment_number
+        form.address.registry_code.data = address.registry_code
+        if coordinates:
+            form.address.latitude.data = coordinates.latitude
+            form.address.longitude.data = coordinates.longitude
+
+    if form.validate_on_submit():
+        latitude = form.address.latitude.data
+        longitude = form.address.longitude.data
+
+        # Обновить или удалить координаты
+        if latitude is not None and longitude is not None:
+            if not coordinates:
+                coordinates = Coordinates()
+                db.session.add(coordinates)
+            coordinates.latitude = latitude
+            coordinates.longitude = longitude
+            db.session.commit()
+        elif coordinates:
+            db.session.delete(coordinates)
+            db.session.commit()
+            coordinates = None
+
+        # Обновить адрес
+        address.settlement_id = form.address.settlement_id.data
+        address.building_type_id = form.address.building_type_id.data
+        address.street = form.address.street.data
+        address.building_number = form.address.building_number.data
+        address.entrance_number = form.address.entrance_number.data
+        address.floor_number = form.address.floor_number.data
+        address.apartment_number = form.address.apartment_number.data
+        address.registry_code = form.address.registry_code.data
+        address.coordinates_id = coordinates.id if coordinates else None
+        db.session.commit()
+
+        # Обновить заказ
+        order.mobile = form.mobile.data
+        order.alt_mobile = form.alt_mobile.data
+        order.tariff_plan_id = form.tariff_plan_id.data
+        order.comment = form.comment.data
+        db.session.commit()
+
+        flash('შეკვეთა წარმატებით განახლდა!', 'success')
+        return redirect(url_for('orders.order_view', order_id=order.id))
+
+    return render_template(
+        'orders/edit_order.html',
+        form=form,
+        order=order,
+        customer=customer
+    )
+
+

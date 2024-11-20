@@ -1,0 +1,116 @@
+{% extends 'main/base.html' %}
+
+{% block title %}შეკვეთის რედაქტირება{% endblock %}
+
+{% block content %}
+<div class="card card-warning">
+    <div class="card-header">
+        <h3 class="card-title">კლიენტი: {{ customer.name }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('orders.edit_order', order_id=order.id) }}">
+            {{ form.hidden_tag() }}
+            <input type="hidden" name="customer_id" value="{{ customer.id }}">
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="district">რაიონი</label>
+                        {{ form.address.district_id(class="form-control", required=True) }}
+                        {% if form.address.district_id.errors %}
+                            <div class="text-danger">{{ form.address.district_id.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="settlement">დასახლება</label>
+                        {{ form.address.settlement_id(class="form-control", required=True) }}
+                        {% if form.address.settlement_id.errors %}
+                            <div class="text-danger">{{ form.address.settlement_id.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="building_type">შენობის ტიპი</label>
+                        {{ form.address.building_type_id(class="form-control", required=True) }}
+                        {% if form.address.building_type_id.errors %}
+                            <div class="text-danger">{{ form.address.building_type_id.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="street">ქუჩის სახელი</label>
+                        {{ form.address.street(class="form-control", required=True) }}
+                        {% if form.address.street.errors %}
+                            <div class="text-danger">{{ form.address.street.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Остальные поля формы (например, latitude, longitude, registry_code и т. д.) -->
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="latitude">გრძედი</label>
+                        {{ form.address.latitude(class="form-control", required=True) }}
+                        {% if form.address.latitude.errors %}
+                            <div class="text-danger">{{ form.address.latitude.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="longitude">განედი</label>
+                        {{ form.address.longitude(class="form-control", required=True) }}
+                        {% if form.address.longitude.errors %}
+                            <div class="text-danger">{{ form.address.longitude.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="mobile">მობილური ტელეფონი</label>
+                        {{ form.mobile(class="form-control", required=True) }}
+                        {% if form.mobile.errors %}
+                            <div class="text-danger">{{ form.mobile.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="form-group">
+                        <label for="tariff_plan_id">სატარიფო გეგმა</label>
+                        {{ form.tariff_plan_id(class="form-control", required=True) }}
+                        {% if form.tariff_plan_id.errors %}
+                            <div class="text-danger">{{ form.tariff_plan_id.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <div class="form-group">
+                        <label for="comment">კომენტარი</label>
+                        {{ form.comment(class="form-control", required=True, rows=4) }}
+                        {% if form.comment.errors %}
+                            <div class="text-danger">{{ form.comment.errors[0] }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">შეკვეთის რედაქტირება</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

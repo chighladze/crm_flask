@@ -27,3 +27,7 @@ class Addresses(db.Model):
 
     def __repr__(self):
         return f'<Address {self.street} {self.building_number}>'
+
+    @property
+    def district(self):
+        return self.settlement.district if self.settlement else None

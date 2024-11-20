@@ -108,7 +108,7 @@
                 <div class="col-md-6 mb-3">
                     <div class="form-group">
                         <label for="latitude">გრძედი</label>
-                        {{ form.address.latitude(class="form-control", required=True) }}
+                        {{ form.address.latitude(class="form-control", required=False) }}
                         {% if form.address.latitude.errors %}
                             <div class="text-danger">{{ form.address.latitude.errors[0] }}</div>
                         {% endif %}
@@ -117,7 +117,7 @@
                 <div class="col-md-6 mb-3">
                     <div class="form-group">
                         <label for="longitude">განედი</label>
-                        {{ form.address.longitude(class="form-control", required=True) }}
+                        {{ form.address.longitude(class="form-control", required=False) }}
                         {% if form.address.longitude.errors %}
                             <div class="text-danger">{{ form.address.longitude.errors[0] }}</div>
                         {% endif %}

@@ -9,6 +9,6 @@ class Coordinates(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     latitude = db.Column(db.Numeric(10, 8), nullable=False)
     longitude = db.Column(db.Numeric(11, 8), nullable=False)
-    description = db.Column(db.String(255))
+    description = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

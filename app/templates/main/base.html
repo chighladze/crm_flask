@@ -31,52 +31,51 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/css/custom/main/base.css') }}">
 </head>
 <body class="hold-transition sidebar-mini layout-fixed dark-light">
-<div class="wrapper">
+    <div class="wrapper">
 
-    {% include 'main/_navbar.html' %}
-    {% include 'main/_sidebar.html' %}
+        {% include 'main/_navbar.html' %}
+        {% include 'main/_sidebar.html' %}
 
-    <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
-        <div class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <!-- Title section -->
-                    <div class="col-sm-6">
-                        <h1 class="title-shadow">{{ self.title() }}</h1>
-                    </div>
-                    <!-- Breadcrumb section -->
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb elegant-breadcrumb float-sm-right">
-                            <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">მთავარი გვერდი</a>
-                            </li>
-                            {% block breadcrumb %}
-                            {% endblock %}
-                        </ol>
+        <div class="content-wrapper">
+            <!-- Content Header (Page header) -->
+            <div class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <!-- Title section -->
+                        <div class="col-sm-6">
+                            <h1 class="title-shadow">{{ self.title() }}</h1>
+                        </div>
+                        <!-- Breadcrumb section -->
+                        <div class="col-sm-6">
+                            <ol class="breadcrumb elegant-breadcrumb float-sm-right">
+                                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">მთავარი გვერდი</a>
+                                </li>
+                                {% block breadcrumb %}
+                                {% endblock %}
+                            </ol>
+                        </div>
                     </div>
                 </div>
             </div>
+            <!-- /.content-header -->
+            <section class="content">
+                <div class="container-fluid">
+                    {% with messages = get_flashed_messages(with_categories=True) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    {% block content %}{% endblock %}
+                </div>
+            </section>
         </div>
-        <!-- /.content-header -->
-        <section class="content">
-            <div class="container-fluid">
-                {% with messages = get_flashed_messages(with_categories=True) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">
-                                {{ message }}
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-                {% block content %}
-                {% endblock %}
-            </div>
-        </section>
+
+        {% include 'main/_footer.html' %}
     </div>
-
-    {% include 'main/_footer.html' %}
-
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='plugins/jquery/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='plugins/jquery-ui/jquery-ui.min.js') }}"></script>
@@ -91,6 +90,5 @@
     <script src="{{ url_for('static', filename='dist/js/adminlte.js') }}"></script>
     <script src="{{ url_for('static', filename='dist/js/custom/main/footer.js') }}"></script>
     {% block script %}{% endblock %}
-</div>
 </body>
 </html>

@@ -19,3 +19,5 @@ class Orders(db.Model):
 
     customer = db.relationship('Customers', backref='orders', lazy='joined')
     tariff_plan = db.relationship('TariffPlan', backref='orders', lazy='joined')
+    # Add this relationship
+    address = db.relationship('Addresses', backref='orders', lazy='joined')
