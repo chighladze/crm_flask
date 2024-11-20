@@ -15,6 +15,7 @@ from ..routes.customer_types import customer_types
 from ..routes.tariff_plans import tariff_plans
 from ..routes.division_positions import division_positions
 from ..routes.task_categories import task_categories
+from ..routes.tasks import tasks
 
 
 def register_routes(app):
@@ -34,3 +35,4 @@ def register_routes(app):
     app.register_blueprint(tariff_plans)
     app.register_blueprint(division_positions)
     app.register_blueprint(task_categories)
+    app.register_blueprint(tasks)

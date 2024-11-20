@@ -1,6 +1,6 @@
 # crm_flask/app/routes/orders.py
 from flask import render_template, redirect, url_for, flash, request, jsonify
-from app.models import Orders, District, Settlement, BuildingType, Customers, Addresses, TariffPlan, Coordinates
+from app.models import Orders, District, Settlement, BuildingType, Customers, Addresses, TariffPlan, Coordinates, Tasks
 from app.forms import OrderForm
 from flask import Blueprint
 import sqlalchemy as sa
@@ -57,12 +57,26 @@ def create_order(customer_id):
         db.session.add(order)
         db.session.commit()
 
-        flash('განაცხადი წარმატებით დამატებულია!', 'success')
+        # Создание задачи для нового заказа
+        task = Tasks(
+            task_category_id=1,  # Укажите категорию по умолчанию, если она требуется
+            task_type_id=1,  # Укажите тип задачи по умолчанию
+            description=f"შეკვეთის №{order.id}-ისთვის ახალი დავალება შექმნილია",
+            status_id=1,  # Укажите статус задачи по умолчанию
+            task_priority_id=2,  # Укажите приоритет по умолчанию
+            created_by=current_user.id,  # Устанавливаем текущего пользователя как создателя
+            created_division_id=current_user.division_id if hasattr(current_user, 'division_id') else None,
+        )
+        db.session.add(task)
+        db.session.commit()
+
+        flash('განაცხადი და დავალება წარმატებით დამატებულია!', 'success')
         return redirect(url_for('customers.view', id=customer_id))
     else:
         for field, errors in form.errors.items():
             for error in errors:
                 flash(f"Error in the {getattr(form, field).label.text} field - {error}", 'danger')
+
     return render_template('orders/create_order.html', customer=customer, form=form)
 
 

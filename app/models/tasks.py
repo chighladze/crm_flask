@@ -29,3 +29,6 @@ class Tasks(db.Model):
     completed_at = db.Column(db.DateTime)
     comments_count = db.Column(db.Integer, default=0)
     is_recurring = db.Column(db.Boolean, default=False)
+
+    status = db.relationship('TaskStatuses', backref='tasks', lazy='joined')
+    priority = db.relationship('TaskPriorities', backref='tasks', lazy='joined')

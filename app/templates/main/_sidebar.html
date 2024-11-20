@@ -147,7 +147,7 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="#" class="nav-link {% if request.path.split('/')[2] in ('all_tasks', ) %}active{% endif %}">
+                            <a href="{{ url_for('tasks.tasks_list') }}" class="nav-link {% if request.path.split('/')[2] in ('all_tasks', ) %}active{% endif %}">
                                 <i class="fas fa-sync nav-icon"></i>
                                 <p>დავალებები</p>
                             </a>
