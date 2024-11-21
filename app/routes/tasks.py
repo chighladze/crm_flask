@@ -3,11 +3,99 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
 from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
-from ..models import Tasks, TaskCategories, TaskStatuses, TaskPriorities, Users
+from ..models import Tasks, TaskCategories, TaskStatuses, TaskPriorities, Users, TaskTypes
+from ..forms import TaskForm
 import pandas as pd
 from io import BytesIO
 
 tasks = Blueprint('tasks', __name__)
+
+@tasks.route('/tasks/view/<int:task_id>', methods=['GET', 'POST'])
+@login_required
+def view_task(task_id):
+    # Получаем задачу с необходимыми данными
+    task = Tasks.query.get_or_404(task_id)
+    form = TaskForm(obj=task)
+
+    # Устанавливаем значения для SelectField
+    form.task_category_id.choices = [(cat.id, cat.name) for cat in TaskCategories.query.all()]
+    form.task_type_id.choices = [(type.id, type.name) for type in TaskTypes.query.all()]
+    form.status_id.choices = [(status.id, status.name) for status in TaskStatuses.query.all()]
+    form.task_priority_id.choices = [(priority.id, priority.level) for priority in TaskPriorities.query.all()]
+    form.assigned_to.choices = [(user.id, user.name) for user in Users.query.all()]
+    form.completed_by.choices = [(user.id, user.name) for user in Users.query.all()]
+
+    # Настраиваем поля только для чтения
+    form.task_category_id.render_kw = {'readonly': True, 'disabled': True}
+    form.task_type_id.render_kw = {'readonly': True, 'disabled': True}
+    form.description.render_kw = {'readonly': True, 'disabled': True}
+    form.created_by.render_kw = {'readonly': True, 'disabled': True}
+    form.completed_by.render_kw = {'readonly': True, 'disabled': True}
+
+    if form.validate_on_submit():
+        try:
+            task.status_id = form.status_id.data
+            task.task_priority_id = form.task_priority_id.data
+            task.due_date = form.due_date.data
+            task.progress = form.progress.data
+            task.assigned_to = form.assigned_to.data
+
+            db.session.commit()
+            flash("Задача успешно обновлена!", "success")
+            return redirect(url_for('tasks.tasks_list'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Ошибка при обновлении задачи: {str(e)}", "danger")
+
+    return render_template(
+        'tasks/view_task.html',
+        form=form,
+        task=task,
+        creator_name=task.created_user.name if task.created_user else "Неизвестный пользователь",
+        created_division=task.created_division_id,
+        completed_division=task.completed_division_id,
+        estimated_time=task.estimated_time,
+        actual_time=task.actual_time,
+        parent_task=task.parent_task_id,
+        comments_count=task.comments_count,
+        is_recurring=task.is_recurring,
+        active_menu='tasks'
+    )
+
+
+
+@tasks.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
+@login_required
+def edit_task(task_id):
+    task = Tasks.query.get_or_404(task_id)
+
+    form = TaskForm(obj=task)
+
+    form.task_category_id.choices = [(cat.id, cat.name) for cat in TaskCategories.query.all()]
+    form.status_id.choices = [(status.id, status.name) for status in TaskStatuses.query.all()]
+    form.task_priority_id.choices = [(priority.id, priority.level) for priority in TaskPriorities.query.all()]
+
+    if form.validate_on_submit():
+        try:
+            task.task_category_id = form.task_category_id.data
+            task.description = form.description.data
+            task.status_id = form.status_id.data
+            task.task_priority_id = form.task_priority_id.data
+            task.due_date = form.due_date.data
+
+            db.session.commit()
+            flash("Задача успешно обновлена!", "success")
+            return redirect(url_for('tasks.tasks_list'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Ошибка при редактировании задачи: {str(e)}", "danger")
+
+    return render_template(
+        'tasks/edit_task.html',
+        form=form,
+        task=task,
+        active_menu='tasks'
+    )
 
 
 @tasks.route('/tasks/list', methods=['GET'])
@@ -98,8 +186,8 @@ def export():
 @tasks.route('/tasks/create', methods=['GET', 'POST'])
 @login_required
 def create_task():
-    from ..forms.tasks import TaskCreateForm
-    form = TaskCreateForm()
+    from ..forms.tasks import TaskForm
+    form = TaskForm()
 
     if form.validate_on_submit():
         try:

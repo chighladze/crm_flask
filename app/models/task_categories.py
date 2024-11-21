@@ -11,6 +11,9 @@ class TaskCategories(db.Model):
 
     # Связь с моделью DivisionPositions
     division_position = db.relationship("DivisionPositions", back_populates="task_categories")
+    tasks = db.relationship('Tasks', back_populates='task_category')
+    task_types = db.relationship("TaskTypes", back_populates="task_category", lazy='joined')
+
 
     def __repr__(self):
         return f'<TaskCategory {self.name}>'

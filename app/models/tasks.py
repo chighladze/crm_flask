@@ -32,3 +32,6 @@ class Tasks(db.Model):
 
     status = db.relationship('TaskStatuses', backref='tasks', lazy='joined')
     priority = db.relationship('TaskPriorities', backref='tasks', lazy='joined')
+    task_category = db.relationship('TaskCategories', backref='related_tasks', lazy='joined')
+    task_type = db.relationship('TaskTypes', backref='related_tasks', lazy='joined')
+    created_user = db.relationship('Users', foreign_keys=[created_by], backref='created_tasks')

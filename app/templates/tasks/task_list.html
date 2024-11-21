@@ -2,6 +2,10 @@
 
 {% block title %}დავალებების სია{% endblock %}
 
+{% block breadcrumb %}
+    <li class="breadcrumb-item active">დავალებების სია</li>
+{% endblock %}
+
 {% block script %}
 <script>
 document.getElementById("resetFilters").addEventListener("click", function () {
@@ -229,35 +233,42 @@ document.getElementById("resetFilters").addEventListener("click", function () {
     <div class="card-body table-responsive p-0">
         <table class="table table-hover text-nowrap">
             <thead>
-            <tr>
-                <th class="text-center">ID</th>
-                <th class="text-center">დასახელება</th>
-                <th class="text-center">სტატუსი</th>
-                <th class="text-center">პრიორიტეტი</th>
-                <th class="text-center">შექმნილია</th>
-                <th class="text-center">მოქმედება</th>
-            </tr>
+                <tr>
+                    <th class="text-center">ID</th>
+                    <th class="text-center">კატეგორია</th>
+                    <th class="text-center">ტიპი</th>
+                    <th class="text-center">სტატუსი</th>
+                    <th class="text-center">პრიორიტეტი</th>
+                    <th class="text-center">შემსრულებელი</th>
+                    <th class="text-center">შექმნის თარიღი</th>
+                    <th class="text-center">მოქმედება</th>
+                </tr>
             </thead>
             <tbody>
-            {% for task in tasks %}
-                <tr>
-                    <td class="text-center">{{ task.id }}</td>
-                    <td>{{ task.description }}</td>
-                    <td class="text-center">{{ task.status.name if task.status else '' }}</td>
-                    <td class="text-center">{{ task.priority.level if task.priority else '' }}</td>
-                    <td class="text-center">{{ task.created_at }}</td>
-                    <td class="text-center">
-                        <div class="btn-group" role="group">
-                            <a href="#" class="btn btn-info btn-sm" title="ნახვა">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="#" class="btn btn-warning btn-sm" title="რედაქტირება">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-            {% endfor %}
+                {% for task in tasks %}
+                    <tr>
+                        <!-- Task ID -->
+                        <td class="text-center">{{ task.id }}</td>
+                        <td class="text-center">{{ task.task_category.name }}</td>
+                        <td class="text-center">{{ task.task_type.name }}</td>
+                        <!-- Task status -->
+                        <td class="text-center">{{ task.status.name if task.status else 'არ არის მითითებული' }}</td>
+                        <!-- Task priority -->
+                        <td class="text-center">{{ task.priority.level if task.priority else 'არ არის მითითებული' }}</td>
+                        <!-- Task assignee -->
+                        <td class="text-center">{{ task.assigned_user.name if task.assigned_user else 'არ არის მითითებული' }}</td>
+                        <!-- Task start date -->
+                        <td class="text-center">{{ task.created_at.strftime('%Y-%m-%d') if task.created_at else '-' }}</td>
+                        <!-- Actions -->
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" class="btn btn-info btn-sm" title="ნახვა">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

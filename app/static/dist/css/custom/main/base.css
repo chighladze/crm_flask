@@ -50,3 +50,19 @@
     color: #6c757d; /* Цвет разделителя */
     margin: 0 0.2rem; /* Уменьшено расстояние между текстом и разделителем */
 }
+.content-wrapper {
+    padding-bottom: 20px; /* Нижний отступ для создания пространства */
+}
+html, body {
+    height: 100%;
+}
+
+.wrapper {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-wrapper {
+    flex: 1; /* Занимает всё доступное пространство */
+}

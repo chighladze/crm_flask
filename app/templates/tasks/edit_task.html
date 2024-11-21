@@ -1,0 +1,106 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Редактирование задачи{% endblock %}
+
+{% block styles %}
+<style>
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .form-container {
+        display: flex;
+        gap: 2rem;
+    }
+    .form-column {
+        flex: 1;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .btn-submit {
+        background-color: #007bff;
+        color: white;
+        transition: all 0.2s ease-in-out;
+    }
+    .btn-submit:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Редактирование задачи № {{ task.id }}</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <!-- Формы разбиты на два столбца -->
+        <div class="form-container">
+            <!-- Левая колонка -->
+            <div class="form-column">
+                <div class="form-group">
+                    <label for="task_category_id">Категория задачи</label>
+                    {{ form.task_category_id(class="form-control") }}
+                </div>
+
+                <div class="form-group">
+                    <label for="task_type_id">Тип задачи</label>
+                    {{ form.task_type_id(class="form-control") }}
+                </div>
+
+                <div class="form-group">
+                    <label for="status_id">Статус</label>
+                    {{ form.status_id(class="form-control") }}
+                </div>
+
+                <div class="form-group">
+                    <label for="task_priority_id">Приоритет</label>
+                    {{ form.task_priority_id(class="form-control") }}
+                </div>
+
+                <div class="form-group">
+                    <label for="due_date">Срок выполнения</label>
+                    {{ form.due_date(class="form-control") }}
+                </div>
+            </div>
+
+            <!-- Правая колонка -->
+            <div class="form-column">
+                <div class="form-group">
+                    <label for="assigned_to">Исполнитель</label>
+                    {{ form.assigned_to(class="form-control") }}
+                </div>
+
+                <div class="form-group">
+                    <label for="created_by">Автор задачи</label>
+                    <input type="text" class="form-control" value="{{ task.created_user.name if task.created_user else 'Не указан' }}" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="completed_by">Завершивший задачу</label>
+                    {{ form.completed_by(class="form-control") }}
+                </div>
+
+                <div class="form-group">
+                    <label for="progress">Прогресс (%)</label>
+                    {{ form.progress(class="form-control") }}
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Описание</label>
+                    {{ form.description(class="form-control", rows=6) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопки действий -->
+        <div class="form-actions mt-4">
+            <button type="submit" class="btn btn-submit">Сохранить</button>
+            <a href="{{ url_for('tasks.tasks_list') }}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

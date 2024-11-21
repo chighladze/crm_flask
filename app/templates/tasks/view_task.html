@@ -1,0 +1,168 @@
+{% extends 'main/base.html' %}
+
+{% block title %}დავალების მიმოხილვა{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item">
+        <a href="{{ url_for('tasks.tasks_list') }}">დავალებების სია</a>
+    </li>
+    <li class="breadcrumb-item active">დავალება №: {{ task.id }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <!-- Main Header -->
+        <div class="row text-center mb-3">
+            <div class="col-12">
+                <h4 class="mb-1">დავალება № {{ task.id }}</h4>
+                <p class="text-muted small">დეტალური ინფორმაცია დავალებაზე</p>
+            </div>
+        </div>
+
+        <!-- Compact Layout -->
+        <div class="row">
+            <!-- Column 1: Main Details -->
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-primary text-white p-2 text-center">
+                        ძირითადი ინფორმაცია
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="mb-2">
+                            <label class="form-label">დავალების კატეგორია</label>
+                            {{ form.task_category_id(class="form-control form-control-sm", readonly="readonly") }}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">დავალების ტიპი</label>
+                            {{ form.task_type_id(class="form-control form-control-sm", readonly="readonly") }}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">აღწერა</label>
+                            {{ form.description(class="form-control form-control-sm", readonly="readonly") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white p-2 text-center">
+                        დავალების ავტორი
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="mb-2">
+                            <label class="form-label">ავტორი</label>
+                            <input type="text" class="form-control form-control-sm" value="{{ creator_name }}" readonly>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">შექმნის დეპარტამენტი</label>
+                            <input type="text" class="form-control form-control-sm" value="{{ created_division }}" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Progress and Status -->
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-success text-white p-2 text-center">
+                        პროგრესი
+                    </div>
+                    <div class="card-body p-2 text-center">
+                        <h5>{{ form.progress.data }}%</h5>
+                        <div class="progress mb-2" style="height: 20px;">
+                            <div class="progress-bar bg-info" role="progressbar"
+                                 style="width: {{ form.progress.data }}%;"
+                                 aria-valuenow="{{ form.progress.data }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ form.progress.data }}%
+                            </div>
+                        </div>
+                        {{ form.progress(class="form-control form-control-sm text-center") }}
+                    </div>
+                </div>
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white p-2 text-center">
+                        სტატუსი და პრიორიტეტი
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="mb-2">
+                            <label class="form-label">სტატუსი</label>
+                            {{ form.status_id(class="form-control form-control-sm") }}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">პრიორიტეტი</label>
+                            {{ form.task_priority_id(class="form-control form-control-sm") }}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">შესრულების ვადა</label>
+                            {{ form.due_date(class="form-control form-control-sm") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3: Additional Details -->
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-warning text-white p-2 text-center">
+                        დამატებითი ინფორმაცია
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="mb-2">
+                            <label class="form-label">დასახარჯი დრო (საათი)</label>
+                            <input type="text" class="form-control form-control-sm" value="{{ estimated_time }}" readonly>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">ფაქტობრივი დრო (საათი)</label>
+                            <input type="text" class="form-control form-control-sm" value="{{ actual_time }}" readonly>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">მშობელი დავალება</label>
+                            <input type="text" class="form-control form-control-sm" value="{{ parent_task }}" readonly>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">კომენტარების რაოდენობა</label>
+                            <input type="text" class="form-control form-control-sm" value="{{ comments_count }}" readonly>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">გამეორებადი დავალება</label>
+                            <input type="text" class="form-control form-control-sm"
+                                   value="{{ "დიახ" if is_recurring else "არა" }}" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white p-2 text-center">
+                        შესრულების ინფორმაცია
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="mb-2">
+                            <label class="form-label">შემსრულებელი</label>
+                            {{ form.assigned_to(class="form-control form-control-sm") }}
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">დასრულების დეპარტამენტი</label>
+                            <input type="text" class="form-control form-control-sm" value="{{ completed_division }}" readonly>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">დავალება შესრულდა</label>
+                            {{ form.completed_by(class="form-control form-control-sm", readonly="readonly") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Control Buttons -->
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <a href="{{ url_for('tasks.tasks_list') }}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-arrow-left"></i> დაბრუნება
+                </a>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-save"></i> შენახვა
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

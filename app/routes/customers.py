@@ -136,6 +136,10 @@ def create():
 @customers.route('/customer/<int:id>/view', methods=['GET'])
 @login_required
 def view(id):
+    # Check permissions
+    if 'customer_view' not in [perm['name'] for perm in current_user.get_permissions(current_user.id)]:
+        flash("Access denied. Permission required: 'customer_view'", 'danger')
+        return redirect(url_for('dashboard.index'))
     customer = Customers.query.get_or_404(id)
     orders = Orders.query.filter_by(customer_id=customer.id).all()  # Получаем заказы клиента
     customer.orders = orders  # Добавляем заказы к объекту клиента
