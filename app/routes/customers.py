@@ -19,7 +19,7 @@ customers = Blueprint('customers', __name__)
 def create():
     # Check permissions
     if 'customer_create' not in [perm['name'] for perm in current_user.get_permissions(current_user.id)]:
-        flash("Access denied. Permission required: 'customer_create'", 'danger')
+        flash("წვდომა აკრძალულია. საჭიროა ნებართვა: 'customer_create'", 'danger')
         return redirect(url_for('dashboard.index'))
 
     # Initialize forms
@@ -90,7 +90,7 @@ def create():
                 # Create task for the order
                 task = Tasks(
                     task_category_id=1,
-                    task_type_id=1,
+                    task_category_type_id=1,
                     description=f"შეკვეთის №{order.id}-ისთვის ახალი დავალება შექმნილია",
                     status_id=1,
                     task_priority_id=2,
@@ -104,15 +104,15 @@ def create():
                 order.task_id = task.id
                 db.session.commit()
 
-                flash('Client, order, and task created successfully!', 'success')
+                flash('კლიენტი, შეკვეთა და დავალება შეიქმნა წარმატებით!', 'success')
             else:
-                flash('Client created successfully!', 'success')
+                flash('კლიენტი წარმატებით შეიქმნა!', 'success')
 
             return redirect(url_for('customers.view', id=customer.id))
 
         except SQLAlchemyError as e:
             db.session.rollback()
-            flash(f"An error occurred: {str(e)}", 'danger')
+            flash(f"მოხდა შეცდომა: {str(e)}", 'danger')
     else:
         if not is_customer_form_valid:
             for field, errors in customer_form.errors.items():
@@ -138,11 +138,11 @@ def create():
 def view(id):
     # Check permissions
     if 'customer_view' not in [perm['name'] for perm in current_user.get_permissions(current_user.id)]:
-        flash("Access denied. Permission required: 'customer_view'", 'danger')
+        flash("წვდომა აკრძალულია. საჭიროა ნებართვა: 'customer_view'", 'danger')
         return redirect(url_for('dashboard.index'))
     customer = Customers.query.get_or_404(id)
-    orders = Orders.query.filter_by(customer_id=customer.id).all()  # Получаем заказы клиента
-    customer.orders = orders  # Добавляем заказы к объекту клиента
+    orders = Orders.query.filter_by(customer_id=customer.id).all()
+    customer.orders = orders
     return render_template('customers/view.html', customer=customer, active_menu='customers')
 
 
@@ -161,10 +161,10 @@ def customers_list():
     end_date = request.args.get('end_date')
     sort_by = request.args.get('sort_by', 'created_desc')
 
-    # Ограничение допустимых значений для per_page
+    # Limitation of permissible values ​​for per_page
     per_page = per_page if per_page in [10, 50, 100] else 10
 
-    # Начало построения запроса
+    # Start building a query
     query = Customers.query.filter(
         sa.or_(
             Customers.name.ilike(f'%{search_query}%'),
@@ -172,7 +172,7 @@ def customers_list():
         )
     )
 
-    # Применение фильтров
+    # Applying filters
     if type_id:
         query = query.filter(Customers.type_id == type_id)
     if start_date:
@@ -180,20 +180,20 @@ def customers_list():
     if end_date:
         query = query.filter(Customers.created_at <= end_date)
 
-    # Применение сортировки
+    # Applying sorting
     if sort_by == 'created_asc':
         query = query.order_by(Customers.created_at.asc())
     else:
         query = query.order_by(Customers.created_at.desc())
 
-    # Получение общего количества клиентов
+    # Getting the total number of clients
     total_count = query.count()
 
-    # Пагинация
+    # Pagination
     offset = (page - 1) * per_page
     customers = query.limit(per_page).offset(offset).all()
 
-    # Создание объекта пагинации
+    # Creating a pagination object
     class Pagination:
         def __init__(self, total, page, per_page):
             self.total = total
@@ -207,7 +207,7 @@ def customers_list():
 
     pagination = Pagination(total_count, page, per_page)
 
-    # Получение типов клиентов для выпадающего списка фильтра
+    # Getting client types for filter dropdown
     customer_types = db.session.execute(sa.select(CustomersType)).scalars().all()
 
     return render_template(
@@ -233,16 +233,16 @@ def customers_export():
         flash("You do not have access to this page. Permission required: ['customers_export']", 'danger')
         return redirect(url_for('dashboard.index'))
 
-    # Получаем параметры фильтрации
+    # Get filter parameters
     search_query = request.args.get('search', '')
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     type_id = request.args.get('type_id')
 
-    # Начинаем формировать запрос
+    # start forming a request
     query = sa.select(Customers)
 
-    # Применяем фильтры по поисковому запросу
+    # Apply filters to the search query
     if search_query:
         query = query.filter(
             sa.or_(
@@ -251,11 +251,11 @@ def customers_export():
             )
         )
 
-    # Применяем фильтры по типу клиента
+    # Apply filters by client type
     if type_id and type_id != '':
         query = query.filter(Customers.type_id == type_id)
 
-    # Применяем фильтры по датам
+    # Apply filters by dates
     if start_date:
         start_date = datetime.strptime(start_date, '%Y-%m-%d')
         query = query.filter(Customers.created_at >= start_date)
@@ -264,7 +264,7 @@ def customers_export():
         end_date = datetime.strptime(end_date, '%Y-%m-%d')
         query = query.filter(Customers.created_at <= end_date)
 
-    # Выполняем запрос
+    # Execute the request
     customers_query = db.session.execute(query)
     customers = customers_query.scalars().all()
 
@@ -323,7 +323,7 @@ def edit(id):
 
     form = CustomerForm(obj=customer)
     if form.validate_on_submit():
-        form.populate_obj(customer)  # Обновляем данные клиента из формы
+        form.populate_obj(customer)
         db.session.commit()
         flash('კლიენტის მონაცემები განახლებულია!', 'success')
         return redirect(url_for('customers.view', id=customer.id))

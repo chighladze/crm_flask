@@ -1,0 +1,63 @@
+/* project path: crm_flask/app/static/dist/css/custom/tasks/view_task.css */
+
+/* Контейнер прогресс-бара */
+.progress-container {
+    margin: 0 auto;
+    max-width: 100%; /* Ширина блока — адаптивная */
+    padding: 5px; /* Отступы вокруг текста и прогресс-бара */
+    background-color: rgba(255, 255, 255, 0.1); /* Лёгкий полупрозрачный фон */
+    border-radius: 8px; /* Скруглённые углы */
+}
+
+/* Заголовок прогресса */
+.progress-title {
+    font-size: 14px; /* Компактный текст */
+    font-weight: bold; /* Жирный текст */
+    margin-bottom: 5px; /* Отступ от прогресс-бара */
+    color: #000000; /* Черный текст */
+}
+
+/* Прогресс */
+.progress {
+    height: 15px; /* Увеличенная высота для видимости */
+    background-color: #d3d3d3; /* Матовый фон прогресс-бара */
+    border-radius: 8px; /* Скруглённые углы */
+    overflow: hidden; /* Обрезка выхода за границы */
+    position: relative;
+}
+
+/* Матовый основной прогресс */
+.progress-bar {
+    height: 100%; /* Полная высота контейнера */
+    font-size: 12px; /* Компактный текст внутри бара */
+    line-height: 20px; /* Центрирование текста по вертикали */
+    color: #fff; /* Белый текст */
+    background-color: #1aa11a; /* Матовый зеленый цвет */
+    position: relative; /* Для волны внутри бара */
+    transition: width 0.4s ease; /* Плавный переход изменения ширины */
+    overflow: hidden; /* Волна не выходит за пределы заполненной части */
+}
+
+/* Волна внутри заполненной части */
+.wave-overlay {
+    position: absolute;
+    top: 0;
+    left: -100%; /* Начальная позиция волны за пределами бара */
+    width: 200%; /* Достаточная ширина для плавного перехода */
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); /* Видимая волна */
+    background-size: 50% 100%; /* Размер волны */
+    animation: wave-overlay 10s linear infinite; /* Анимация волны (реже) */
+    opacity: 0.8; /* Сделать волну более заметной */
+    z-index: 1; /* Поверх прогресс-бара */
+}
+
+/* Ключевые кадры анимации волны */
+@keyframes wave-overlay {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}

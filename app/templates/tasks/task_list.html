@@ -118,7 +118,7 @@ document.getElementById("resetFilters").addEventListener("click", function () {
                             <label for="task_type_id"><i class="fas fa-tasks"></i> ტიპი:</label>
                             <select name="task_type_id" class="form-control">
                                 <option value="">ყველა ტიპი</option>
-                                {% for task_type in task_types %}
+                                {% for task_type in task_category_types %}
                                     <option value="{{ task_type.id }}" {% if task_type.id == task_type_id %}selected{% endif %}>{{ task_type.name }}</option>
                                 {% endfor %}
                             </select>

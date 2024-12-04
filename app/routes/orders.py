@@ -6,6 +6,9 @@ from flask import Blueprint
 import sqlalchemy as sa
 from flask_login import login_required, current_user
 from ..extensions import db
+import pandas as pd
+from io import BytesIO
+from flask import send_file
 
 orders = Blueprint('orders', __name__)
 
@@ -60,7 +63,7 @@ def create_order(customer_id):
         # Create order task for installs
         task = Tasks(
             task_category_id=1,
-            task_type_id=1,
+            task_category_type_id=1,
             description=f"შეკვეთის №{order.id}-ისთვის ახალი დავალება შექმნილია",
             status_id=1,
             task_priority_id=2,
@@ -107,6 +110,7 @@ def orders_list():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
+    # Строим основной запрос с фильтрацией по имени клиента и мобильному телефону
     query = Orders.query.join(Customers).filter(
         sa.or_(
             Orders.mobile.ilike(f'%{search_query}%'),
@@ -114,10 +118,15 @@ def orders_list():
         )
     )
 
+    # Фильтрация по мобильному номеру
     if mobile:
         query = query.filter(Orders.mobile.ilike(f'%{mobile}%'))
+
+    # Фильтрация по тарифному плану
     if tariff_plan_id:
         query = query.filter(Orders.tariff_plan_id == tariff_plan_id)
+
+    # Фильтрация по датам
     if start_date:
         query = query.filter(Orders.created_at >= start_date)
     if end_date:
@@ -167,6 +176,7 @@ def order_view(order_id):
         db.joinedload(Orders.address).joinedload(Addresses.coordinates)
     ).get_or_404(order_id)
     return render_template('orders/order_view.html', order=order, active_menu='orders')
+
 
 @orders.route('/orders/<int:order_id>/edit', methods=['GET', 'POST'])
 @login_required
@@ -239,4 +249,82 @@ def edit_order(order_id):
         customer=customer
     )
 
+@orders.route('/orders/export', methods=['GET'])
+@login_required
+def orders_export():
+    # Проверка прав доступа
+    if 'orders_export' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash("თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['orders_export']", 'danger')
+        return redirect(url_for('dashboard.index'))
 
+    search_query = request.args.get('search', '')
+    mobile = request.args.get('mobile', '')
+    tariff_plan_id = request.args.get('tariff_plan_id', type=int)
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    # Строим основной запрос с фильтрацией по имени клиента и мобильному телефону
+    query = Orders.query.join(Customers).filter(
+        sa.or_(
+            Orders.mobile.ilike(f'%{search_query}%'),
+            Customers.name.ilike(f'%{search_query}%')
+        )
+    )
+
+    # Фильтрация по мобильному номеру
+    if mobile:
+        query = query.filter(Orders.mobile.ilike(f'%{mobile}%'))
+
+    # Фильтрация по тарифному плану
+    if tariff_plan_id:
+        query = query.filter(Orders.tariff_plan_id == tariff_plan_id)
+
+    # Фильтрация по датам
+    if start_date:
+        query = query.filter(Orders.created_at >= start_date)
+    if end_date:
+        query = query.filter(Orders.created_at <= end_date)
+
+    # Получаем все заказы
+    orders = query.all()
+
+    # Преобразуем данные в список словарей
+    orders_data = [{
+        "ID": order.id,
+        "Customer": order.customer.name,
+        "Mobile": order.mobile,
+        "Alt Mobile": order.alt_mobile,
+        "Tariff Plan": order.tariff_plan.name if order.tariff_plan else "N/A",
+        "Created At": order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        "Updated At": order.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+        "Comment": order.comment,
+    } for order in orders]
+
+    # Создаем DataFrame из списка словарей
+    df = pd.DataFrame(orders_data)
+
+    # Создаем Excel файл в памяти
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Orders')
+
+        # Настройка ширины столбцов
+        worksheet = writer.sheets['Orders']
+        for col in worksheet.columns:
+            max_length = 0
+            column = col[0].column_letter  # Получаем букву колонки
+            for cell in col:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                except:
+                    pass
+            adjusted_width = (max_length + 2)  # Добавляем немного места
+            worksheet.column_dimensions[column].width = adjusted_width
+
+    # Сбрасываем указатель на начало файла
+    output.seek(0)
+
+    # Отправляем файл пользователю
+    return send_file(output, as_attachment=True, download_name="orders_list.xlsx",
+                     mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

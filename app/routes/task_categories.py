@@ -1,3 +1,5 @@
+# project path: crm_flask/app/routes/task_categories.py
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required
 from sqlalchemy.exc import SQLAlchemyError
@@ -5,11 +7,13 @@ import sqlalchemy as sa
 from io import BytesIO
 import pandas as pd
 from ..extensions import db
-from ..models.task_categories import TaskCategories
+from ..models import TaskCategories, TaskTypes
+from ..forms import TaskTypeForm
 from ..forms.task_category import TaskCategoryForm
 
 # Создаем Blueprint
 task_categories = Blueprint('task_categories', __name__)
+
 
 # Список категорий с фильтрацией, пагинацией
 @task_categories.route('/task_categories/list', methods=['GET'])
@@ -44,6 +48,7 @@ def list_task_categories():
         pagination=pagination
     )
 
+
 # Создание новой категории
 @task_categories.route('/task_categories/create', methods=['GET', 'POST'])
 @login_required
@@ -65,6 +70,7 @@ def create_task_category():
 
     return render_template('task_categories/create.html', form=form)
 
+
 # Редактирование категории
 @task_categories.route('/task_categories/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -85,6 +91,7 @@ def edit_task_category(id):
 
     return render_template('task_categories/edit.html', form=form, category=category)
 
+
 # Скрытие категории
 @task_categories.route('/task_categories/hide/<int:id>', methods=['POST'])
 @login_required
@@ -98,6 +105,7 @@ def hide_task_category(id):
         db.session.rollback()
         flash(f'შეცდომა კატეგორიის დაფარვისას: {str(e)}', 'danger')
     return redirect(url_for('task_categories.list_task_categories'))
+
 
 # Экспорт категорий в Excel
 @task_categories.route('/task_categories/export', methods=['GET'])
