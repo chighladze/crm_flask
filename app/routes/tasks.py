@@ -3,7 +3,7 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
 from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
-from ..models import Tasks, TaskCategories, TaskStatuses, TaskPriorities, Users, TaskTypes
+from ..models import Tasks, TaskCategories, TaskStatuses, TaskPriorities, Users, TaskTypes, TaskCategories
 from ..forms import TaskForm
 import pandas as pd
 from io import BytesIO
@@ -189,6 +189,12 @@ def create_task():
     from ..forms.tasks import TaskForm
     form = TaskForm()
 
+    # Fetch categories for the task category dropdown
+    categories = TaskCategories.query.all()  # Assuming you have a TaskCategory model for categories
+
+    # Adding categories to the form choices so they are available in the dropdown
+    form.task_category_id.choices = [(category.id, category.name) for category in categories]
+
     if form.validate_on_submit():
         try:
             task = Tasks(
@@ -201,15 +207,16 @@ def create_task():
             )
             db.session.add(task)
             db.session.commit()
-            flash("Задача успешно создана!", "success")
+            flash("დავალება წარმატებით შეიქმნა!", "success")
             return redirect(url_for('tasks.tasks_list'))
         except Exception as e:
             db.session.rollback()
-            flash(f"Ошибка при создании задачи: {str(e)}", "danger")
+            flash(f"დავალების შექმნის შეცდომა: {str(e)}", "danger")
 
     return render_template(
         'tasks/create_task.html',
         form=form,
         active_menu='tasks'
     )
+
 

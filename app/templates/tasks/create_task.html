@@ -1,40 +1,48 @@
 {% extends 'main/base.html' %}
 
-{% block title %}Создание задачи{% endblock %}
+{% block title %}ახალი დავალების შექმნა{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Создание новой задачи</h1>
-    <form method="POST">
-        {{ form.hidden_tag() }}
+    <div class="container mt-4">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">ახალი დავალების შექმნა</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
 
-        <div class="form-group">
-            <label for="task_category_id">Категория задачи</label>
-            {{ form.task_category_id(class="form-control") }}
+                    <div class="form-group">
+                        <label for="task_category_id">დავალების კატეგორია</label>
+                        {{ form.task_category_id(class="form-control", placeholder="აირჩიეთ კატეგორია") }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">აღწერა</label>
+                        {{ form.description(class="form-control", placeholder="დამატეთ აღწერა") }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status_id">სტატუსი</label>
+                        {{ form.status_id(class="form-control", placeholder="აირჩიეთ სტატუსი") }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="task_priority_id">პრიორიტეტი</label>
+                        {{ form.task_priority_id(class="form-control", placeholder="აირჩიეთ პრიორიტეტი") }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="due_date">დავალების შესრულების ვადა</label>
+                        {{ form.due_date(class="form-control", placeholder="აირჩიეთ დასრულების თარიღი") }}
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button type="submit" class="btn btn-success">შექმნა</button>
+                        <a href="{{ url_for('tasks.tasks_list') }}" class="btn btn-danger">გაუქმება</a>
+                    </div>
+                </form>
+            </div>
         </div>
-
-        <div class="form-group">
-            <label for="description">Описание</label>
-            {{ form.description(class="form-control") }}
-        </div>
-
-        <div class="form-group">
-            <label for="status_id">Статус</label>
-            {{ form.status_id(class="form-control") }}
-        </div>
-
-        <div class="form-group">
-            <label for="task_priority_id">Приоритет</label>
-            {{ form.task_priority_id(class="form-control") }}
-        </div>
-
-        <div class="form-group">
-            <label for="due_date">Срок выполнения</label>
-            {{ form.due_date(class="form-control") }}
-        </div>
-
-        <button type="submit" class="btn btn-primary">Создать</button>
-        <a href="{{ url_for('tasks.tasks_list') }}" class="btn btn-secondary">Отмена</a>
-    </form>
-</div>
+    </div>
 {% endblock %}

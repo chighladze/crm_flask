@@ -21,6 +21,7 @@ from .task_types import TaskTypes
 from .task_statuses import TaskStatuses
 from .task_priorities import TaskPriorities
 from .tasks import Tasks
+from .task_categories import TaskCategories
 from .orders import Orders
 from .tariff_plans import TariffPlan
 from .currencies import Currencies
