@@ -1,35 +1,74 @@
 # crm_flask/app/routes/orders.py
+from flask_login import login_required, current_user
 from flask import render_template, redirect, url_for, flash, request, jsonify
 from app.models import Orders, District, Settlement, BuildingType, Customers, Addresses, TariffPlan, Coordinates, Tasks
 from app.forms import OrderForm
 from flask import Blueprint
+from flask import jsonify
 import sqlalchemy as sa
-from flask_login import login_required, current_user
 from ..extensions import db
 import pandas as pd
 from io import BytesIO
 from flask import send_file
 
+
 orders = Blueprint('orders', __name__)
 
 
-@orders.route('/customer/<int:customer_id>/orders/create', methods=['GET', 'POST'])
+@orders.route('/find_customer/<identification_number>', methods=['GET'])
 @login_required
-def create_order(customer_id):
-    customer = Customers.query.get_or_404(customer_id)
+def find_customer(identification_number):
+    # Поиск клиента по идентификационному номеру
+    customer = Customers.query.filter_by(identification_number=identification_number).first()
+
+    if customer:
+        # Если клиент найден, возвращаем его данные
+        customer_data = {
+            'name': customer.name,
+            'email': customer.email,
+            'mobile': customer.mobile,
+            'mobile_second': customer.mobile_second,
+            'resident': customer.resident
+        }
+        return jsonify({'found': True, 'data': customer_data})
+    else:
+        # Если клиент не найден
+        return jsonify({'found': False})
+
+
+# crm_flask/app/routes/orders.py
+@orders.route('/orders/create', methods=['GET', 'POST'])
+@login_required
+def create_order():
     form = OrderForm()
 
     if form.validate_on_submit():
+        identification_number = form.identification_number.data
+
+        # Поиск клиента по идентификационному номеру
+        customer = Customers.query.filter_by(identification_number=identification_number).first()
+
+        if not customer:
+            # Если клиента нет, создаем нового клиента
+            customer = Customers(
+                type_id=form.type_id.data,
+                identification_number=identification_number,
+                name=form.name.data,
+                email=form.email.data,
+                mobile=form.mobile.data,
+                mobile_second=form.mobile_second.data,
+                resident=form.resident.data
+            )
+            db.session.add(customer)
+            db.session.commit()
+            flash('მომხმარებელი წარმატებით დაემატა!', 'success')
+
+        # Создание записи Coordinates, если есть координаты
         latitude = form.address.latitude.data
         longitude = form.address.longitude.data
-
-        # Создание записи Coordinates только если заданы значения
         coordinates = None
-        if latitude is not None and longitude is not None:
-            coordinates = Coordinates(
-                latitude=latitude,
-                longitude=longitude,
-            )
+        if latitude and longitude:
+            coordinates = Coordinates(latitude=latitude, longitude=longitude)
             db.session.add(coordinates)
             db.session.commit()
 
@@ -50,7 +89,7 @@ def create_order(customer_id):
 
         # Создание заказа
         order = Orders(
-            customer_id=customer_id,
+            customer_id=customer.id,
             address_id=address.id,
             mobile=form.mobile.data,
             alt_mobile=form.alt_mobile.data,
@@ -60,11 +99,11 @@ def create_order(customer_id):
         db.session.add(order)
         db.session.commit()
 
-        # Create order task for installs
+        # Создание задания для установки
         task = Tasks(
             task_category_id=1,
             task_category_type_id=1,
-            description=f"შეკვეთის №{order.id}-ისთვის ახალი დავალება შექმნილია",
+            description=f"შეკვეთის №{order.id}-თვის ახალი დავალება შექმნილია",
             status_id=1,
             task_priority_id=2,
             created_by=current_user.id,
@@ -73,18 +112,14 @@ def create_order(customer_id):
         db.session.add(task)
         db.session.commit()
 
-        # Update task_id in order table
+        # Обновляем поле task_id в заказе
         order.task_id = task.id
         db.session.commit()
 
         flash('განაცხადი და დავალება წარმატებით დამატებულია!', 'success')
-        return redirect(url_for('customers.view', id=customer_id))
-    else:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f"Error in the {getattr(form, field).label.text} field - {error}", 'danger')
+        return redirect(url_for('customers.view', id=customer.id))
 
-    return render_template('orders/create_order.html', customer=customer, form=form)
+    return render_template('orders/create_order.html', form=form)
 
 
 @orders.route('/settlements/<int:district_id>')

@@ -19,7 +19,7 @@ customers = Blueprint('customers', __name__)
 def create():
     # Check permissions
     if 'customer_create' not in [perm['name'] for perm in current_user.get_permissions(current_user.id)]:
-        flash("წვდომა აკრძალულია. საჭიროა ნებართვა: 'customer_create'", 'danger')
+        flash("Access denied. Permission required: 'customer_create'", 'danger')
         return redirect(url_for('dashboard.index'))
 
     # Initialize forms
@@ -30,89 +30,39 @@ def create():
     is_customer_form_valid = customer_form.validate_on_submit()
     is_order_form_valid = order_form.validate_on_submit() if create_with_order else True
 
+    existing_customer = None
+    readonly_fields = False
     if is_customer_form_valid and is_order_form_valid:
         try:
-            # Create and save customer
-            customer = Customers(
-                type_id=customer_form.type_id.data,
-                identification_number=customer_form.identification_number.data,
-                name=customer_form.name.data,
-                email=customer_form.email.data,
-                mobile=customer_form.mobile.data,
-                mobile_second=customer_form.mobile_second.data,
-                resident=int(customer_form.resident.data) if customer_form.resident.data else 1
-            )
-            db.session.add(customer)
-            db.session.commit()
+            # Check if the customer already exists based on the identification number
+            existing_customer = Customers.query.filter_by(identification_number=customer_form.identification_number.data).first()
 
-            if create_with_order:
-                order_form.customer_id.data = customer.id  # Set customer_id
-
-                # Create coordinates only if latitude and longitude are provided
-                latitude = order_form.address.latitude.data
-                longitude = order_form.address.longitude.data
-                coordinates = None
-                if latitude is not None and longitude is not None:
-                    coordinates = Coordinates(
-                        latitude=latitude,
-                        longitude=longitude,
-                    )
-                    db.session.add(coordinates)
-                    db.session.commit()
-
-                # Create and save address
-                address = Addresses(
-                    settlement_id=order_form.address.settlement_id.data,
-                    building_type_id=order_form.address.building_type_id.data,
-                    street=order_form.address.street.data,
-                    building_number=order_form.address.building_number.data,
-                    entrance_number=order_form.address.entrance_number.data,
-                    floor_number=order_form.address.floor_number.data,
-                    apartment_number=order_form.address.apartment_number.data,
-                    coordinates_id=coordinates.id if coordinates else None,
-                    registry_code=order_form.address.registry_code.data,
-                )
-                db.session.add(address)
-                db.session.commit()
-
-                # Create and save order linked to customer and address
-                order = Orders(
-                    customer_id=order_form.customer_id.data,
-                    address_id=address.id,
-                    mobile=order_form.mobile.data,
-                    alt_mobile=order_form.alt_mobile.data,
-                    tariff_plan_id=order_form.tariff_plan_id.data,
-                    comment=order_form.comment.data,
-                )
-                db.session.add(order)
-                db.session.commit()
-
-                # Create task for the order
-                task = Tasks(
-                    task_category_id=1,
-                    task_category_type_id=1,
-                    description=f"შეკვეთის №{order.id}-ისთვის ახალი დავალება შექმნილია",
-                    status_id=1,
-                    task_priority_id=2,
-                    created_by=current_user.id,
-                    created_division_id=current_user.division_id if hasattr(current_user, 'division_id') else None,
-                )
-                db.session.add(task)
-                db.session.commit()
-
-                # Link task to the order
-                order.task_id = task.id
-                db.session.commit()
-
-                flash('კლიენტი, შეკვეთა და დავალება შეიქმნა წარმატებით!', 'success')
+            if existing_customer:
+                # If the customer exists, use their ID to create a new order
+                readonly_fields = True  # Set readonly flag
+                flash(f"Customer with identification number {customer_form.identification_number.data} already exists. Creating an order for this customer.", 'info')
             else:
-                flash('კლიენტი წარმატებით შეიქმნა!', 'success')
+                # If the customer doesn't exist, create a new customer
+                customer = Customers(
+                    type_id=customer_form.type_id.data,
+                    identification_number=customer_form.identification_number.data,
+                    name=customer_form.name.data,
+                    email=customer_form.email.data,
+                    mobile=customer_form.mobile.data,
+                    mobile_second=customer_form.mobile_second.data,
+                    resident=int(customer_form.resident.data) if customer_form.resident.data else 1
+                )
+                db.session.add(customer)
+                db.session.commit()
+                flash(f"Customer {customer.name} created successfully!", 'success')
 
-            return redirect(url_for('customers.view', id=customer.id))
+            # Create the order for the existing or new customer
+            order_form.customer_id.data = existing_customer.id if existing_customer else customer.id  # Set customer_id
 
+            return render_template('customers/create.html', readonly_fields=readonly_fields, customer_form=customer_form, order_form=order_form, existing_customer=existing_customer)
         except SQLAlchemyError as e:
             db.session.rollback()
-            flash(f"მოხდა შეცდომა: {str(e)}", 'danger')
+            flash(f"Error occurred: {str(e)}", 'danger')
     else:
         if not is_customer_form_valid:
             for field, errors in customer_form.errors.items():
@@ -123,7 +73,6 @@ def create():
                 for error in errors:
                     flash(f"{field}: {error}", 'danger')
 
-    # Render form
     return render_template(
         'customers/create.html',
         customer_form=customer_form,
@@ -131,6 +80,7 @@ def create():
         create_with_order=create_with_order,
         active_menu='customers'
     )
+
 
 
 @customers.route('/customer/<int:id>/view', methods=['GET'])
@@ -341,7 +291,10 @@ def check_identification():
         if customer:
             return jsonify({
                 'exists': True,
+                'id': customer.id,
                 'name': customer.name,
-                'id': customer.id
+                'email': customer.email,
+                'mobile': customer.mobile,
+                'mobile_second': customer.mobile_second
             }), 200
     return jsonify({'exists': False}), 200
