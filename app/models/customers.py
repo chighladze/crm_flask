@@ -10,6 +10,7 @@ class Customers(db.Model):
     type_id = db.Column(db.Integer, db.ForeignKey('customers_type.id'), nullable=False)
     identification_number = db.Column(db.String(50), unique=True, nullable=False)
     name = db.Column(db.String(255), nullable=False)
+    director = db.Column(db.String(255), nullable=True)
     email = db.Column(db.String(100), nullable=True)
     mobile = db.Column(db.String(20), nullable=True)
     mobile_second = db.Column(db.String(20), nullable=True)

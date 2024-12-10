@@ -35,17 +35,18 @@ def create():
     if is_customer_form_valid and is_order_form_valid:
         try:
             # Check if the customer already exists based on the identification number
-            existing_customer = Customers.query.filter_by(identification_number=customer_form.identification_number.data).first()
+            existing_customer = Customers.query.filter_by(
+                identification_number=customer_form.identification_number.data).first()
 
             if existing_customer:
                 # If the customer exists, use their ID to create a new order
                 readonly_fields = True  # Set readonly flag
-                flash(f"Customer with identification number {customer_form.identification_number.data} already exists. Creating an order for this customer.", 'info')
             else:
                 # If the customer doesn't exist, create a new customer
                 customer = Customers(
                     type_id=customer_form.type_id.data,
                     identification_number=customer_form.identification_number.data,
+                    director=customer_form.director.data,
                     name=customer_form.name.data,
                     email=customer_form.email.data,
                     mobile=customer_form.mobile.data,
@@ -54,15 +55,17 @@ def create():
                 )
                 db.session.add(customer)
                 db.session.commit()
-                flash(f"Customer {customer.name} created successfully!", 'success')
+                flash(f"კლიენტი {customer.name} წარმატებით შექმნილია!", 'success')
 
             # Create the order for the existing or new customer
             order_form.customer_id.data = existing_customer.id if existing_customer else customer.id  # Set customer_id
 
-            return render_template('customers/create.html', readonly_fields=readonly_fields, customer_form=customer_form, order_form=order_form, existing_customer=existing_customer)
+            return render_template('customers/create.html', readonly_fields=readonly_fields,
+                                   customer_form=customer_form, order_form=order_form,
+                                   existing_customer=existing_customer)
         except SQLAlchemyError as e:
             db.session.rollback()
-            flash(f"Error occurred: {str(e)}", 'danger')
+            flash(f"დაფიქსირდა შეცდომა: {str(e)}", 'danger')
     else:
         if not is_customer_form_valid:
             for field, errors in customer_form.errors.items():
@@ -80,7 +83,6 @@ def create():
         create_with_order=create_with_order,
         active_menu='customers'
     )
-
 
 
 @customers.route('/customer/<int:id>/view', methods=['GET'])

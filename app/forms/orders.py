@@ -20,8 +20,10 @@ class OrderForm(FlaskForm):
     tariff_plan_id = SelectField('სატარიფო გეგმა', validators=[DataRequired()], coerce=coerce_to_int)
     comment = TextAreaField('კომენტარი')
     task_id = IntegerField('დავალების ID', validators=[Optional()])
+    building_type_id = SelectField('შენობის ტიპი', coerce=int, validators=[DataRequired()])
     submit = SubmitField('შეკვეთის შენახვა')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.tariff_plan_id.choices = [('', 'აირჩიეთ სატარიფო გეგმა')] + [(tp.id, tp.name) for tp in TariffPlan.query.all()]
+        self.building_type_id.choices = [(b.id, b.name) for b in BuildingType.query.all()]

@@ -3,7 +3,8 @@
 {% block title %}ახალი განაცხადი{% endblock %}
 
 {% block styles %}
-    <link rel="icon" href="{{ url_for('static', filename='dist/css/custom/customers/create.css') }}" type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='dist/css/custom/customers/create.css') }}"
+          type="image/x-icon">
 {% endblock %}
 
 {% block script %}
@@ -11,207 +12,413 @@
 {% endblock %}
 
 {% block content %}
-<form method="POST" id="customer-form" novalidate>
-    <input type="hidden" id="readonly_fields" value="{{ readonly_fields }}">
+    <form method="POST" id="customer-form" novalidate>
+        <input type="hidden" id="readonly_fields" value="{{ readonly_fields }}">
 
-    <div class="row">
-        <div class="col-md-6">
-            {{ customer_form.hidden_tag() }}
-            {{ order_form.hidden_tag() }}
-            <input type="hidden" name="create_order" id="create-order-flag" value="false">
+        <div class="row">
+            <div class="col-md-6">
+                {{ customer_form.hidden_tag() }}
+                {{ order_form.hidden_tag() }}
+                <input type="hidden" name="create_order" id="create-order-flag" value="false">
 
-            <div class="card" id="add-order">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="card-title">კლიენტის ფორმა</h3>
+                <div class="card" id="add-order">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="card-title">კლიენტის ფორმა</h3>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body">
-                    <!-- Client Type -->
-                    <div class="form-group">
-                        <label>კლიენტის ტიპი</label>
-                        {{ customer_form.type_id(class="form-control", id="customer-type") }}
-                    </div>
-
-                    <!-- Personal Fields -->
-                    <div id="individual-fields" style="display: none;">
+                    <div class="card-body">
+                        <!-- Client Type -->
                         <div class="form-group">
-                            <label>პირადი ნომერი</label>
-                            {{ customer_form.identification_number(class="form-control", id="identification_number", value=existing_customer.identification_number if existing_customer else '') }}
-                            {% if customer_form.identification_number.errors %}
+                            <label>კლიენტის ტიპი</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                                </div>
+                                {{ customer_form.type_id(class="form-control", id="customer-type") }}
+                            </div>
+                        </div>
+
+                        <!-- Personal Fields -->
+                        <div id="individual-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>პირადი ნომერი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-address-card"></i></span>
+                                    </div>
+                                    {{ customer_form.identification_number(class="form-control", id="identification_number", value=existing_customer.identification_number if existing_customer else '') }}
+                                </div>
+                                {% if customer_form.identification_number.errors %}
+                                    <div class="text-danger">
+                                        {% for error in customer_form.identification_number.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label>სახელი და გვარი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    </div>
+                                    {{ customer_form.name(class="form-control", id="name", value=existing_customer.name if existing_customer else '') }}
+                                </div>
+                                {% if customer_form.name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in customer_form.name.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Company Fields -->
+                        <div id="company-fields" style="display: none;">
+                            <div class="form-group">
+                                <label>საიდენტიფიკაციო კოდი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-address-card"></i></span>
+                                    </div>
+                                    {{ customer_form.identification_number(class="form-control", id="identification_number", value=existing_customer.identification_number if existing_customer else '') }}
+                                </div>
+                                {% if customer_form.identification_number.errors %}
+                                    <div class="text-danger">
+                                        {% for error in customer_form.identification_number.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label>კომპანიის სახელი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-home"></i></span>
+                                    </div>
+                                    {{ customer_form.name(class="form-control", id="name", value=existing_customer.name if existing_customer else '') }}
+                                </div>
+                                {% if customer_form.name.errors %}
+                                    <div class="text-danger">
+                                        {% for error in customer_form.name.errors %}
+                                            <p>{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">
+                                <label>დირექტორი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                    </div>
+                                    {{ customer_form.director(class="form-control", id="director") }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="form-group">
+                            <label>ელ. ფოსტა</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                </div>
+                                {{ customer_form.email(class="form-control", id="email", value=existing_customer.email if existing_customer else '') }}
+                            </div>
+                            {% if customer_form.email.errors %}
                                 <div class="text-danger">
-                                    {% for error in customer_form.identification_number.errors %}
+                                    {% for error in customer_form.email.errors %}
                                         <p>{{ error }}</p>
                                     {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
+
+                        <!-- Phone -->
                         <div class="form-group">
-                            <label>სახელი და გვარი</label>
-                            {{ customer_form.name(class="form-control", id="name", value=existing_customer.name if existing_customer else '') }}
-                            {% if customer_form.name.errors %}
+                            <label>მობილური ნომერი</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-mobile"></i></span>
+                                </div>
+                                {{ customer_form.mobile(class="form-control", id="mobile", value=existing_customer.mobile if existing_customer else '') }}
+                            </div>
+                            {% if customer_form.mobile.errors %}
                                 <div class="text-danger">
-                                    {% for error in customer_form.name.errors %}
+                                    {% for error in customer_form.mobile.errors %}
                                         <p>{{ error }}</p>
                                     {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
-                    </div>
 
-                    <!-- Company Fields -->
-                    <div id="company-fields" style="display: none;">
+                        <!-- Second Mobile -->
                         <div class="form-group">
-                            <label>საიდენტიფიკაციო კოდი</label>
-                            {{ customer_form.identification_number(class="form-control", id="identification_number") }}
-                        </div>
-                        <div class="form-group">
-                            <label>კომპანიის სახელი</label>
-                            {{ customer_form.name(class="form-control", id="company_name") }}
-                        </div>
-                    </div>
-
-                    <!-- Email -->
-                    <div class="form-group">
-                        <label>ელ. ფოსტა</label>
-                        {{ customer_form.email(class="form-control", id="email", value=existing_customer.email if existing_customer else '') }}
-                        {% if customer_form.email.errors %}
-                            <div class="text-danger">
-                                {% for error in customer_form.email.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
+                            <label>დამატებითი საკონტაქტო</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                </div>
+                                {{ customer_form.mobile_second(class="form-control", id="mobile_second", value=existing_customer.mobile_second if existing_customer else '') }}
                             </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Phone -->
-                    <div class="form-group">
-                        <label>მობილური ნომერი</label>
-                        {{ customer_form.mobile(class="form-control", id="mobile", value=existing_customer.mobile if existing_customer else '') }}
-                        {% if customer_form.mobile.errors %}
-                            <div class="text-danger">
-                                {% for error in customer_form.mobile.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- Second Mobile -->
-                    <div class="form-group">
-                        <label>დამატებითი საკონტაქტო</label>
-                        {{ customer_form.mobile_second(class="form-control", id="mobile_second", value=existing_customer.mobile_second if existing_customer else '') }}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Order Form -->
-        <div class="col-md-6" id="order-form-section">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">განაცხადის ფორმა</h3>
-                </div>
-                <div class="card-body">
-                    <!-- District -->
-                    <div class="form-row">
-                        <div class="col-md-6 mb-3">
-                            <label>რაიონი</label>
-                            {{ order_form.address.district_id(class="form-control", required=True) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label>დასახლება</label>
-                            {{ order_form.address.settlement_id(class="form-control", required=True) }}
-                        </div>
+            <!-- Order Form -->
+            <div class="col-md-6" id="order-form-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">განაცხადის ფორმა</h3>
                     </div>
-
-                    <!-- Street -->
-                    <div class="form-row">
-                        <div class="col-md-8 mb-3">
-                            <label>ქუჩის სახელი</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-road"></i></span>
+                    <div class="card-body">
+                        <!-- District -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label>რაიონი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-globe-africa"></i></span>
+                                    </div>
+                                    {{ order_form.address.district_id(class="form-control", required=True) }}
                                 </div>
-                                {{ order_form.address.street(class="form-control", required=True) }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>დასახლება</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-city"></i></span>
+                                    </div>
+                                    {{ order_form.address.settlement_id(class="form-control", required=True) }}
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label>ქუჩის ნომერი</label>
-                            {{ order_form.address.building_number(class="form-control", required=True) }}
-                        </div>
-                    </div>
 
-                    <!-- Building Type -->
-                    <div class="form-row">
-                        <div class="col-md-6 mb-3">
-                            <div class="form-group">
-                                <label for="building_type">შენობის ტიპი</label>
+                        <!-- Street -->
+                        <div class="form-row">
+                            <div class="col-md-8 mb-3">
+                                <label>ქუჩის სახელი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-road"></i></span>
+                                    </div>
+                                    {{ order_form.address.street(class="form-control", required=True) }}
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label>ქუჩის ნომერი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-map-marker"></i></span>
+                                    </div>
+                                    {{ order_form.address.building_number(class="form-control", required=True) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Building Type -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="building_type_id">შენობის ტიპი</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-building"></i>
+                                            </span>
+                                        </div>
+                                        {{ order_form.address.building_type_id(class="form-control", id="building_type_id", required=True) }}
+                                        {% if order_form.address.building_type_id.errors %}
+                                            <div class="text-danger">{{ order_form.address.building_type_id.errors[0] }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3" id="dynamic_fields"></div>
+                        </div>
+
+
+                        <!-- Mobile Phones -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label>მობილური ტელეფონი</label>
                                 <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">
-                                            <i class="fas fa-building"></i>
+                                            <i class="fas fa-mobile-alt"></i>
                                         </span>
                                     </div>
-                                    {{ order_form.address.building_type_id(class="form-control", required=True) }}
-                                    {% if order_form.address.building_type_id.errors %}
-                                        <div class="text-danger">{{ order_form.address.building_type_id.errors[0] }}</div>
-                                    {% endif %}
+                                    {{ order_form.mobile(class="form-control", required=True) }}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>ალტერნატიული მობილური</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-phone-square-alt"></i>
+                                        </span>
+                                    </div>
+                                    {{ order_form.alt_mobile(class="form-control") }}
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3" id="dynamic_fields"></div>
-                    </div>
 
-                    <!-- Mobile Phones -->
-                    <div class="form-row">
-                        <div class="col-md-6 mb-3">
-                            <label>მობილური ტელეფონი</label>
-                            {{ order_form.mobile(class="form-control", required=True) }}
+                        <!-- Latitude/Longitude -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <label>გრძედი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </span>
+                                    </div>
+                                    {{ order_form.address.latitude(class="form-control", required=False) }}
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>განედი</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </span>
+                                    </div>
+                                    {{ order_form.address.longitude(class="form-control", required=False) }}
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label>ალტერნატიული მობილური</label>
-                            {{ order_form.alt_mobile(class="form-control") }}
+                        <!-- Building Type -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label>შენობის რეგ. კოდი <span class="small">(საკანდასტრო კოდი)</span></label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-building"></i>
+                                            </span>
+                                        </div>
+                                        {{ order_form.address.registry_code(class="form-control", required=True, id="registry_code") }}
+                                        {% if order_form.address.registry_code.errors %}
+                                            <div class="text-danger">{{ order_form.address.registry_code.errors[0] }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3" id="dynamic_fields"></div>
                         </div>
-                    </div>
-
-                    <!-- Latitude/Longitude -->
-                    <div class="form-row">
-                        <div class="col-md-6 mb-3">
-                            <label>გრძედი</label>
-                            {{ order_form.address.latitude(class="form-control", required=False) }}
+                        <!-- Tariff Plan -->
+                        <div class="form-row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label>სატარიფო გეგმა</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-building"></i>
+                                            </span>
+                                        </div>
+                                        {{ order_form.tariff_plan_id(class="form-control", required=True, id="tariff_plan_id") }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3" id="dynamic_fields"></div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label>განედი</label>
-                            {{ order_form.address.longitude(class="form-control", required=False) }}
+
+                        <!-- Comment -->
+                        <div class="form-group">
+                            <label>დამატებითი კომენტარი</label>
+                            {{ order_form.comment(class="form-control", required=True, rows=4) }}
                         </div>
-                    </div>
-
-                    <!-- Registry Code -->
-                    <div class="form-group">
-                        <label>შენობის რეგისტრაციის კოდი</label>
-                        {{ order_form.address.registry_code(class="form-control", required=True) }}
-                    </div>
-
-                    <!-- Tariff Plan -->
-                    <div class="form-group">
-                        <label>სატარიფო გეგმა</label>
-                        {{ order_form.tariff_plan_id(class="form-control", required=True) }}
-                    </div>
-
-                    <!-- Comment -->
-                    <div class="form-group">
-                        <label>დამატებითი კომენტარი</label>
-                        {{ order_form.comment(class="form-control", required=True, rows=4) }}
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Submit Button -->
-        <div class="col-md-12 mt-3 mb-3 text-center">
-            <button type="submit" id="register-button" class="btn btn-primary btn-custom">რეგისტრაცია</button>
+            <!-- Submit Button -->
+            <div class="col-md-12 mt-3 mb-3 text-center">
+                <button type="submit" id="register-button" class="btn btn-primary btn-custom">რეგისტრაცია</button>
+            </div>
         </div>
-    </div>
-</form>
+    </form>
+    <style>
+        /* Стили анимации и кнопок */
+        .btn-custom {
+            font-size: 1.25rem;
+            padding: 15px 30px;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+    <script>
+    document.getElementById('building_type_id').addEventListener('change', function () {
+        const buildingTypeId = this.value; // Получаем выбранный тип здания
+        const dynamicFields = document.getElementById('dynamic_fields'); // Контейнер для дополнительных полей
+        dynamicFields.innerHTML = ''; // Очищаем текущие поля
+
+        if (buildingTypeId) {
+            if (buildingTypeId === '2') { // Тип "კორპუსი"
+                dynamicFields.innerHTML += `
+                    <div class="form-group">
+                        <label for="entrance_number">სადარბაზო</label>
+                        <input type="number" name="entrance_number" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="floor_number">სართული</label>
+                        <input type="number" name="floor_number" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="apartment_number">ბინის ნომერი</label>
+                        <input type="text" name="apartment_number" class="form-control" required>
+                    </div>`;
+            }
+        }
+    });
+    </script>
+<script>
+    document.getElementById('customer-type').addEventListener('change', function () {
+        const customerType = this.value; // Получаем выбранный тип клиента
+        const personalLabel = document.querySelector('label[for="identification_number"]');
+        const nameLabel = document.querySelector('label[for="name"]');
+
+        if (customerType === 'individual') { // Физическое лицо
+            personalLabel.textContent = 'პირადი ნომერი'; // Меняем метку на 'პირადი ნომერი'
+            nameLabel.textContent = 'სახელი და გვარი'; // Меняем метку на 'სახელი და გვარი'
+        } else if (customerType === 'company') { // Компания
+            personalLabel.textContent = 'საიდენტიფიკაციო კოდი'; // Меняем метку на 'საიდენტიფიკაციო კოდი'
+            nameLabel.textContent = 'კომპანიის სახელი'; // Меняем метку на 'კომპანიის სახელი'
+        }
+    });
+</script>
+
 {% endblock %}

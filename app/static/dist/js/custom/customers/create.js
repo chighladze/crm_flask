@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function() {
 document.getElementById('customer-type').addEventListener('change', function () {
     const type = this.value;
     document.getElementById('individual-fields').style.display = type === '1' ? 'block' : 'none';
-    document.getElementById('company-fields').style.display = type === '2' ? 'block' : 'none';
+    document.getElementById('company-fields').style.display = type >= '2' ? 'block' : 'none';
 });
 
 // Initialize fields based on customer type when the page loads
@@ -107,3 +107,4 @@ document.getElementById('building_type').addEventListener('change', function () 
     const buildingType = this.value;
     document.getElementById('dynamic_fields').innerHTML = buildingType === 'some_type' ? '<input>' : '';
 });
+
