@@ -133,8 +133,8 @@
                             <tr>
                                 <td class="text-muted">კოორდინატები:</td>
                                 <td>
-                                    {{ order.address.coordinates.latitude if order.address and order.address.coordinates else 'N/A' }},
-                                    {{ order.address.coordinates.longitude if order.address and order.address.coordinates else 'N/A' }}
+                                    {{ order.address.coordinates.latitude if order.address and order.address.coordinates else '-------' }},
+                                    {{ order.address.coordinates.longitude if order.address and order.address.coordinates else '-------' }}
                                 </td>
                             </tr>
                         </tbody>

@@ -6,7 +6,7 @@ import sqlalchemy as sa
 from ..extensions import db
 from ..forms.customers import CustomerForm
 from ..forms.orders import OrderForm
-from ..models import Customers, CustomersType, Addresses, Orders, Coordinates, Tasks
+from ..models import Customers, CustomersType, Addresses, Orders, Coordinates, Tasks, Settlement
 from sqlalchemy.exc import SQLAlchemyError
 from io import BytesIO
 import pandas as pd
@@ -25,14 +25,17 @@ def create():
     # Initialize forms
     customer_form = CustomerForm()
     order_form = OrderForm()
-    create_with_order = request.form.get('create_order', 'false') == 'true'
 
-    is_customer_form_valid = customer_form.validate_on_submit()
-    is_order_form_valid = order_form.validate_on_submit() if create_with_order else True
+    if order_form.address.district_id.data:
+        settlements = Settlement.query.filter_by(district_id=order_form.address.district_id.data).all()
+        settlement_choices = [(settlement.id, settlement.name) for settlement in settlements]
+        order_form.address.settlement_id.choices = settlement_choices
 
     existing_customer = None
     readonly_fields = False
-    if is_customer_form_valid and is_order_form_valid:
+    customer = None  # To store the created customer
+
+    if customer_form.validate_on_submit() and order_form.validate_on_submit():
         try:
             # Check if the customer already exists based on the identification number
             existing_customer = Customers.query.filter_by(
@@ -54,24 +57,70 @@ def create():
                     resident=int(customer_form.resident.data) if customer_form.resident.data else 1
                 )
                 db.session.add(customer)
-                db.session.commit()
-                flash(f"კლიენტი {customer.name} წარმატებით შექმნილია!", 'success')
 
             # Create the order for the existing or new customer
             order_form.customer_id.data = existing_customer.id if existing_customer else customer.id  # Set customer_id
 
-            return render_template('customers/create.html', readonly_fields=readonly_fields,
-                                   customer_form=customer_form, order_form=order_form,
-                                   existing_customer=existing_customer)
+            # Check if settlement_id exists in database
+            settlement = Settlement.query.filter_by(id=order_form.address.settlement_id.data).first()
+            if not settlement:
+                flash("Selected settlement does not exist.", 'danger')
+                return redirect(url_for('customers.create'))
+
+            coordinates = Coordinates(
+                latitude=order_form.address.latitude.data,
+                longitude=order_form.address.longitude.data,
+            )
+            db.session.add(coordinates)
+
+            # Add address to the session
+            address = Addresses(
+                settlement_id=order_form.address.settlement_id.data,
+                building_type_id=order_form.address.building_type_id.data,
+                street=order_form.address.street.data,
+                building_number=order_form.address.building_number.data,
+                entrance_number=order_form.address.entrance_number.data,
+                floor_number=order_form.address.floor_number.data,
+                apartment_number=order_form.address.apartment_number.data,
+                house_number=order_form.address.house_number.data,
+                registry_code=order_form.address.registry_code.data,
+                coordinates_id=coordinates.id,
+            )
+            db.session.add(address)  # Add the address to the session first
+
+            # Commit changes for address and coordinates to ensure the address_id is available
+            db.session.commit()  # Commit the session to persist the address and coordinates
+
+            # Now that address and coordinates are added, create the order
+            order = Orders(
+                customer_id=order_form.customer_id.data,
+                address_id=address.id,  # Now we can safely assign the address_id
+                tariff_plan_id=order_form.tariff_plan_id.data,
+                mobile=order_form.mobile.data,
+                alt_mobile=order_form.alt_mobile.data,
+                comment=order_form.comment.data
+            )
+            db.session.add(order)  # Ensure the order is added to the session
+
+            # Commit everything as a transaction
+            db.session.commit()
+
+            # Redirect to the newly created order page
+            flash(f"კლიენტი {customer.name if customer else existing_customer.name} და განაცხადი წარმატებით შექმნილია!",
+                  'success')
+            return redirect(url_for('orders.order_view', order_id=order.id))  # Redirect to the order details page
+
         except SQLAlchemyError as e:
-            db.session.rollback()
+            db.session.rollback()  # Rollback everything if any error occurs
             flash(f"დაფიქსირდა შეცდომა: {str(e)}", 'danger')
+
     else:
-        if not is_customer_form_valid:
+        # Handle form validation errors
+        if not customer_form.validate_on_submit():
             for field, errors in customer_form.errors.items():
                 for error in errors:
                     flash(f"{field}: {error}", 'danger')
-        if create_with_order and not is_order_form_valid:
+        if not order_form.validate_on_submit():
             for field, errors in order_form.errors.items():
                 for error in errors:
                     flash(f"{field}: {error}", 'danger')
@@ -80,9 +129,10 @@ def create():
         'customers/create.html',
         customer_form=customer_form,
         order_form=order_form,
-        create_with_order=create_with_order,
+        readonly_fields=readonly_fields,
         active_menu='customers'
     )
+
 
 
 @customers.route('/customer/<int:id>/view', methods=['GET'])

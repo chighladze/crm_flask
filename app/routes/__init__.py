@@ -17,6 +17,8 @@ from ..routes.division_positions import division_positions
 from ..routes.task_categories import task_categories
 from ..routes.task_types import task_types
 from ..routes.tasks import tasks
+from ..routes.settlements import settlements
+from ..routes.building_types import building_types
 
 
 def register_routes(app):
@@ -38,3 +40,5 @@ def register_routes(app):
     app.register_blueprint(task_categories)
     app.register_blueprint(task_types)
     app.register_blueprint(tasks)
+    app.register_blueprint(settlements)
+    app.register_blueprint(building_types)

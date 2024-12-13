@@ -11,32 +11,41 @@ def coerce_to_int(value):
     except (ValueError, TypeError):
         return None
 
+
 def validate_latitude(form, field):
     if field.data is not None and not (-90 <= field.data <= 90):
-        raise ValidationError("Latitude must be between -90 and 90.")
+        raise ValidationError("განედი უნდა იყოს -90 და 90 შორის.")
+
 
 def validate_longitude(form, field):
     if field.data is not None and not (-180 <= field.data <= 180):
-        raise ValidationError("Longitude must be between -180 and 180.")
+        raise ValidationError("გრძედი უნდა იყოს -180 და 180 შორის.")
 
 
 class AddressForm(FlaskForm):
-    district_id = SelectField('District', validators=[DataRequired()], coerce=coerce_to_int)
-    settlement_id = SelectField('Settlement', validators=[DataRequired()], coerce=coerce_to_int)
-    building_type_id = SelectField('Building Type', validators=[DataRequired()], coerce=coerce_to_int)
-    street = StringField('Street', validators=[DataRequired(), Length(max=100)])
-    building_number = IntegerField('Building Number', validators=[DataRequired()])
-    entrance_number = IntegerField('Entrance Number', validators=[Optional()])
-    floor_number = IntegerField('Floor Number', validators=[Optional()])
-    apartment_number = IntegerField('Apartment Number', validators=[Optional()])
-    house_number = IntegerField('House Number', validators=[Optional()])
-    latitude = DecimalField('Latitude', validators=[Optional(), validate_latitude])
-    longitude = DecimalField('Longitude', validators=[Optional(), validate_longitude])
-    registry_code = StringField('Registry Code', validators=[Optional()])
+    district_id = SelectField('რაიონი', validators=[DataRequired()], coerce=coerce_to_int)
+    settlement_id = SelectField('დასახლება', validators=[DataRequired()], coerce=coerce_to_int, choices=[])
+    building_type_id = SelectField('შენობის ტიპი', validators=[DataRequired()], coerce=coerce_to_int)
+    street = StringField('ქუჩა', validators=[DataRequired(), Length(max=100)])
+    building_number = IntegerField('შენობის ნომერი', validators=[DataRequired()])
+    entrance_number = IntegerField('კარიბჭის ნომერი', validators=[Optional()])
+    floor_number = IntegerField('სართულების ნომერი', validators=[Optional()])
+    apartment_number = IntegerField('ბინა ნომერი', validators=[Optional()])
+    house_number = IntegerField('სახლის ნომერი', validators=[Optional()])
+    latitude = DecimalField('სიგრძე', validators=[Optional(), validate_latitude])
+    longitude = DecimalField('გრძელი', validators=[Optional(), validate_longitude])
+    registry_code = StringField('რეგისტრაციის კოდი', validators=[Optional()])
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.district_id.choices = [('', 'აირჩიეთ რაიონი')] + [(d.id, d.name) for d in District.query.all()]
-        self.settlement_id.choices = [('', 'აირჩიეთ დასახლება')] + [(d.id, d.name) for d in Settlement.query.all()]
+        # self.settlement_id.choices = [('', 'აირჩიეთ დასახლება')]  # Set empty options initially
         self.building_type_id.choices = [('', 'აირჩიეთ შენობის ტიპი')] + [(bt.id, bt.name) for bt in
                                                                           BuildingType.query.all()]
+
+    def validate_settlement_id(self, field):
+        if not field.data:
+            raise ValidationError("თქვენ უნდა აირჩიეთ დასახლება.")
+        settlement = Settlement.query.filter_by(id=field.data).first()
+        if not settlement:
+            raise ValidationError("შემოთავაზებული დასახლება არ არსებობს.")
