@@ -70,36 +70,38 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Logic to toggle fields based on customer type
-    document.getElementById('customer-type').addEventListener('change', function () {
-        const type = this.value;
-        document.getElementById('individual-fields').style.display = type === '1' ? 'block' : 'none';
-        document.getElementById('company-fields').style.display = type > '1' ? 'block' : 'none';
 
-        // Change labels for identification number and name
-        const personalLabel = document.querySelector('label[for="identification_number"]');
-        const nameLabel = document.querySelector('label[for="name"]');
 
-        if (type === '1') {
-            personalLabel.textContent = 'პირადი ნომერი'; // Update to "Personal Number" for individuals
-            nameLabel.textContent = 'სახელი და გვარი'; // Update to "Full Name"
-        } else {
-            personalLabel.textContent = 'საიდენტიფიკაციო კოდი'; // Update to "Identification Code" for companies
-            nameLabel.textContent = 'კომპანიის სახელი'; // Update to "Company Name"
-        }
-    });
+// Logic to toggle fields based on customer type
+document.getElementById('customer-type').addEventListener('change', function () {
+    const type = this.value;
+    document.getElementById('individual-fields').style.display = type === '1' ? 'block' : 'none';
+    document.getElementById('company-fields').style.display = type > '1' ? 'block' : 'none';
 
-    // Initialize fields based on customer type when the page loads
-    document.getElementById('customer-type').dispatchEvent(new Event('change'));
+    // Change labels for identification number and name
+    const personalLabel = document.querySelector('label[for="identification_number"]');
+    const nameLabel = document.querySelector('label[for="name"]');
 
-    // Logic for dynamically displaying fields based on building type selection
-    document.getElementById('building_type_id').addEventListener('change', function () {
-        const buildingTypeId = this.value;
-        const dynamicFields = document.getElementById('dynamic_fields');
-        dynamicFields.innerHTML = ''; // Clear current dynamic fields
+    if (type === '1') {
+        personalLabel.textContent = 'პირადი ნომერი'; // Update to "Personal Number" for individuals
+        nameLabel.textContent = 'სახელი და გვარი'; // Update to "Full Name"
+    } else {
+        personalLabel.textContent = 'საიდენტიფიკაციო კოდი'; // Update to "Identification Code" for companies
+        nameLabel.textContent = 'კომპანიის სახელი'; // Update to "Company Name"
+    }
+});
 
-        if (buildingTypeId === '2') { // If "Apartment Building" (example value)
-            dynamicFields.innerHTML = `
+// Initialize fields based on customer type when the page loads
+document.getElementById('customer-type').dispatchEvent(new Event('change'));
+
+// Logic for dynamically displaying fields based on building type selection
+document.getElementById('building_type_id').addEventListener('change', function () {
+    const buildingTypeId = this.value;
+    const dynamicFields = document.getElementById('dynamic_fields');
+    dynamicFields.innerHTML = ''; // Clear current dynamic fields
+
+    if (buildingTypeId === '2') { // If "Apartment Building" (example value)
+        dynamicFields.innerHTML = `
                 <div class="form-group">
                     <label for="entrance_number">სადარბაზო</label>
                     <input type="number" name="entrance_number" class="form-control">
@@ -112,10 +114,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     <label for="apartment_number">ბინის ნომერი</label>
                     <input type="text" name="apartment_number" class="form-control" required>
                 </div>`;
-        }
-    });
+    }
+});
 
-    // Logic to dynamically load settlements based on selected district
+// Logic to dynamically load settlements based on selected district
 document.getElementById('district-select').addEventListener('change', function () {
     const districtId = this.value;
     const settlementSelect = document.getElementById('settlement-select');
@@ -133,25 +135,26 @@ document.getElementById('district-select').addEventListener('change', function (
                 'X-CSRFToken': csrfToken
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.settlements) {
-                // Заполняем селект поселениями
-                data.settlements.forEach(function (settlement) {
-                    const option = document.createElement('option');
-                    option.value = settlement.id;
-                    option.textContent = settlement.name;
-                    settlementSelect.appendChild(option);
-                });
-            } else if (data.error) {
-                alert(data.error);
-            }
-        })
-        .catch(error => console.error('Error fetching settlements:', error));
+            .then(response => response.json())
+            .then(data => {
+                if (data.settlements) {
+                    // Заполняем селект поселениями
+                    data.settlements.forEach(function (settlement) {
+                        const option = document.createElement('option');
+                        option.value = settlement.id;
+                        option.textContent = settlement.name;
+                        settlementSelect.appendChild(option);
+                    });
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(error => console.error('Error fetching settlements:', error));
     }
 });
 
 // Вызвать change event при начальной загрузке, если это нужно
 document.getElementById('district-select').dispatchEvent(new Event('change'));
 
-});
+})
+;

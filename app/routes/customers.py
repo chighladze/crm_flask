@@ -119,11 +119,11 @@ def create():
         if not customer_form.validate_on_submit():
             for field, errors in customer_form.errors.items():
                 for error in errors:
-                    flash(f"{field}: {error}", 'danger')
+                    flash(f"დაფიქსირდა შეცდომა: {field} ({error})", 'danger')
         if not order_form.validate_on_submit():
             for field, errors in order_form.errors.items():
                 for error in errors:
-                    flash(f"{field}: {error}", 'danger')
+                    flash(f"დაფიქსირდა შეცდომა: {field} ({error})", 'danger')
 
     return render_template(
         'customers/create.html',
