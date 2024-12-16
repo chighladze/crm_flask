@@ -3,6 +3,7 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from ..extensions import db
 from ..forms.division_positions import DivisionPositionCreateForm
+from ..models import Departments
 from ..models.division_positions import DivisionPositions
 from ..models.division import Divisions
 
@@ -15,6 +16,9 @@ def positions_list(div_id):
     if 'division_positions_list' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
         flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['division_positions_list']", 'danger')
         return redirect(url_for('dashboard.index'))
+
+    division = Divisions.query.filter_by(id=div_id).first_or_404()
+    department = Departments.query.filter_by(id=division.department_id).first_or_404()
 
     search_query = request.args.get('search', '')
     page = request.args.get('page', 1, type=int)
@@ -34,6 +38,8 @@ def positions_list(div_id):
         positions=positions_list.items,
         pagination=positions_list,
         div_id=div_id,
+        division=division,
+        department=department,
         active_menu='administration'
     )
 

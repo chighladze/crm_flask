@@ -4,10 +4,13 @@
 {% block title %}პოზიციების სია{% endblock %}
 
 {% block breadcrumb %}
-    <li class="breadcrumb-item">
-        <a href="{{ url_for('users.users_list') }}">თანამშრომლების სია</a>
+        <li class="breadcrumb-item">
+        <a href="{{ url_for('departments.dep_list') }}">დეპარტამენტები</a>
     </li>
-    <li class="breadcrumb-item active">{{ user.name }}</li>
+    <li class="breadcrumb-item">
+        <a href="{{ url_for('divisions.div_list', dep_id=department.id) }}">{{ division.name }}</a>
+    </li>
+    <li class="breadcrumb-item active">პოზიციების სია</li>
 {% endblock %}
 
 {% block content %}

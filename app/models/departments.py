@@ -12,7 +12,6 @@ class Departments(db.Model):
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Связь с Divisions
     divisions = db.relationship('Divisions', back_populates='department', cascade='all, delete-orphan')
 
     def __repr__(self):

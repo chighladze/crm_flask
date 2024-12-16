@@ -1,21 +1,17 @@
 # project path: crm_flask/app/routes/task_categories.py
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, jsonify
 from flask_login import login_required
 from sqlalchemy.exc import SQLAlchemyError
-import sqlalchemy as sa
 from io import BytesIO
 import pandas as pd
 from ..extensions import db
-from ..models import TaskCategories, TaskTypes
-from ..forms import TaskTypeForm
+from ..models import TaskCategories, Divisions, DivisionPositions
 from ..forms.task_category import TaskCategoryForm
 
-# Создаем Blueprint
 task_categories = Blueprint('task_categories', __name__)
 
 
-# Список категорий с фильтрацией, пагинацией
 @task_categories.route('/task_categories/list', methods=['GET'])
 @login_required
 def list_task_categories():
@@ -49,7 +45,6 @@ def list_task_categories():
     )
 
 
-# Создание новой категории
 @task_categories.route('/task_categories/create', methods=['GET', 'POST'])
 @login_required
 def create_task_category():
@@ -58,6 +53,8 @@ def create_task_category():
         try:
             new_category = TaskCategories(
                 name=form.name.data,
+                department_id=form.department_id.data,
+                division_id=form.division_id.data,
                 position_id=form.position_id.data
             )
             db.session.add(new_category)
@@ -71,7 +68,20 @@ def create_task_category():
     return render_template('task_categories/create.html', form=form)
 
 
-# Редактирование категории
+@task_categories.route('/get_divisions/<int:department_id>', methods=['GET'])
+@login_required
+def get_divisions(department_id):
+    divisions = Divisions.query.filter_by(department_id=department_id).all()
+    return jsonify([{'id': division.id, 'name': division.name} for division in divisions])
+
+
+@task_categories.route('/get_positions/<int:division_id>', methods=['GET'])
+@login_required
+def get_positions(division_id):
+    positions = DivisionPositions.query.filter_by(division_id=division_id).all()
+    return jsonify([{'id': position.id, 'name': position.name} for position in positions])
+
+
 @task_categories.route('/task_categories/edit/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_task_category(id):
@@ -92,7 +102,6 @@ def edit_task_category(id):
     return render_template('task_categories/edit.html', form=form, category=category)
 
 
-# Скрытие категории
 @task_categories.route('/task_categories/hide/<int:id>', methods=['POST'])
 @login_required
 def hide_task_category(id):
@@ -107,7 +116,6 @@ def hide_task_category(id):
     return redirect(url_for('task_categories.list_task_categories'))
 
 
-# Экспорт категорий в Excel
 @task_categories.route('/task_categories/export', methods=['GET'])
 @login_required
 def export_task_categories():

@@ -15,8 +15,20 @@
                     {{ form.name(class="form-control") }}
                 </div>
                 <div class="form-group">
+                    {{ form.department_id.label(class="form-label") }}
+                    {{ form.department_id(class="form-control", id="department-select") }}
+                </div>
+                <div class="form-group">
+                    {{ form.division_id.label(class="form-label") }}
+                    <select class="form-control" id="division-select" name="division_id">
+                        <option value="">აირჩიეთ განყოფილება</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     {{ form.position_id.label(class="form-label") }}
-                    {{ form.position_id(class="form-control") }}
+                    <select class="form-control" id="position-select" name="position_id">
+                        <option value="">აირჩიეთ პოზიცია</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     {{ form.submit(class="btn btn-primary") }}
@@ -24,4 +36,46 @@
             </form>
         </div>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // When a department is selected, load the divisions
+            document.getElementById("department-select").addEventListener("change", function() {
+                var departmentId = this.value;
+                if (departmentId) {
+                    fetch(`/get_divisions/${departmentId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            let divisionSelect = document.getElementById("division-select");
+                            divisionSelect.innerHTML = '<option value="">აირჩიეთ განყოფილება</option>';
+                            data.forEach(division => {
+                                let option = document.createElement("option");
+                                option.value = division.id;
+                                option.textContent = division.name;
+                                divisionSelect.appendChild(option);
+                            });
+                        });
+                }
+            });
+
+            // When a department is selected, load the positions
+            document.getElementById("division-select").addEventListener("change", function() {
+                var divisionId = this.value;
+                if (divisionId) {
+                    fetch(`/get_positions/${divisionId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            let positionSelect = document.getElementById("position-select");
+                            positionSelect.innerHTML = '<option value="">აირჩიეთ პოზიცია</option>';
+                            data.forEach(position => {
+                                let option = document.createElement("option");
+                                option.value = position.id;
+                                option.textContent = position.name;
+                                positionSelect.appendChild(option);
+                            });
+                        });
+                }
+            });
+        });
+    </script>
 {% endblock %}
