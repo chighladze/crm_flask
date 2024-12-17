@@ -7,7 +7,6 @@ class Tasks(db.Model):
     __tablename__ = 'tasks'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    task_category_id = db.Column(db.Integer, db.ForeignKey('task_categories.id'))
     task_type_id = db.Column(db.Integer, db.ForeignKey('task_types.id'))
     description = db.Column(db.Text)
     status_id = db.Column(db.Integer, db.ForeignKey('task_statuses.id'), default=1)
@@ -32,6 +31,9 @@ class Tasks(db.Model):
 
     status = db.relationship('TaskStatuses', backref='tasks', lazy='joined')
     priority = db.relationship('TaskPriorities', backref='tasks', lazy='joined')
-    task_category = db.relationship('TaskCategories', backref='related_tasks', lazy='joined')
     task_type = db.relationship('TaskTypes', backref='related_tasks', lazy='joined')
     created_user = db.relationship('Users', foreign_keys=[created_by], backref='created_tasks')
+
+    # Добавляем связь для получения division_id из task_type
+    task_division = db.relationship('Divisions', secondary='task_types', backref='task_divisions', lazy='joined')
+

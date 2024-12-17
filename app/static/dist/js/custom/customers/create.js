@@ -22,14 +22,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     .then(data => {
                         if (data.exists) {
                             // Fill the form with the existing customer's data
-                            document.getElementById('name').value = data.name || 'Data not found';
-                            document.getElementById('email').value = data.email || 'Data not found';
-                            document.getElementById('mobile').value = data.mobile || 'Data not found';
-                            document.getElementById('mobile_second').value = data.mobile_second || 'Data not found';
+                            document.getElementById('name').value = data.name || 'მონაცემები ვერ მოიძბენა';
+                            document.getElementById('email').value = data.email || 'მონაცემები ვერ მოიძბენა';
+                            document.getElementById('director').value = data.director || 'მონაცემები ვერ მოიძბენა';
+                            document.getElementById('mobile').value = data.mobile || 'მონაცემები ვერ მოიძბენა';
+                            document.getElementById('mobile_second').value = data.mobile_second || 'მონაცემები ვერ მოიძბენა';
 
                             // Set the fields as readonly
                             document.getElementById('name').setAttribute('readonly', 'true');
                             document.getElementById('email').setAttribute('readonly', 'true');
+                            document.getElementById('director').setAttribute('readonly', 'true')
                             document.getElementById('mobile').setAttribute('readonly', 'true');
                             document.getElementById('mobile_second').setAttribute('readonly', 'true');
 
@@ -38,18 +40,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
                             // Hide the registration button if the customer already exists
                             registerButton.style.display = 'none';
-
-                            // Show the modal with existing customer details
-                            $('#customerExistsModal').modal('show');
                         } else {
                             // Clear the fields and remove readonly if the customer is not found
                             document.getElementById('name').value = '';
                             document.getElementById('email').value = '';
+                            document.getElementById('director').value = '';
                             document.getElementById('mobile').value = '';
                             document.getElementById('mobile_second').value = '';
 
                             document.getElementById('name').removeAttribute('readonly');
                             document.getElementById('email').removeAttribute('readonly');
+                            document.getElementById('director').removeAttribute('readonly');
                             document.getElementById('mobile').removeAttribute('readonly');
                             document.getElementById('mobile_second').removeAttribute('readonly');
 
@@ -57,13 +58,13 @@ document.addEventListener("DOMContentLoaded", function () {
                             registerButton.style.display = 'inline-block';
                         }
                     })
-                    .catch(error => console.error('Error:', error));
             } else {
                 // If the field is empty, show the registration button and make the fields editable
                 registerButton.style.display = 'inline-block';
 
                 document.getElementById('name').removeAttribute('readonly');
                 document.getElementById('email').removeAttribute('readonly');
+                document.getElementById('director').removeAttribute('readonly');
                 document.getElementById('mobile').removeAttribute('readonly');
                 document.getElementById('mobile_second').removeAttribute('readonly');
             }
@@ -71,37 +72,36 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-
 // Logic to toggle fields based on customer type
-document.getElementById('customer-type').addEventListener('change', function () {
-    const type = this.value;
-    document.getElementById('individual-fields').style.display = type === '1' ? 'block' : 'none';
-    document.getElementById('company-fields').style.display = type > '1' ? 'block' : 'none';
+    document.getElementById('customer-type').addEventListener('change', function () {
+        const type = this.value;
+        document.getElementById('individual-fields').style.display = type === '1' ? 'block' : 'none';
+        document.getElementById('company-fields').style.display = type > '1' ? 'block' : 'none';
 
-    // Change labels for identification number and name
-    const personalLabel = document.querySelector('label[for="identification_number"]');
-    const nameLabel = document.querySelector('label[for="name"]');
+        // Change labels for identification number and name
+        const personalLabel = document.querySelector('label[for="identification_number"]');
+        const nameLabel = document.querySelector('label[for="name"]');
 
-    if (type === '1') {
-        personalLabel.textContent = 'პირადი ნომერი'; // Update to "Personal Number" for individuals
-        nameLabel.textContent = 'სახელი და გვარი'; // Update to "Full Name"
-    } else {
-        personalLabel.textContent = 'საიდენტიფიკაციო კოდი'; // Update to "Identification Code" for companies
-        nameLabel.textContent = 'კომპანიის სახელი'; // Update to "Company Name"
-    }
-});
+        if (type === '1') {
+            personalLabel.textContent = 'პირადი ნომერი'; // Update to "Personal Number" for individuals
+            nameLabel.textContent = 'სახელი და გვარი'; // Update to "Full Name"
+        } else {
+            personalLabel.textContent = 'საიდენტიფიკაციო კოდი'; // Update to "Identification Code" for companies
+            nameLabel.textContent = 'კომპანიის სახელი'; // Update to "Company Name"
+        }
+    });
 
 // Initialize fields based on customer type when the page loads
-document.getElementById('customer-type').dispatchEvent(new Event('change'));
+    document.getElementById('customer-type').dispatchEvent(new Event('change'));
 
 // Logic for dynamically displaying fields based on building type selection
-document.getElementById('building_type_id').addEventListener('change', function () {
-    const buildingTypeId = this.value;
-    const dynamicFields = document.getElementById('dynamic_fields');
-    dynamicFields.innerHTML = ''; // Clear current dynamic fields
+    document.getElementById('building_type_id').addEventListener('change', function () {
+        const buildingTypeId = this.value;
+        const dynamicFields = document.getElementById('dynamic_fields');
+        dynamicFields.innerHTML = ''; // Clear current dynamic fields
 
-    if (buildingTypeId === '2') { // If "Apartment Building" (example value)
-        dynamicFields.innerHTML = `
+        if (buildingTypeId === '2') { // If "Apartment Building" (example value)
+            dynamicFields.innerHTML = `
                 <div class="form-group">
                     <label for="entrance_number">სადარბაზო</label>
                     <input type="number" name="entrance_number" class="form-control">
@@ -114,47 +114,45 @@ document.getElementById('building_type_id').addEventListener('change', function 
                     <label for="apartment_number">ბინის ნომერი</label>
                     <input type="text" name="apartment_number" class="form-control" required>
                 </div>`;
-    }
-});
+        }
+    });
 
 // Logic to dynamically load settlements based on selected district
-document.getElementById('district-select').addEventListener('change', function () {
-    const districtId = this.value;
-    const settlementSelect = document.getElementById('settlement-select');
-    const csrfToken = document.querySelector('[name=csrf_token]').value;
+    document.getElementById('district-select').addEventListener('change', function () {
+        const districtId = this.value; // Get the selected district ID
+        const settlementSelect = document.getElementById('settlement-select'); // Select the settlement dropdown
+        const csrfToken = document.querySelector('[name=csrf_token]').value; // Get the CSRF token for security
 
-    // Очистить текущие поселения в селекте
-    settlementSelect.innerHTML = '<option value="">აირჩიეთ დასახლება</option>';
+        // Clear current settlements in the select dropdown
+        settlementSelect.innerHTML = '<option value="">აირჩიეთ დასახლება</option>';
 
-    if (districtId) {
-        // Получение поселений для выбранного района
-        fetch(`/settlements/${districtId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.settlements) {
-                    // Заполняем селект поселениями
-                    data.settlements.forEach(function (settlement) {
-                        const option = document.createElement('option');
-                        option.value = settlement.id;
-                        option.textContent = settlement.name;
-                        settlementSelect.appendChild(option);
-                    });
-                } else if (data.error) {
-                    alert(data.error);
+        if (districtId) { // Check if a district is selected
+            // Fetch settlements for the selected district
+            fetch(`/settlements/${districtId}`, {
+                method: 'GET', // Set the request method to GET
+                headers: {
+                    'Content-Type': 'application/json', // Specify the content type
+                    'X-CSRFToken': csrfToken // Send the CSRF token in the header
                 }
             })
-            .catch(error => console.error('Error fetching settlements:', error));
-    }
+                .then(response => response.json()) // Parse the response as JSON
+                .then(data => {
+                    if (data.settlements) { // Check if settlements data is returned
+                        // Populate the settlement select dropdown with settlements
+                        data.settlements.forEach(function (settlement) {
+                            const option = document.createElement('option'); // Create a new option element
+                            option.value = settlement.id; // Set the value of the option
+                            option.textContent = settlement.name; // Set the display name of the option
+                            settlementSelect.appendChild(option); // Append the option to the dropdown
+                        });
+                    } else if (data.error) { // Handle any errors returned in the response
+                        alert(data.error);
+                    }
+                })
+                .catch(error => console.error('Error fetching settlements:', error)); // Log any errors in the fetch process
+        }
+    });
+
+// Trigger the change event on initial page load, if needed
+    document.getElementById('district-select').dispatchEvent(new Event('change'));
 });
-
-// Вызвать change event при начальной загрузке, если это нужно
-document.getElementById('district-select').dispatchEvent(new Event('change'));
-
-})
-;

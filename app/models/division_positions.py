@@ -13,7 +13,6 @@ class DivisionPositions(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, onupdate=datetime.utcnow)
 
     division = db.relationship('Divisions', backref='positions')
-    task_categories = db.relationship("TaskCategories", back_populates="division_position")
 
     def __repr__(self):
         return f'<Division Position {self.name}>'

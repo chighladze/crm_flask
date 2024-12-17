@@ -3,7 +3,6 @@ from .departments import Departments
 from .division import Divisions
 from .department_positions import DepartmentPositions
 from .division_positions import DivisionPositions
-from .task_categories import TaskCategories
 from .users import Users
 from .roles import Roles
 from .users_roles import UsersRoles
@@ -21,7 +20,6 @@ from .task_types import TaskTypes
 from .task_statuses import TaskStatuses
 from .task_priorities import TaskPriorities
 from .tasks import Tasks
-from .task_categories import TaskCategories
 from .orders import Orders
 from .tariff_plans import TariffPlan
 from .currencies import Currencies

@@ -139,7 +139,7 @@
                     </ul>
                 </li>
                 <li class="nav-item {% if active_menu == 'tasks' %}menu-open{% endif %}">
-                    <a href="#" class="nav-link {% if active_menu == 'accounts' %}active{% endif %}">
+                    <a href="#" class="nav-link {% if active_menu == 'tasks' %}active{% endif %}">
                         <i class="fas fa-tasks nav-icon"></i>
                         <p>
                             დავალებები
@@ -148,9 +148,9 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('task_categories.list_task_categories') }}" class="nav-link {% if request.path.split('/')[2] in ('task_category', ) %}active{% endif %}">
-                                <i class="fas fa-th nav-icon"></i>
-                                <p>კატეგორიები</p>
+                            <a href="{{ url_for('task_types.list') }}" class="nav-link {% if request.path.split('/')[2] in ('task_types', ) %}active{% endif %}">
+                                <i class="fas fa-window-restore nav-icon"></i>
+                                <p>დავალების ტიპები</p>
                             </a>
                         </li>
                     </ul>

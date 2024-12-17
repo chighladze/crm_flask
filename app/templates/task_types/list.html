@@ -1,0 +1,126 @@
+{% extends 'main/base.html' %}
+
+{% block title %}დავალების ტიპები{% endblock %}
+
+{% block script %}
+    <script>
+        // Dynamic loading of divisions when a department is selected
+        $(document).ready(function () {
+            $('#department_id').change(function () {
+                var departmentId = $(this).val();
+                $.ajax({
+                    url: '/tasks/task_types/get_divisions/' + departmentId,
+                    method: 'GET',
+                    success: function (response) {
+                        var divisionDropdown = $('#division_id');
+                        divisionDropdown.html('<option value="">აირჩიეთ განყოფილება</option>');
+                        $.each(response.divisions, function (index, division) {
+                            divisionDropdown.append(
+                                '<option value="' + division.id + '">' + division.name + '</option>'
+                            );
+                        });
+                    },
+                    error: function () {
+                        console.log("Error fetching divisions.");
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <!-- Header section with filters and "Add Task Type" button -->
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <!-- Add button -->
+            <a href="{{ url_for('task_types.create') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> დამატება
+            </a>
+
+            <!-- Filter Form -->
+            <form method="GET" action="{{ url_for('task_types.list') }}" class="form-inline">
+                <!-- Search field -->
+                <input type="text" name="search" class="form-control mr-2" placeholder="ძებნა"
+                       value="{{ search_query }}">
+
+                <!-- Department dropdown -->
+                <select name="department_id" id="department_id" class="form-control mr-2">
+                    <option value="">აირჩიეთ დეპარტამენტი</option>
+                    {% for department in departments %}
+                        <option value="{{ department.id }}" {% if department.id == department_id %}selected{% endif %}>
+                            {{ department.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <!-- Division dropdown -->
+                <select name="division_id" id="division_id" class="form-control mr-2">
+                    <option value="">აირჩიეთ განყოფილება</option>
+                    {% for division in divisions %}
+                        <option value="{{ division.id }}" {% if division.id == division_id %}selected{% endif %}>
+                            {{ division.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <!-- Filter button -->
+                <button type="submit" class="btn btn-primary mr-2">ფილტრი</button>
+
+                <!-- Export to Excel button -->
+                <a href="{{ url_for('task_types.list', search=search_query, department_id=department_id, division_id=division_id, export='true') }}"
+                   class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Excel ექსპორტი
+                </a>
+            </form>
+        </div>
+
+        <!-- Table displaying the list of task types -->
+        <div class="card-body">
+            <table class="table table-responsive-sm table-bordered">
+                <thead>
+                <tr>
+                    <th class="text-center">ID</th>
+                    <th class="text-center">სახელი</th>
+                    <th class="text-center">დეპარტამენტი</th>
+                    <th class="text-center">განყოფილება</th>
+                    <th class="text-center">მოქმედება</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for task_type in task_types %}
+                    <tr>
+                        <td class="text-center">{{ task_type.id }}</td>
+                        <td>{{ task_type.name }}</td>
+                        <td>{{ task_type.division.department.name }}</td>
+                        <td>{{ task_type.division.name }}</td>
+                        <td class="text-center">
+                            <!-- Edit button -->
+                            <a href="{{ url_for('task_types.edit', id=task_type.id) }}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">დავალების ტიპები ვერ მოიძებნა</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Pagination controls -->
+            <div class="pagination d-flex justify-content-center">
+                {% if pagination.has_prev %}
+                    <a href="{{ url_for('task_types.list', page=pagination.prev_num, search=search_query, department_id=department_id, division_id=division_id) }}"
+                       class="btn btn-secondary">წინა</a>
+                {% endif %}
+                <span class="mx-3">გვერდი {{ pagination.page }} / {{ pagination.pages }}</span>
+                {% if pagination.has_next %}
+                    <a href="{{ url_for('task_types.list', page=pagination.next_num, search=search_query, department_id=department_id, division_id=division_id) }}"
+                       class="btn btn-secondary">შემდეგი</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

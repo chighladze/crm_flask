@@ -1,0 +1,105 @@
+{% extends 'main/base.html' %}
+
+{% block title %}დავალების ტიპის რედაქტირება{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            // Function to fetch divisions based on the selected department
+            function fetchDivisions(departmentId, selectedDivisionId) {
+                var divisionsDropdown = $('#division_id');
+                divisionsDropdown.html('<option value="">Select Division</option>'); // Reset the division dropdown
+
+                if (!departmentId) {
+                    // Hide division form group if no department is selected
+                    $('#division_form_group').hide();
+                    return;
+                }
+
+                // Send an AJAX request to fetch divisions for the selected department
+                $.ajax({
+                    url: '/tasks/task_types/get_divisions/' + departmentId, // API endpoint
+                    method: 'GET',
+                    success: function (response) {
+                        // Populate the division dropdown with data from the server
+                        $.each(response.divisions, function (index, division) {
+                            var selected = division.id == selectedDivisionId ? 'selected' : '';
+                            divisionsDropdown.append(
+                                `<option value="${division.id}" ${selected}>${division.name}</option>`
+                            );
+                        });
+
+                        // Show the division form group after populating the dropdown
+                        $('#division_form_group').show();
+                    }
+                });
+            }
+
+            // Variables for pre-selected department and division (used during editing)
+            var currentDepartmentId = "{{ current_department_id }}";
+            var currentDivisionId = "{{ current_division_id }}";
+
+            // On page load: if a department is already selected, fetch its divisions
+            if (currentDepartmentId) {
+                fetchDivisions(currentDepartmentId, currentDivisionId);
+            }
+
+            // When the department selection changes, fetch corresponding divisions
+            $('#department_id').change(function () {
+                var departmentId = $(this).val();
+                fetchDivisions(departmentId, null); // Reset selected division
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-body">
+            <!-- Form for editing a task type -->
+            <form method="POST" action="{{ url_for('task_types.edit', id=task_type.id) }}">
+                {{ form.hidden_tag() }}
+
+                <!-- Task Type Name -->
+                <div class="form-group mb-3">
+                    <label for="name">დავალების ტიპი</label> <!-- Task Type Name -->
+                    {{ form.name(class="form-control", id="name") }}
+                </div>
+
+                <!-- Department Selection -->
+                <div class="form-group mb-3">
+                    <label for="department_id">დეპარტამენტი</label> <!-- Department -->
+                    <select class="form-control" id="department_id" name="department_id">
+                        <option value="">Select Department</option>
+                        {% for department in departments %}
+                            <option value="{{ department.id }}"
+                                    {% if department.id == current_department_id %}selected{% endif %}>
+                                {{ department.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Division Selection -->
+                <div class="form-group mb-3" id="division_form_group">
+                    <label for="division_id">განყოფილება</label> <!-- Division -->
+                    <select class="form-control" id="division_id" name="division_id">
+                        <option value="">Select Division</option>
+                        {% for division in divisions %}
+                            <option value="{{ division.id }}"
+                                    {% if division.id == current_division_id %}selected{% endif %}>
+                                {{ division.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-warning">შენახვა</button> <!-- Save -->
+                    <a href="{{ url_for('task_types.list') }}" class="btn btn-secondary">გაუქმება</a> <!-- Cancel -->
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

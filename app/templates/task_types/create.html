@@ -1,0 +1,101 @@
+{% extends "main/base.html" %}
+
+{% block title %}ახალი დავალების ტიპის შექმნა{% endblock %}
+
+{% block script %}
+    <script>
+        $(document).ready(function () {
+            function fetchDivisions(departmentId) {
+                var divisionFormGroup = $('#division_form_group');
+                var divisionsDropdown = $('#division_id');
+
+                if (!departmentId) {
+                    divisionFormGroup.hide();
+                    divisionsDropdown.html('<option value="">აირჩიეთ განყოფილება</option>');
+                    return;
+                }
+
+                $.ajax({
+                    url: '/tasks/task_types/get_divisions/' + departmentId,
+                    method: 'GET',
+                    success: function (response) {
+                        divisionsDropdown.html('<option value="">აირჩიეთ განყოფილება</option>');
+
+                        if (response.divisions.length === 0) {
+                            divisionsDropdown.html('<option value="">განყოფილებები არ არის ხელმისაწვდომი</option>');
+                        } else {
+                            $.each(response.divisions, function (index, division) {
+                                divisionsDropdown.append(
+                                    '<option value="' + division.id + '">' + division.name + '</option>'
+                                );
+                            });
+                        }
+
+                        divisionFormGroup.show();
+                    },
+                    error: function () {
+                        console.log('Error fetching divisions');
+                        divisionFormGroup.hide();
+                    }
+                });
+            }
+
+            $('#department_id').change(function () {
+                var departmentId = $(this).val();
+                $('#division_id').html('<option value="">აირჩიეთ განყოფილება</option>'); // Reset divisions
+                fetchDivisions(departmentId);
+            });
+        });
+    </script>
+
+{% endblock %}
+
+{% block content %}
+    <div class="card" style="max-width: 600px; margin: 0 auto;">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('task_types.create') }}">
+                {{ form.hidden_tag() }}
+
+                <!-- Task Type Name -->
+                <div class="form-group">
+                    <label for="name">დავალების ტიპის სახელი</label>
+                    {{ form.name(class="form-control", id="name", placeholder="დავალების ტიპის სახელი") }}
+                    {% if form.name.errors %}
+                        <small class="text-danger">
+                            {% for error in form.name.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </small>
+                    {% endif %}
+                </div>
+
+                <!-- Department selection -->
+                <div class="form-group">
+                    <label for="department_id">დეპარტამენტი</label>
+                    {{ form.department_id(class="form-control", id="department_id") }}
+                </div>
+
+                <!-- Division selection -->
+                <div class="form-group" id="division_form_group"
+                     style="display: {{ 'block' if form.department_id.data else 'none' }};">
+                    <label for="division_id">განყოფილება</label>
+                    <select id="division_id" name="division_id" class="form-control">
+                        <option value="">აირჩიეთ განყოფილება</option>
+                        {% for division in divisions %}
+                            <option value="{{ division.id }}"
+                                    {% if form.division_id.data == division.id %}selected{% endif %}>
+                                {{ division.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Submit and cancel buttons -->
+                <div class="form-group d-flex justify-content-between">
+                    <button type="submit" class="btn btn-success">შექმნა</button>
+                    <a href="{{ url_for('task_types.list') }}" class="btn btn-secondary">გაუქმება</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

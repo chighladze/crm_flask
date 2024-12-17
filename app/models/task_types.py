@@ -1,13 +1,15 @@
 # crm_flask/app/models/task_types.py
+from datetime import datetime
 from ..extensions import db
-
 
 class TaskTypes(db.Model):
     __tablename__ = 'task_types'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('task_categories.id'), nullable=False)
-    name = db.Column(db.String(50), unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    division_id = db.Column(db.Integer, db.ForeignKey('divisions.id'), nullable=False)
 
-    # Relationship with TaskCategories
-    task_category = db.relationship("TaskCategories", back_populates="task_types")
+    division = db.relationship('Divisions', backref='task_types')
+
+    def __repr__(self):
+        return f"<TaskType {self.name}>"

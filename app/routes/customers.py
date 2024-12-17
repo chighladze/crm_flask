@@ -346,6 +346,7 @@ def check_identification():
                 'id': customer.id,
                 'name': customer.name,
                 'email': customer.email,
+                'director': customer.director,
                 'mobile': customer.mobile,
                 'mobile_second': customer.mobile_second
             }), 200

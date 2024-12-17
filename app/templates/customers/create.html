@@ -1,7 +1,9 @@
 {% extends "main/base.html" %}
 
 {% block title %}ახალი განაცხადი{% endblock %}
-
+{% block breadcrumb %}
+    <li class="breadcrumb-item active">ახალი განაცხადი</li>
+{% endblock %}
 {% block styles %}
     <link rel="icon" href="{{ url_for('static', filename='dist/css/custom/customers/create.css') }}"
           type="image/x-icon">
@@ -106,10 +108,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Инициализация полей при загрузке страницы
+    // Initialize fields when page loads
     document.getElementById('customer-type').dispatchEvent(new Event('change'));
 
-    // Валидация формы перед отправкой
+    // Validate the form before submitting
     document.getElementById('customer-form').addEventListener('submit', function (e) {
         if (!document.getElementById('settlement-select').value) {
             e.preventDefault();

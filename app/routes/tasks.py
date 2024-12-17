@@ -3,7 +3,7 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
 from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
-from ..models import Tasks, TaskCategories, TaskStatuses, TaskPriorities, Users, TaskTypes, TaskCategories
+from ..models import Tasks, TaskStatuses, TaskPriorities, Users, TaskTypes
 from ..forms import TaskForm
 import pandas as pd
 from io import BytesIO
@@ -17,8 +17,6 @@ def view_task(task_id):
     task = Tasks.query.get_or_404(task_id)
     form = TaskForm(obj=task)
 
-    # Устанавливаем значения для SelectField
-    form.task_category_id.choices = [(cat.id, cat.name) for cat in TaskCategories.query.all()]
     form.task_type_id.choices = [(type.id, type.name) for type in TaskTypes.query.all()]
     form.status_id.choices = [(status.id, status.name) for status in TaskStatuses.query.all()]
     form.task_priority_id.choices = [(priority.id, priority.level) for priority in TaskPriorities.query.all()]
@@ -71,7 +69,6 @@ def edit_task(task_id):
 
     form = TaskForm(obj=task)
 
-    form.task_category_id.choices = [(cat.id, cat.name) for cat in TaskCategories.query.all()]
     form.status_id.choices = [(status.id, status.name) for status in TaskStatuses.query.all()]
     form.task_priority_id.choices = [(priority.id, priority.level) for priority in TaskPriorities.query.all()]
 
@@ -138,7 +135,6 @@ def tasks_list():
     # Данные для фильтров
     statuses = TaskStatuses.query.all()
     priorities = TaskPriorities.query.all()
-    categories = TaskCategories.query.all()
     users = Users.query.all()  # Загрузка списка пользователей
 
     return render_template(
@@ -147,7 +143,6 @@ def tasks_list():
         pagination=tasks_list,
         statuses=statuses,
         priorities=priorities,
-        categories=categories,
         users=users,
         search_query=search_query,
         status_id=status_id,
@@ -188,9 +183,6 @@ def export():
 def create_task():
     from ..forms.tasks import TaskForm
     form = TaskForm()
-
-    # Fetch categories for the task category dropdown
-    categories = TaskCategories.query.all()  # Assuming you have a TaskCategory model for categories
 
     # Adding categories to the form choices so they are available in the dropdown
     form.task_category_id.choices = [(category.id, category.name) for category in categories]
