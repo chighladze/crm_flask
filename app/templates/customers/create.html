@@ -276,23 +276,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             <!-- The rest of the code remains unchanged -->
             <div class="form-row">
-                <div class="col-md-3 form-group">
-                    <label>ქუჩის ნომერი</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text"><i class="fas fa-map-marker"></i></span>
-                        </div>
-                        {{ order_form.address.building_number(class="form-control", required=True) }}
-                    </div>
-                    {% if order_form.address.building_number.errors %}
-                    <div class="text-danger">
-                        {% for error in order_form.address.building_number.errors %}
-                            <p>{{ error }}</p>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-
                 <div class="col-md-4 form-group">
                     <label>შენობის ტიპი</label>
                     <div class="input-group">

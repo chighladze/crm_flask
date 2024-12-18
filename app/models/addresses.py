@@ -10,7 +10,6 @@ class Addresses(db.Model):
     settlement_id = db.Column(db.Integer, db.ForeignKey('settlements.id'), nullable=False)
     building_type_id = db.Column(db.Integer, db.ForeignKey('building_types.id'), nullable=False)
     street = db.Column(db.String(100), nullable=False)
-    building_number = db.Column(db.String(10), nullable=False)
     entrance_number = db.Column(db.Integer)
     floor_number = db.Column(db.Integer)
     apartment_number = db.Column(db.Integer)

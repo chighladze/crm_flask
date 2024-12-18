@@ -78,7 +78,6 @@ def create():
                 settlement_id=order_form.address.settlement_id.data,
                 building_type_id=order_form.address.building_type_id.data,
                 street=order_form.address.street.data,
-                building_number=order_form.address.building_number.data,
                 entrance_number=order_form.address.entrance_number.data,
                 floor_number=order_form.address.floor_number.data,
                 apartment_number=order_form.address.apartment_number.data,

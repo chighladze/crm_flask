@@ -27,7 +27,6 @@ class AddressForm(FlaskForm):
     settlement_id = SelectField('დასახლება', validators=[DataRequired()], coerce=coerce_to_int, choices=[])
     building_type_id = SelectField('შენობის ტიპი', validators=[DataRequired()], coerce=coerce_to_int)
     street = StringField('ქუჩა', validators=[DataRequired(), Length(max=100)])
-    building_number = IntegerField('შენობის ნომერი', validators=[DataRequired()])
     entrance_number = IntegerField('კარიბჭის ნომერი', validators=[Optional()])
     floor_number = IntegerField('სართულების ნომერი', validators=[Optional()])
     apartment_number = IntegerField('ბინა ნომერი', validators=[Optional()])
