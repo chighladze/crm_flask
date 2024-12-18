@@ -12,7 +12,7 @@ class CustomerForm(FlaskForm):
     director = StringField('Director', validators=[Optional()])
     email = StringField('ელ. ფოსტა', validators=[Length(max=100)])
     mobile = StringField('მობილური ნომერი', validators=[DataRequired(), Length(max=20)])
-    mobile_second = StringField('დამატებითი საკონტაქტო', validators=[Length(max=20)])
+    mobile_second = StringField('დამატებითი საკონტაქტო', validators=[Optional()])
     resident = SelectField('რეზიდენტი', choices=[(1, 'კი'), (0, 'არა')], coerce=int, default=1)
     submit = SubmitField('რეგისტრაცია')
 
