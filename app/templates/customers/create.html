@@ -16,7 +16,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 <script>
-// English comment: Adjust column classes and director field visibility based on customer type.
+// English comment: Adjust fields based on customer and building type, placing building-specific fields inline.
+
 document.addEventListener("DOMContentLoaded", function () {
     const customerTypeSelect = document.getElementById('customer-type');
     const idNumberContainer = document.getElementById('id-number-container');
@@ -24,13 +25,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const directorContainer = document.getElementById('director-container');
     const typeCol = document.getElementById('type-col');
 
-    function updateFields() {
+    const buildingTypeSelect = document.getElementById('building_type_id');
+    const dynamicFieldsContainer = document.getElementById('dynamic-fields-container');
+
+    function updateCustomerFields() {
         const type = customerTypeSelect.value;
         idNumberContainer.innerHTML = '';
         nameContainer.innerHTML = '';
 
         if (type === '1') {
-            // Individual fields
+            // Individual
             typeCol.className = 'col-md-4 form-group';
             idNumberContainer.className = 'col-md-4 form-group';
             nameContainer.className = 'col-md-4 form-group';
@@ -57,10 +61,9 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             nameContainer.insertAdjacentHTML('beforeend', individualNameHtml);
 
-            directorContainer.style.display = 'none'; // Hide director field for individuals
+            directorContainer.style.display = 'none';
         } else {
-            // Company fields
-            // 4 fields per row, each col-md-3
+            // Company
             typeCol.className = 'col-md-3 form-group';
             idNumberContainer.className = 'col-md-3 form-group';
             nameContainer.className = 'col-md-3 form-group';
@@ -102,12 +105,41 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
             nameContainer.insertAdjacentHTML('beforeend', companyNameHtml);
 
-            directorContainer.style.display = 'block'; // Show director for company
+            directorContainer.style.display = 'block';
         }
     }
 
-    customerTypeSelect.addEventListener('change', updateFields);
-    updateFields();
+    function updateBuildingFields() {
+        const buildingType = buildingTypeSelect.value;
+        dynamicFieldsContainer.innerHTML = '';
+
+        // If building type 2, show fields inline next to building type
+        if (buildingType === '2') {
+            const apartmentFieldsHtml = `
+                <div class="col-md-3 form-group">
+                    <label>სადარბაზო</label>
+                    <input type="number" name="entrance_number" class="form-control">
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>სართული</label>
+                    <input type="number" name="floor_number" class="form-control">
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>ბინის ნომერი</label>
+                    <input type="text" name="apartment_number" class="form-control" required>
+                </div>
+            `;
+            dynamicFieldsContainer.insertAdjacentHTML('beforeend', apartmentFieldsHtml);
+        } else {
+            // Clear if no additional fields
+        }
+    }
+
+    customerTypeSelect.addEventListener('change', updateCustomerFields);
+    updateCustomerFields();
+
+    buildingTypeSelect.addEventListener('change', updateBuildingFields);
+    updateBuildingFields();
 
     document.getElementById('customer-form').addEventListener('submit', function (e) {
         if (!document.getElementById('settlement-select').value) {
@@ -127,9 +159,6 @@ document.addEventListener("DOMContentLoaded", function () {
     <input type="hidden" id="readonly_fields" value="{{ readonly_fields }}">
 
     <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">ახალი განაცხადი</h3>
-        </div>
         <div class="card-body">
             <!-- Row 1: Type, ID Number, Name, Director -->
             <div class="form-row">
@@ -173,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 {% endif %}
             </div>
 
-            <!-- Remaining fields remain unchanged -->
+            <!-- Row 2: Email, Mobile, Alt Mobile -->
             <div class="form-row">
                 <div class="col-md-4 form-group">
                     <label>ელ. ფოსტა</label>
@@ -227,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
 
-            <!-- Now district, settlement, street etc. remain unchanged -->
+            <!-- Row 3: District, Settlement, Street -->
             <div class="form-row">
                 <div class="col-md-4 form-group">
                     <label>რაიონი</label>
@@ -274,7 +303,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
             </div>
 
-            <!-- The rest of the code remains unchanged -->
+            <!-- Row with building type and dynamic fields inline -->
             <div class="form-row">
                 <div class="col-md-4 form-group">
                     <label>შენობის ტიპი</label>
@@ -292,10 +321,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                     {% endif %}
                 </div>
+
+                <!-- Dynamic fields inline -->
+                <div id="dynamic-fields-container" class="form-row col-md-8"></div>
             </div>
 
-            <div class="form-row" id="dynamic_fields"></div>
-
+            <!-- The rest unchanged -->
             <div class="form-row">
                 <div class="col-md-6 form-group">
                     <label>მობილური ტელეფონი</label>
