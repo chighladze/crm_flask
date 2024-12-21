@@ -54,7 +54,9 @@ def create():
                     email=customer_form.email.data,
                     mobile=customer_form.mobile.data,
                     mobile_second=customer_form.mobile_second.data,
-                    resident=int(customer_form.resident.data) if customer_form.resident.data else 1
+                    resident=int(customer_form.resident.data) if customer_form.resident.data else 1,
+                    legal_addresses=customer_form.legal_addresses.data,
+                    actual_address=customer_form.actual_address.data
                 )
                 db.session.add(customer)
 
@@ -77,13 +79,14 @@ def create():
             address = Addresses(
                 settlement_id=order_form.address.settlement_id.data,
                 building_type_id=order_form.address.building_type_id.data,
-                street=order_form.address.street.data,
                 entrance_number=order_form.address.entrance_number.data,
                 floor_number=order_form.address.floor_number.data,
                 apartment_number=order_form.address.apartment_number.data,
                 house_number=order_form.address.house_number.data,
                 registry_code=order_form.address.registry_code.data,
                 coordinates_id=coordinates.id,
+                legal_addresses=customer_form.legal_addresses.data,
+                actual_address=customer_form.actual_address.data
             )
             db.session.add(address)  # Add the address to the session first
 
@@ -97,7 +100,9 @@ def create():
                 tariff_plan_id=order_form.tariff_plan_id.data,
                 mobile=order_form.mobile.data,
                 alt_mobile=order_form.alt_mobile.data,
-                comment=order_form.comment.data
+                comment=order_form.comment.data,
+                legal_addresses=customer_form.legal_addresses.data,
+                actual_address=customer_form.actual_address.data
             )
             db.session.add(order)  # Ensure the order is added to the session
 
@@ -105,8 +110,7 @@ def create():
             db.session.commit()
 
             # Redirect to the newly created order page
-            flash(f"კლიენტი {customer.name if customer else existing_customer.name} და განაცხადი წარმატებით შექმნილია!",
-                  'success')
+            flash(f"განაცხადი (№{order.id}) წარმატებით შექმნილია! კლიენტი: {customer.name if customer else existing_customer.name}", category='success')
             return redirect(url_for('orders.order_view', order_id=order.id))  # Redirect to the order details page
 
         except SQLAlchemyError as e:

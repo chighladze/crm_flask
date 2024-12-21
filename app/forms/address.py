@@ -26,7 +26,6 @@ class AddressForm(FlaskForm):
     district_id = SelectField('რაიონი', validators=[DataRequired()], coerce=coerce_to_int)
     settlement_id = SelectField('დასახლება', validators=[DataRequired()], coerce=coerce_to_int, choices=[])
     building_type_id = SelectField('შენობის ტიპი', validators=[DataRequired()], coerce=coerce_to_int)
-    street = StringField('ქუჩა', validators=[DataRequired(), Length(max=100)])
     entrance_number = IntegerField('კარიბჭის ნომერი', validators=[Optional()])
     floor_number = IntegerField('სართულების ნომერი', validators=[Optional()])
     apartment_number = IntegerField('ბინა ნომერი', validators=[Optional()])
@@ -38,7 +37,6 @@ class AddressForm(FlaskForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.district_id.choices = [('', 'აირჩიეთ რაიონი')] + [(d.id, d.name) for d in District.query.all()]
-        # self.settlement_id.choices = [('', 'აირჩიეთ დასახლება')]  # Set empty options initially
         self.building_type_id.choices = [('', 'აირჩიეთ შენობის ტიპი')] + [(bt.id, bt.name) for bt in
                                                                           BuildingType.query.all()]
 

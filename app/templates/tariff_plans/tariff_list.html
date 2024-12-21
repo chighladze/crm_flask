@@ -123,6 +123,7 @@
                             <th class="text-center">სახელი</th> <!-- Name -->
                             <th class="text-center">ფასი</th> <!-- Price -->
                             <th class="text-center">ვალუტა</th> <!-- Currency -->
+                            <th class="text-center">დაკ. ტექნოლოგია</th> <!-- Connection technology -->
                             <th class="text-center">ჩამოტვირთვის სიჩქარე</th> <!-- Local Download Speed -->
                             <th class="text-center">ატვირთვის სიჩქარე</th> <!-- Local Upload Speed -->
                             <th class="text-center">მინ. ჩამოტვირთვის სიჩქარე</th> <!-- Min. Download Speed -->
@@ -161,6 +162,7 @@
                                         <span style="color: #0033A0; font-weight: bold; font-size: larger;">{{ tariff.currency.symbol }}</span>
                                     {% endif %}
                                 </td>
+                                <td class="text-center">{{ tariff.connection_technology.name }}</td>
                                 <td class="text-center">{{ tariff.internet_download_speed }} მბ/წმ</td> <!-- Local Download Speed -->
                                 <td class="text-center">{{ tariff.internet_upload_speed }} მბ/წმ</td> <!-- Local Upload Speed -->
                                 <td class="text-center">{{ tariff.internet_min_download_speed }} მბ/წმ</td> <!-- Min. Download Speed -->

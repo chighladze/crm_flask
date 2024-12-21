@@ -14,6 +14,8 @@ class Orders(db.Model):
     tariff_plan_id = db.Column(db.Integer, db.ForeignKey('tariff_plans.id'))
     comment = db.Column(db.Text(255), nullable=True)
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
+    legal_addresses = db.Column(db.String, nullable=False)
+    actual_address = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
