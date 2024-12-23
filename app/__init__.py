@@ -16,6 +16,8 @@ def create_app():
     """Создание экземпляра приложения Flask"""
     app = Flask(__name__)
 
+    app.jinja_env.globals['now'] = datetime.now
+
     # Определяем конфигурацию
     env = os.environ.get('FLASK_ENV', 'development')
     if env == 'production':
