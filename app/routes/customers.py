@@ -19,7 +19,7 @@ customers = Blueprint('customers', __name__)
 def create():
     # Check permissions
     if 'customer_create' not in [perm['name'] for perm in current_user.get_permissions(current_user.id)]:
-        flash("Access denied. Permission required: 'customer_create'", 'danger')
+        flash("წვდომა აკრძალულია. საჭიროა ნებართვა: 'customer_create'", 'danger')
         return redirect(url_for('dashboard.index'))
 
     # Initialize forms
@@ -74,6 +74,7 @@ def create():
                 longitude=order_form.address.longitude.data,
             )
             db.session.add(coordinates)
+            db.session.commit()
 
             # Add address to the session
             address = Addresses(
@@ -93,6 +94,16 @@ def create():
             # Commit changes for address and coordinates to ensure the address_id is available
             db.session.commit()  # Commit the session to persist the address and coordinates
 
+            # automate task to Network Design Department
+            description = "ჩართვის შესაძლებლობის მოკვლევა და შესაბამის განყოფილებაზე დაგეგმარება."
+            task = Tasks(
+                task_type_id=3,  # Use integer
+                description=description,
+                created_by=current_user.id  # Ensure this is an integer
+            )
+            db.session.add(task)
+            db.session.commit()
+
             # Now that address and coordinates are added, create the order
             order = Orders(
                 customer_id=order_form.customer_id.data,
@@ -102,7 +113,8 @@ def create():
                 alt_mobile=order_form.alt_mobile.data,
                 comment=order_form.comment.data,
                 legal_addresses=customer_form.legal_addresses.data,
-                actual_address=customer_form.actual_address.data
+                actual_address=customer_form.actual_address.data,
+                task_id=task.id
             )
             db.session.add(order)  # Ensure the order is added to the session
 
@@ -110,7 +122,9 @@ def create():
             db.session.commit()
 
             # Redirect to the newly created order page
-            flash(f"განაცხადი (№{order.id}) წარმატებით შექმნილია! კლიენტი: {customer.name if customer else existing_customer.name}", category='success')
+            flash(
+                f"განაცხადი (№{order.id}) წარმატებით შექმნილია! კლიენტი: {customer.name if customer else existing_customer.name}",
+                category='success')
             return redirect(url_for('orders.order_view', order_id=order.id))  # Redirect to the order details page
 
         except SQLAlchemyError as e:
@@ -135,7 +149,6 @@ def create():
         readonly_fields=readonly_fields,
         active_menu='customers'
     )
-
 
 
 @customers.route('/customer/<int:id>/view', methods=['GET'])

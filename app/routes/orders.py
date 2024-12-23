@@ -208,9 +208,19 @@ def orders_list():
 @login_required
 def order_view(order_id):
     order = Orders.query.options(
-        db.joinedload(Orders.address).joinedload(Addresses.coordinates)
+        db.joinedload(Orders.address).joinedload(Addresses.coordinates),
+        db.joinedload(Orders.task)
     ).get_or_404(order_id)
-    return render_template('orders/order_view.html', order=order, active_menu='orders')
+
+    # Получить связанные задачи
+    related_tasks = Tasks.query.filter(Tasks.parent_task_id == order.task_id).all()
+
+    return render_template(
+        'orders/order_view.html',
+        order=order,
+        related_tasks=related_tasks,
+        active_menu='orders'
+    )
 
 
 @orders.route('/orders/<int:order_id>/edit', methods=['GET', 'POST'])

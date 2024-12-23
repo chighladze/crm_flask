@@ -32,33 +32,33 @@
                             {% endif %}
                         {% endwith %}
 
-                        <div class="form-group row">
-                            <label for="inputName" class="col-sm-3 col-form-label">სახელი და გვარი:</label>
-                            <div class="col-sm-9">
-                                {% if form.name.errors %}
-                                    <span class="text-danger">
-                                    {% for error in form.name.errors %}
-                                        {{ error }}
-                                    {% endfor %}
-                                    </span>
-                                {% endif %}
-                                {{ form.name(class="form-control", id="inputName", placeholder="შეიყვანეთ სახელი და გვარი") }}
-                            </div>
-                        </div>
+<div class="form-group row">
+    <label for="inputName" class="col-sm-3 col-form-label">სახელი და გვარი:</label>
+    <div class="col-sm-9">
+        {% if form.name.errors %}
+            <span class="text-danger">
+            {% for error in form.name.errors %}
+                {{ error }}
+            {% endfor %}
+            </span>
+        {% endif %}
+        {{ form.name(class="form-control", id="inputName", placeholder="შეიყვანეთ სახელი და გვარი") }}
+    </div>
+</div>
 
-                        <div class="form-group row">
-                            <label for="inputEmail" class="col-sm-3 col-form-label">მეილი:</label>
-                            <div class="col-sm-9">
-                                {% if form.email.errors %}
-                                    <span class="text-danger">
-                                {% for error in form.email.errors %}
-                                    {{ error }}
-                                {% endfor %}
-                                    </span>
-                                {% endif %}
-                                {{ form.email(class="form-control", id="inputEmail", placeholder="მაგ: e.lastname@example.ge") }}
-                            </div>
-                        </div>
+<div class="form-group row">
+    <label for="inputEmail" class="col-sm-3 col-form-label">მეილი:</label>
+    <div class="col-sm-9">
+        {% if form.email.errors %}
+            <span class="text-danger">
+            {% for error in form.email.errors %}
+                {{ error }}
+            {% endfor %}
+            </span>
+        {% endif %}
+        {{ form.email(class="form-control", id="inputEmail", placeholder="მაგ: e.lastname@example.ge") }}
+    </div>
+</div>
 
                         <div class="form-group row">
                             <label for="inputPassword" class="col-sm-3 col-form-label">პაროლი:</label>

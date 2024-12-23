@@ -16,7 +16,12 @@ class UserCreateForm(FlaskForm):
     def validate_email(self, field):
         user = Users.query.filter_by(email=field.data).first()
         if user:
-            raise ValidationError('მომხმარებელი ასეთი მეილთ უკვე არსებობს.')
+            raise ValidationError('მომხმარებელი ასეთი მეილით უკვე არსებობს.')
+
+    def validate_name(self, field):
+        user = Users.query.filter_by(name=field.data).first()
+        if user:
+            raise ValidationError('მომხმარებელი ასეთი სახელით უკვე არსებობს.')
 
     def validate_password(form, field):
         password = field.data

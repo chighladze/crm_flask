@@ -13,8 +13,8 @@ class Users(UserMixin, db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    name = db.Column(db.String(80), unique=True, nullable=False)  # Уникальное имя
+    email = db.Column(db.String(255), unique=True, nullable=False)  # Уникальный email
     passwordHash = db.Column(db.String(255), nullable=False)
     status = db.Column(db.Integer, default='1', nullable=False)
     lastLogin = db.Column(db.DateTime, default=datetime.utcnow)

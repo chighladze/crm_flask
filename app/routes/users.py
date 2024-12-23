@@ -1,6 +1,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash, session, send_file
 from flask_login import login_user, login_required, current_user, logout_user
 import sqlalchemy as sa
+from sqlalchemy.exc import IntegrityError
 from ..extensions import db, bcrypt
 from ..forms.users import UserCreateForm, LoginForm, UserEditForm
 from ..models.users import Users, log_action, UserLog
@@ -124,25 +125,51 @@ def view_user(user_id):
 @users.route('/users/create', methods=['GET', 'POST'])
 @login_required
 def user_create():
-    # Проверяем, есть ли нужное разрешение в списке
+    # Проверяем разрешение
     if 'user_create' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
         flash(f"თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['user_create']", 'danger')
         return redirect(url_for('dashboard.index'))
 
     form = UserCreateForm()
     if form.validate_on_submit():
-        hashed_password = bcrypt.generate_password_hash(form.password.data)
-        user = Users(
-            name=form.name.data,
-            email=form.email.data,
-            passwordHash=hashed_password,
-            createdAt=datetime.now(tbilisi_timezone),
-            updatedAt=datetime.now(tbilisi_timezone)
-        )
-        db.session.add(user)
-        db.session.commit()
-        flash('ახალი მომხმარებელი წარმატებით შექმნილია!', 'success')
-        return redirect(url_for('users.users_list'))
+        try:
+            # Хешируем пароль
+            hashed_password = bcrypt.generate_password_hash(form.password.data)
+
+            # Создаем объект пользователя
+            user = Users(
+                name=form.name.data,
+                email=form.email.data,
+                passwordHash=hashed_password,
+                createdAt=datetime.now(tbilisi_timezone),
+                updatedAt=datetime.now(tbilisi_timezone)
+            )
+
+            # Добавляем пользователя в сессию
+            db.session.add(user)
+            db.session.commit()
+
+            flash('ახალი მომხმარებელი წარმატებით შექმნილია!', 'success')
+            return redirect(url_for('users.users_list'))
+
+        except IntegrityError as e:
+            # Логируем ошибку в файл или консоль
+            logging.error(f"Database IntegrityError: {e}")
+
+            # Откатываем изменения в сессии
+            db.session.rollback()
+
+            # Проверка дублирующихся записей
+            if "Duplicate entry" in str(e.orig):
+                if "for key 'users.name'" in str(e.orig):
+                    flash('მომხმარებელი ასეთი სახელით უკვე არსებობს. გთხოვთ გამოიყენოთ სხვა სახელი.', 'danger')
+                elif "for key 'users.email'" in str(e.orig):
+                    flash('მომხმარებელი ასეთი მეილით უკვე არსებობს. გთხოვთ გამოიყენოთ სხვა მეილი.', 'danger')
+                else:
+                    flash('დაფიქსირდა უნიკალურობის შეცდომა. გთხოვთ გადაამოწმოთ მონაცემები.', 'danger')
+            else:
+                flash('დაფიქსირდა შეცდომა. გთხოვთ სცადოთ ხელახლა.', 'danger')
+
     return render_template('users/create.html', form=form, active_menu='administration')
 
 
