@@ -161,6 +161,6 @@ def departments_export():
     return send_file(output, as_attachment=True, download_name="departments_list.xlsx",
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-@app.route('/error500')
+@departments.route('/error500')
 def error_500():
-    raise Exception("Test 500 error")
+    return render_template('error/500.html'), 500

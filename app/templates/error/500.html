@@ -1,4 +1,4 @@
-{# templates/error/500.html #}
+{# crm_flask/app/templates/error/500.html #}
 <!DOCTYPE html>
 <html lang="ka">
 <head>
@@ -8,18 +8,17 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='dist/css/custom/errors/error500.css') }}">
 </head>
 <body>
-<div class="container">
-    <div class="error">
-        <h1>500</h1>
-        <h2>შეცდომა</h2>
-        <p>რაღაც არასწორია... შეამოწმეთ თქვენი სისტემის ჟურნალები და დაფიქრდით :)</p>
+    <div id="error">
+        შეცდომა 500
     </div>
-    <div class="stack-container">
-        <!-- Здесь ваш сложный HTML код -->
+    <div class="error-num">
+        500
+        <div class="error-num__clip">500</div>
     </div>
-</div>
-<script src="{{ url_for('static', filename='js/dist/custom/errors/500.js') }}"></script>
+    <p id="desc">რაღაც არასწორია... შეამოწმეთ თქვენი სისტემის ჟურნალები.</p>
+    <p>დაბრუნდით #[<a href="{{ url_for('dashboard.index') }}">მთავარ გვერდზე</a>]</p>
 </body>
 </html>
+
 
 

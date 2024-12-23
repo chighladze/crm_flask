@@ -1,4 +1,4 @@
-// experiments http://bit.ly/2QCjk6a
+// crm_flask/app/static/dist/js/custom/error/500.js
 
 WebFontConfig = {
   google:{ families: ['Righteous'] },
