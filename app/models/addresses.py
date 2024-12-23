@@ -16,7 +16,7 @@ class Addresses(db.Model):
     house_number = db.Column(db.Integer)
     coordinates_id = db.Column(db.Integer, db.ForeignKey('coordinates.id'))
     registry_code = db.Column(db.String(50))
-    legal_addresses = db.Column(db.String, nullable=False)
+    legal_address = db.Column(db.String, nullable=False)
     actual_address = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

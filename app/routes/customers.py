@@ -55,7 +55,7 @@ def create():
                     mobile=customer_form.mobile.data,
                     mobile_second=customer_form.mobile_second.data,
                     resident=int(customer_form.resident.data) if customer_form.resident.data else 1,
-                    legal_addresses=customer_form.legal_addresses.data,
+                    legal_address=customer_form.legal_address.data,
                     actual_address=customer_form.actual_address.data
                 )
                 db.session.add(customer)
@@ -86,7 +86,7 @@ def create():
                 house_number=order_form.address.house_number.data,
                 registry_code=order_form.address.registry_code.data,
                 coordinates_id=coordinates.id,
-                legal_addresses=customer_form.legal_addresses.data,
+                legal_address=customer_form.legal_address.data,
                 actual_address=customer_form.actual_address.data
             )
             db.session.add(address)  # Add the address to the session first
@@ -112,7 +112,7 @@ def create():
                 mobile=order_form.mobile.data,
                 alt_mobile=order_form.alt_mobile.data,
                 comment=order_form.comment.data,
-                legal_addresses=customer_form.legal_addresses.data,
+                legal_address=customer_form.legal_address.data,
                 actual_address=customer_form.actual_address.data,
                 task_id=task.id
             )

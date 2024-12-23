@@ -290,11 +290,11 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text"><i class="fas fa-map-marked-alt"></i></span>
                             </div>
-                            {{ customer_form.legal_addresses(class="form-control", placeholder="მაგ: თბილისი, შარტავას ქ. 37") }}
+                            {{ customer_form.legal_address(class="form-control", placeholder="მაგ: თბილისი, შარტავას ქ. 37") }}
                         </div>
-                        {% if customer_form.legal_addresses.errors %}
+                        {% if customer_form.legal_address.errors %}
                             <div class="text-danger">
-                                {% for error in customer_form.legal_addresses.errors %}
+                                {% for error in customer_form.legal_address.errors %}
                                     <p>{{ error }}</p>
                                 {% endfor %}
                             </div>
@@ -308,7 +308,7 @@
                             </div>
                             {{ customer_form.actual_address(class="form-control", placeholder="მაგ: თბილისი, გურამიშვილის ქ. 104") }}
                         </div>
-                        {% if customer_form.legal_addresses.errors %}
+                        {% if customer_form.legal_address.errors %}
                             <div class="text-danger">
                                 {% for error in customer_form.actual_address.errors %}
                                     <p>{{ error }}</p>
