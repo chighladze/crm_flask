@@ -97,7 +97,7 @@ def create():
             # automate task to Network Design Department
             description = "ჩართვის შესაძლებლობის მოკვლევა და შესაბამის განყოფილებაზე დაგეგმარება."
             task = Tasks(
-                task_type_id=3,  # Use integer
+                task_type_id=1,  # Use integer
                 description=description,
                 created_by=current_user.id  # Ensure this is an integer
             )
