@@ -1,43 +1,44 @@
-# crm_flask/app/__init__.py
 import os
 import logging
 from flask import Flask, session
 from flask_session import Session
 from flask_login import current_user
 from logging.handlers import RotatingFileHandler
-from .extensions import db, migrate, login_manager, csrf
-from .config import Config
 from datetime import datetime
 import pytz
-from .routes import register_routes
 
-def create_app(config_class=Config):
+from .extensions import db, migrate, login_manager, csrf
+from .routes import register_routes
+from .config import DevelopmentConfig, ProductionConfig
+
+
+def create_app():
+    """Создание экземпляра приложения Flask"""
     app = Flask(__name__)
-    app.config.from_object(config_class)
+
+    # Определяем конфигурацию
+    env = os.environ.get('FLASK_ENV', 'development')
+    if env == 'production':
+        app.config.from_object(ProductionConfig)
+    else:
+        app.config.from_object(DevelopmentConfig)
 
     # Логирование
     if not os.path.exists('logs'):
         os.mkdir('logs')
 
-    file_handler = RotatingFileHandler('logs/error.log', maxBytes=10240, backupCount=5)
+    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=5)
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-    file_handler.setLevel(logging.DEBUG)  # Устанавливаем уровень логирования на DEBUG
+    file_handler.setLevel(app.config['LOG_LEVEL'])
     app.logger.addHandler(file_handler)
 
-    # Уровень логирования приложения
-    app.logger.setLevel(logging.DEBUG)
-    app.logger.error("Application has started in production mode.")  # Тестовая запись
-
-    # Полная обработка исключений
-    app.config['PROPAGATE_EXCEPTIONS'] = True
+    app.logger.setLevel(app.config['LOG_LEVEL'])
+    app.logger.info(f"Application started in {env} mode")
 
     # Перенаправление ошибок в лог
-    app.logger.addHandler(logging.StreamHandler())
-
-    # Обработчик для записи всех ошибок в лог
     @app.errorhandler(Exception)
     def handle_exception(e):
-        app.logger.error(f"Unhandled Exception: {e}", exc_info=True)  # Лог всех исключений
+        app.logger.error(f"Unhandled Exception: {e}", exc_info=True)
         return "Internal Server Error", 500
 
     @app.before_request
@@ -47,9 +48,9 @@ def create_app(config_class=Config):
             current_user.last_activity = datetime.now(tz_tbilisi)
             db.session.commit()
 
+    # Инициализация расширений
     csrf.init_app(app)
     Session(app)
-    app.jinja_env.globals['now'] = datetime.now
     register_routes(app)
     db.init_app(app)
     migrate.init_app(app, db)
@@ -57,8 +58,5 @@ def create_app(config_class=Config):
 
     login_manager.login_view = 'users.login'
     login_manager.login_message = False
-
-    with app.app_context():
-        db.create_all()
 
     return app
