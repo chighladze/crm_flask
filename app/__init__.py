@@ -1,3 +1,4 @@
+# crm_flask/app/__init__.py
 import os
 import logging
 from flask import Flask, session
@@ -13,19 +14,20 @@ from .config import DevelopmentConfig, ProductionConfig
 
 
 def create_app():
-    """Создание экземпляра приложения Flask"""
+    """Create and configure the Flask application instance"""
     app = Flask(__name__)
 
+    # Register the current datetime as a global variable for Jinja2 templates
     app.jinja_env.globals['now'] = datetime.now
 
-    # Определяем конфигурацию
+    # Determine the environment configuration
     env = os.environ.get('FLASK_ENV', 'development')
     if env == 'production':
         app.config.from_object(ProductionConfig)
     else:
         app.config.from_object(DevelopmentConfig)
 
-    # Логирование
+    # Logging configuration
     if not os.path.exists('logs'):
         os.mkdir('logs')
 
@@ -37,12 +39,13 @@ def create_app():
     app.logger.setLevel(app.config['LOG_LEVEL'])
     app.logger.info(f"Application started in {env} mode")
 
-    # Перенаправление ошибок в лог
+    # Handle exceptions and log errors
     @app.errorhandler(Exception)
     def handle_exception(e):
         app.logger.error(f"Unhandled Exception: {e}", exc_info=True)
         return "Internal Server Error", 500
 
+    # Update the last activity timestamp for authenticated users
     @app.before_request
     def update_last_activity():
         if current_user.is_authenticated:
@@ -50,7 +53,7 @@ def create_app():
             current_user.last_activity = datetime.now(tz_tbilisi)
             db.session.commit()
 
-    # Инициализация расширений
+    # Initialize Flask extensions
     csrf.init_app(app)
     Session(app)
     register_routes(app)
@@ -58,6 +61,7 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
 
+    # Configure the login view for Flask-Login
     login_manager.login_view = 'users.login'
     login_manager.login_message = False
 
