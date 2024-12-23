@@ -1,7 +1,7 @@
 # crm_flask/app/__init__.py
 import os
 import logging
-from flask import Flask, session
+from flask import Flask, session, render_template
 from flask_session import Session
 from flask_login import current_user
 from logging.handlers import RotatingFileHandler
@@ -40,10 +40,10 @@ def create_app():
     app.logger.info(f"Application started in {env} mode")
 
     # Handle exceptions and log errors
-    @app.errorhandler(Exception)
-    def handle_exception(e):
-        app.logger.error(f"Unhandled Exception: {e}", exc_info=True)
-        return "Internal Server Error", 500
+    @app.errorhandler(500)
+    def handle_500_error(e):
+        app.logger.error(f"Internal Server Error: {e}", exc_info=True)
+        return render_template('error/500.html'), 500
 
     # Update the last activity timestamp for authenticated users
     @app.before_request

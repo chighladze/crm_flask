@@ -1,12 +1,25 @@
-{# templates/error/404.html #}
-{% extends "main/base.html" %}
+{# templates/error/500.html #}
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>შეცდომა 500</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dist/css/custom/errors/error500.css') }}">
+</head>
+<body>
+<div class="container">
+    <div class="error">
+        <h1>500</h1>
+        <h2>შეცდომა</h2>
+        <p>რაღაც არასწორია... შეამოწმეთ თქვენი სისტემის ჟურნალები და დაფიქრდით :)</p>
+    </div>
+    <div class="stack-container">
+        <!-- Здесь ваш сложный HTML код -->
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/dist/custom/errors/500.js') }}"></script>
+</body>
+</html>
 
-{% block title %}500 - Internal Server Error{% endblock %}
-{% block content %}
-<section class="section text-center">
-    <h1>500</h1>
-    <p>Sorry, something went wrong on our end. Please try again later.</p>
-    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">Return to Dashboard</a>
-</section>
-{% endblock %}
 
