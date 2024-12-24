@@ -76,8 +76,6 @@ def create_order():
         address = Addresses(
             settlement_id=form.address.settlement_id.data,
             building_type_id=form.address.building_type_id.data,
-            street=form.address.street.data,
-            building_number=form.address.building_number.data,
             entrance_number=form.address.entrance_number.data,
             floor_number=form.address.floor_number.data,
             apartment_number=form.address.apartment_number.data,
@@ -213,7 +211,7 @@ def order_view(order_id):
     ).get_or_404(order_id)
 
     # Получить связанные задачи
-    related_tasks = Tasks.query.filter(Tasks.parent_task_id == order.task_id).all()
+    related_tasks = Tasks.query.filter(Tasks.id == order.task_id).all()
 
     return render_template(
         'orders/order_view.html',
@@ -238,8 +236,6 @@ def edit_order(order_id):
         form.address.district_id.data = address.settlement.district_id
         form.address.settlement_id.data = address.settlement_id
         form.address.building_type_id.data = address.building_type_id
-        form.address.street.data = address.street
-        form.address.building_number.data = address.building_number
         form.address.entrance_number.data = address.entrance_number
         form.address.floor_number.data = address.floor_number
         form.address.apartment_number.data = address.apartment_number
@@ -268,8 +264,6 @@ def edit_order(order_id):
         # Обновить адрес
         address.settlement_id = form.address.settlement_id.data
         address.building_type_id = form.address.building_type_id.data
-        address.street = form.address.street.data
-        address.building_number = form.address.building_number.data
         address.entrance_number = form.address.entrance_number.data
         address.floor_number = form.address.floor_number.data
         address.apartment_number = form.address.apartment_number.data

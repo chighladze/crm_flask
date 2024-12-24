@@ -33,26 +33,6 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <div class="form-group">
-                        <label for="building_type">შენობის ტიპი</label>
-                        {{ form.address.building_type_id(class="form-control", required=True) }}
-                        {% if form.address.building_type_id.errors %}
-                            <div class="text-danger">{{ form.address.building_type_id.errors[0] }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <div class="form-group">
-                        <label for="street">ქუჩის სახელი</label>
-                        {{ form.address.street(class="form-control", required=True) }}
-                        {% if form.address.street.errors %}
-                            <div class="text-danger">{{ form.address.street.errors[0] }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
 
             <!-- Остальные поля формы (например, latitude, longitude, registry_code и т. д.) -->
             <div class="row">

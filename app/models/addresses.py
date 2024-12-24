@@ -9,7 +9,6 @@ class Addresses(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     settlement_id = db.Column(db.Integer, db.ForeignKey('settlements.id'), nullable=False)
     building_type_id = db.Column(db.Integer, db.ForeignKey('building_types.id'), nullable=False)
-    street = db.Column(db.String(100), nullable=True)
     entrance_number = db.Column(db.Integer)
     floor_number = db.Column(db.Integer)
     apartment_number = db.Column(db.Integer)
@@ -27,7 +26,7 @@ class Addresses(db.Model):
     coordinates = db.relationship('Coordinates', backref='addresses')
 
     def __repr__(self):
-        return f'<Address {self.street} {self.building_number}>'
+        return f'<legal_address: {self.legal_address} /  actual_address: {self.actual_address}>'
 
     @property
     def district(self):

@@ -40,6 +40,7 @@ def create_app():
     app.logger.info(f"Application started in {env} mode")
 
     # Handle exceptions and log errors
+    # if env == 'production':
     @app.errorhandler(500)
     def handle_500_error(e):
         app.logger.error(f"Internal Server Error: {e}", exc_info=True)

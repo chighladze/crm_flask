@@ -26,7 +26,6 @@
             <div class="card-header bg-primary text-white">
                 <h4 class="mb-0 d-flex justify-content-between align-items-center">
                     <span>შეკვეთა №{{ order.id }}</span>
-                    <span class="badge badge-light">სტატუსი: {{ order.status or 'მოლოდინში' }}</span>
                 </h4>
             </div>
             <div class="card-body">
@@ -129,14 +128,6 @@
                                 <td>{{ order.address.actual_address or 'არ არის მითითებული' }}</td>
                             </tr>
                             <tr>
-                                <td class="text-muted">ქუჩა:</td>
-                                <td>{{ order.address.street if order.address else 'არ არის მითითებული' }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">შენობის ნომერი:</td>
-                                <td>{{ order.address.building_number if order.address else 'არ არის მითითებული' }}</td>
-                            </tr>
-                            <tr>
                                 <td class="text-muted">კოორდინატები:</td>
                                 <td>
                                     {{ order.address.coordinates.latitude if order.address and order.address.coordinates else '-------' }},
@@ -160,47 +151,157 @@
             </div>
         </div>
     </div>
-<div class="card mt-4">
-    <div class="card-header bg-light">
-        <h5 class="mb-0"><i class="fas fa-tasks"></i> დაკავშირებული დავალებები</h5>
-    </div>
-    <div class="card-body">
-        {% if related_tasks %}
-            <table class="table table-striped">
-                <thead>
+    <div class="card mt-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-tasks"></i> დაკავშირებული დავალებები</h5>
+        </div>
+        <div class="card-body p-2">
+            {% if related_tasks %}
+                <table class="table table-striped table-sm">
+                    <thead>
                     <tr>
                         <th>ID</th>
                         <th>განყოფილება</th>
                         <th>დავალების ტიპი</th>
+                        <th>სტატუსი</th>
                         <th>აღწერა</th>
                         <th>შემქმნელი</th>
-                        <th>შექმნის თარიღი</th>
+                        <th>თარიღი</th>
                         <th>ქმედება</th>
                     </tr>
-                </thead>
-                <tbody>
+                    </thead>
+                    <tbody>
                     {% for task in related_tasks %}
                         <tr>
                             <td>{{ task.id }}</td>
                             <td>{{ task.task_type.division.name }}</td>
                             <td>{{ task.task_type.name }}</td>
-                            <td>{{ task.description }}</td>
-                            <td>{{ task.created_user.name if task.created_user else 'უცნობი' }}</td>
-                            <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                             <td>
-                                <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" class="btn btn-sm btn-primary" title="ნახვა">
-                                    <i class="fas fa-eye"></i>
-                                </a>
+                                <span class="badge bg-{{ task.status.bootstrap_class }} text-capitalize">
+                                    {{ task.status.name }}
+                                </span>
+                            </td>
+                            <td class="text-truncate" style="max-width: 150px;" title="{{ task.description }}">
+                                {{ task.description }}
+                            </td>
+                            <td>{{ task.created_user.name if task.created_user else 'უცნობი' }}</td>
+                            <td>{{ task.created_at.strftime('%d-%m-%Y') }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+                                    <button class="btn btn-primary" title="ნახვა" data-toggle="modal"
+                                            data-target="#taskModal"
+                                            onclick="showTaskDetails({{ task.id }})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <a href="#" class="btn btn-warning" data-toggle="modal"
+                                       data-target="#accountTransfer"
+                                       onclick="accountTransfer({{ task.id }})" title="ტრანსფერი">
+                                        <i class="fas fa-random"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p class="text-muted">დავალებები არ არის დაკავშირებული.</p>
-        {% endif %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted">დავალებები არ არის დაკავშირებული.</p>
+            {% endif %}
+        </div>
     </div>
-</div>
+    <!-- Modal -->
+    <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form id="taskEditForm" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="taskModalLabel">დავალების დეტალები</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="taskDetails"></div>
+                        <div class="form-group">
+                            <label for="taskStatus">სტატუსი:</label>
+                            <select id="taskStatus" name="status" class="form-control">
+                                <!-- Options will be dynamically loaded -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">დახურვა</button>
+                        <button type="submit" class="btn btn-primary">შენახვა</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showTaskDetails(taskId) {
+            fetch(`/tasks/details/${taskId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load task details');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const taskDetails = document.getElementById('taskDetails');
+                    taskDetails.innerHTML = `
+                        <p><strong>ID:</strong> ${data.id}</p>
+                        <p><strong>აღწერა:</strong> ${data.description}</p>
+                    `;
+                    const taskStatus = document.getElementById('taskStatus');
+                    taskStatus.innerHTML = '';
+                    data.statuses.forEach(status => {
+                        const option = document.createElement('option');
+                        option.value = status.id;
+                        option.textContent = status.name;
+                        if (status.id === data.current_status.id) {
+                            option.selected = true;
+                        }
+                        taskStatus.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Failed to load task details.');
+                });
+        }
+
+        document.getElementById('taskEditForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const taskId = document.getElementById('taskDetails').querySelector('p').textContent.split(': ')[1];
+            const formData = new FormData(this);
+
+            fetch(`/tasks/update/${taskId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': formData.get('csrf_token')
+                },
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update task');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    $('#taskModal').modal('hide');
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Failed to update task.');
+                });
+        });
+    </script>
+
 
 
 {% endblock %}

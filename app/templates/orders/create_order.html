@@ -34,32 +34,6 @@
             </div>
 
             <div class="row">
-                <div class="col-md-8 mb-3">
-                    <div class="form-group">
-                        <label for="street">ქუჩის სახელი</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-road"></i></span>
-                            </div>
-                            {{ form.address.street(class="form-control", required=True) }}
-                            {% if form.address.street.errors %}
-                                <div class="text-danger">{{ form.address.street.errors[0] }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="form-group">
-                        <label for="building_number">ქუჩის ნომერი</label>
-                        {{ form.address.building_number(class="form-control", required=True) }}
-                            {% if form.address.building_number.errors %}
-                                <div class="text-danger">{{ form.address.building_number.errors[0] }}</div>
-                            {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
                 <div class="col-md-6 mb-3">
                     <div class="form-group">
                         <label for="building_type">შენობის ტიპი</label>

@@ -17,6 +17,9 @@ class Config:
     UPLOAD_PATH = '/static/upload/'
     SERVER_PATH = os.path.join(ROOT, UPLOAD_PATH)
 
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_SECRET_KEY = os.environ.get('WTF_CSRF_SECRET_KEY', 'qwerty12345')
+
     # MySQL database configuration
     USER = os.environ.get('MYSQL_USER', 'test')
     PASSWORD = os.environ.get('MYSQL_PASSWORD', 'test')

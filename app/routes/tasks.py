@@ -10,6 +10,40 @@ from io import BytesIO
 
 tasks = Blueprint('tasks', __name__)
 
+
+@tasks.route('/tasks/details/<int:task_id>')
+def task_details(task_id):
+    task = Tasks.query.get_or_404(task_id)
+    statuses = TaskStatuses.query.all()  # Все доступные статусы
+
+    return jsonify({
+        'id': task.id,
+        'description': task.description,
+        'created_user': task.created_user.name if task.created_user else 'უცნობი',
+        'due_date': task.due_date.strftime('%Y-%m-%d') if task.due_date else None,
+        'progress': task.progress,
+        'current_status': {'id': task.status_id, 'name': task.status.name},
+        'statuses': [{'id': status.id, 'name': status.name} for status in statuses],
+    })
+@tasks.route('/tasks/update/<int:task_id>', methods=['POST'])
+@login_required
+def update_task(task_id):
+    task = Tasks.query.get_or_404(task_id)
+    status_id = request.form.get('status')
+
+    if status_id:
+        try:
+            task.status_id = int(status_id)
+            db.session.commit()
+            return jsonify({'message': 'სტატუსი წარმატებით განახლდა!'}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'message': f'შეცდომა: {str(e)}'}), 400
+    else:
+        return jsonify({'message': 'არასწორი სტატუსი'}), 400
+
+
+
 @tasks.route('/tasks/view/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def view_task(task_id):
@@ -59,7 +93,6 @@ def view_task(task_id):
         is_recurring=task.is_recurring,
         active_menu='tasks'
     )
-
 
 
 @tasks.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
@@ -156,7 +189,6 @@ def tasks_list():
     )
 
 
-
 @tasks.route('/tasks/export', methods=['GET'])
 @login_required
 def export():
@@ -210,5 +242,3 @@ def create_task():
         form=form,
         active_menu='tasks'
     )
-
-
