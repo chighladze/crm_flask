@@ -12,6 +12,7 @@ tasks = Blueprint('tasks', __name__)
 
 
 @tasks.route('/tasks/details/<int:task_id>')
+@login_required  # Добавьте этот декоратор, если требуется аутентификация
 def task_details(task_id):
     task = Tasks.query.get_or_404(task_id)
     statuses = TaskStatuses.query.all()  # Все доступные статусы
@@ -22,9 +23,20 @@ def task_details(task_id):
         'created_user': task.created_user.name if task.created_user else 'უცნობი',
         'due_date': task.due_date.strftime('%Y-%m-%d') if task.due_date else None,
         'progress': task.progress,
-        'current_status': {'id': task.status_id, 'name': task.status.name},
+        'current_status': {
+            'id': task.status_id,
+            'name': task.status.name,
+            'bootstrap_class': task.status.bootstrap_class  # Добавьте класс для стилизации
+        },
+        'task_type': {
+            'name': task.task_type.name,
+            'division': {
+                'name': task.task_type.division.name
+            } if task.task_type.division else {}
+        },
         'statuses': [{'id': status.id, 'name': status.name} for status in statuses],
     })
+
 @tasks.route('/tasks/update/<int:task_id>', methods=['POST'])
 @login_required
 def update_task(task_id):
@@ -35,7 +47,14 @@ def update_task(task_id):
         try:
             task.status_id = int(status_id)
             db.session.commit()
-            return jsonify({'message': 'სტატუსი წარმატებით განახლდა!'}), 200
+            return jsonify({
+                'message': 'სტატუსი წარმატებით განახლდა!',
+                'new_status': {
+                    'id': task.status_id,
+                    'name': task.status.name,
+                    'bootstrap_class': task.status.bootstrap_class
+                }
+            }), 200
         except Exception as e:
             db.session.rollback()
             return jsonify({'message': f'შეცდომა: {str(e)}'}), 400
