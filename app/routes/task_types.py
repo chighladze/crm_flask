@@ -5,14 +5,23 @@ from sqlalchemy import or_
 from ..models import TaskTypes, Divisions, Departments
 from ..extensions import db
 from ..forms.task_types import TaskTypeForm
+import pandas as pd
 
 import datetime
 from io import BytesIO
 
 task_types = Blueprint('task_types', __name__)
 
-import pandas as pd
-from flask import Response
+
+@task_types.route('/tasks/task_types/get_task_types/<int:division_id>', methods=['GET'])
+@login_required
+def get_task_types(division_id):
+    """
+    Возвращает список типов задач для заданной дивизии.
+    """
+    task_types = TaskTypes.query.filter_by(division_id=division_id).all()
+    task_types_list = [{'id': tt.id, 'name': tt.name} for tt in task_types]
+    return jsonify({'task_types': task_types_list}), 200
 
 
 # Function: Export task types to Excel

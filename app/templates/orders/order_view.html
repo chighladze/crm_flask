@@ -279,7 +279,8 @@
                                         </div>
                                         <div class="task-detail">
                                             <strong>სტატუსი:</strong>
-                                            <span id="taskCurrentStatus" data-status-id="{{ order.task.status.id }}">{{ order.task.status.name }}</span>
+                                            <span id="taskCurrentStatus"
+                                                  data-status-id="{{ order.task.status.id }}">{{ order.task.status.name }}</span>
                                         </div>
                                     </div>
 
@@ -293,22 +294,38 @@
                                     <!-- Обновлённое поле выбора статуса -->
                                     <div class="form-group status-select-container d-flex align-items-center">
                                         <!-- Выпадающий список статусов -->
-                                        <select id="taskStatus" name="status" class="form-control status-select w-50" required></select>
+                                        <select id="taskStatus" name="status" class="form-control status-select w-50"
+                                                required></select>
                                         <!-- Кнопка "+" -->
-                                        <button type="button" id="addButton" class="btn btn-success ml-2 mb-3" style="display: none;" title="დავალების შექმნა">
+                                        <button type="button" id="addButton" class="btn btn-success ml-2 mb-3"
+                                                style="display: none;" title="დავალების შექმნა">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
                                 </div>
 
-    <!-- Container for Division Select Form -->
-    <div id="divisionSelectContainer" class="mt-3" style="display: none;">
-        <label for="divisionSelect"><strong>აირჩიეთ განყოფილება:</strong></label>
-        <select id="divisionSelect" class="form-control">
-            <option value="" disabled selected>განყოფილების არჩევა</option>
-            <!-- Options will be populated dynamically -->
-        </select>
-    </div>
+                                <!-- Container for Division Select Form -->
+                                <div id="divisionSelectContainer" class="mt-3" style="display: none;">
+                                    <label for="divisionSelect"><strong>აირჩიეთ განყოფილება:</strong></label>
+                                    <select id="divisionSelect" class="form-control">
+                                        <option value="" disabled selected>განყოფილების არჩევა</option>
+                                        <!-- Options will be populated dynamically -->
+                                    </select>
+                                </div>
+                                <div id="taskTypeContainer" class="form-group" style="display: none;">
+                                    <label for="taskTypeSelect"><strong>აირჩიეთ დავალების ტიპი:</strong></label>
+                                    <select id="taskTypeSelect" name="task_type" class="form-control" required>
+                                        <option value="" disabled selected>აირჩიეთ ტიპი</option>
+                                        <!-- Опции будут заполняться динамически -->
+                                    </select>
+                                </div>
+
+                                <div id="taskTypeInputContainer" class="form-group" style="display: none;">
+                                    <label for="taskTypeInput"><strong>დავალების აღწერა:</strong></label>
+                                    <textarea type="text" id="taskTypeInput" name="task_type_description"
+                                           class="form-control" placeholder="დაამატეთ აღწერა" rows="4">
+                                        </textarea>
+                                </div>
                             </div>
 
                             <!-- Нижняя часть модального окна -->
