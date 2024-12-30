@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Используем jQuery для выборки элементов
+    // Using jQuery for element selection
     const $taskStatus = $('#taskStatus');
     const $addButton = $('#addButton');
     const $taskCurrentStatusElement = $('#taskCurrentStatus');
@@ -9,35 +9,67 @@ document.addEventListener('DOMContentLoaded', function () {
     const $taskTypeContainer = $('#taskTypeContainer');
     const $taskTypeInputContainer = $('#taskTypeInputContainer');
     const $taskTypeInput = $('#taskTypeInput');
+    const $actionType = $('#actionType'); // Hidden input to track action
 
     let initialStatus;
+    let isCreatingSubtask = false; // Flag to track if "+" was clicked
 
-    // Функция для установки начального статуса и скрытия всех дополнительных полей
+    // Function to set initial status and hide additional fields
     function setInitialStatus() {
         initialStatus = $taskCurrentStatusElement.data('status-id');
         $addButton.hide();
-        $divisionSelectContainer.hide(); // Скрыть выбор дивизии при открытии модального окна
-        $taskTypeContainer.hide(); // Скрыть выбор типа задачи
-        $taskTypeInputContainer.hide(); // Скрыть поле ввода описания задачи
-        $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>'); // Сброс типов задач
-        $taskTypeInput.val(''); // Сброс текстового поля
+        isCreatingSubtask = false; // Reset the flag
+        $actionType.val('update_status'); // Default action
+
+        // Hide all additional fields
+        $divisionSelectContainer.hide();
+        $taskTypeContainer.hide();
+        $taskTypeInputContainer.hide();
+        $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
+        $taskTypeInput.val('');
     }
 
-    // Обработчик изменения статуса задачи
+    // Handle status change
     $taskStatus.on('change', function () {
         if ($(this).val() !== initialStatus) {
-            $addButton.fadeIn(); // Плавно показать кнопку "+"
+            $addButton.fadeIn(); // Show "+" button
         } else {
-            $addButton.fadeOut(); // Плавно скрыть кнопку "+"
-            $divisionSelectContainer.slideUp(); // Плавно скрыть выбор дивизии
-            $taskTypeContainer.slideUp(); // Плавно скрыть выбор типа задачи
-            $taskTypeInputContainer.slideUp(); // Плавно скрыть поле ввода описания задачи
+            $addButton.fadeOut(); // Hide "+" button
+            // Reset action type if status reverted
+            isCreatingSubtask = false;
+            $actionType.val('update_status');
+            // Hide additional fields
+            $divisionSelectContainer.slideUp();
+            $taskTypeContainer.slideUp();
+            $taskTypeInputContainer.slideUp();
+            $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
+            $taskTypeInput.val('');
         }
     });
 
-    // Функция для получения дивизий с сервера
+    // Handle "+" button click
+    $addButton.on('click', function () {
+        isCreatingSubtask = true; // Set the flag
+        $actionType.val('create_subtask'); // Update action type
+        // Fetch and populate divisions
+        fetchDivisions()
+            .then(divisions => {
+                if (divisions.length === 0) {
+                    alert('No divisions available.');
+                    return;
+                }
+                populateDivisionSelect(divisions);
+                $divisionSelectContainer.slideDown(); // Show division select
+            })
+            .catch(error => {
+                console.error('Error fetching divisions:', error);
+                alert('Failed to load divisions. Please try again later.');
+            });
+    });
+
+    // Fetch divisions from the server
     function fetchDivisions() {
-        return fetch('/divisions/get_divisions')
+        return fetch('/tasks/get_divisions')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -51,9 +83,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Функция для заполнения выпадающего списка дивизий
+    // Populate the division select dropdown
     function populateDivisionSelect(divisions) {
-        // Очистить существующие опции, кроме первой
         $divisionSelect.html('<option value="" disabled selected>განყოფილების არჩევა</option>');
         divisions.forEach(division => {
             const option = $('<option></option>').attr('value', division.id).text(division.name);
@@ -61,32 +92,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Обработчик клика по кнопке "+"
-    $addButton.on('click', function () {
-        // Получить дивизии с сервера
-        fetchDivisions()
-            .then(divisions => {
-                if (divisions.length === 0) {
-                    alert('No divisions available.');
-                    return;
-                }
-                populateDivisionSelect(divisions);
-                $divisionSelectContainer.slideDown(); // Плавно показать выбор дивизии
-            })
-            .catch(error => {
-                console.error('Error fetching divisions:', error);
-                alert('Failed to load divisions. Please try again later.');
-            });
-    });
-
-    // Обработчик изменения выбора дивизии для загрузки типов задач
+    // Handle division selection to fetch task types
     $divisionSelect.on('change', function () {
         const selectedDivisionId = $(this).val();
         if (selectedDivisionId) {
             fetchTaskTypes(selectedDivisionId)
                 .then(taskTypes => {
                     populateTaskTypeSelect(taskTypes);
-                    $taskTypeContainer.slideDown(); // Плавно показать выбор типа задачи
+                    $taskTypeContainer.slideDown(); // Show task type select
                 })
                 .catch(error => {
                     console.error('Error fetching task types:', error);
@@ -94,13 +107,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         } else {
             $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
-            $taskTypeContainer.slideUp(); // Плавно скрыть выбор типа задачи
-            $taskTypeInputContainer.slideUp(); // Плавно скрыть поле ввода описания задачи
+            $taskTypeContainer.slideUp();
+            $taskTypeInputContainer.slideUp();
             $taskTypeInput.val('');
         }
     });
 
-    // Функция для получения типов задач для выбранной дивизии с сервера
+    // Fetch task types based on division
     function fetchTaskTypes(divisionId) {
         return fetch(`/tasks/task_types/get_task_types/${divisionId}`)
             .then(response => {
@@ -116,40 +129,173 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Функция для заполнения выпадающего списка типов задач
+    // Populate the task type select dropdown
     function populateTaskTypeSelect(taskTypes) {
-        // Очистить существующие опции, кроме первой
         $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
         taskTypes.forEach(taskType => {
             const option = $('<option></option>').attr('value', taskType.id).text(taskType.name);
             $taskTypeSelect.append(option);
         });
-        $taskTypeInputContainer.slideUp(); // Плавно скрыть поле ввода описания задачи
-        $taskTypeInput.val(''); // Сброс текстового поля
+        $taskTypeInputContainer.slideUp();
+        $taskTypeInput.val('');
     }
 
-    // Обработчик изменения выбора типа задачи для отображения/скрытия поля ввода описания
+    // Show or hide the task description input based on task type selection
     $taskTypeSelect.on('change', function () {
         if ($(this).val()) {
-            $taskTypeInputContainer.slideDown(); // Плавно показать поле ввода описания
+            $taskTypeInputContainer.slideDown(); // Show description input
         } else {
-            $taskTypeInputContainer.slideUp(); // Плавно скрыть поле ввода описания
-            $taskTypeInput.val(''); // Сброс текстового поля
+            $taskTypeInputContainer.slideUp(); // Hide description input
+            $taskTypeInput.val('');
         }
     });
 
-    // Инициализация модального окна при его открытии
+    // Initialize the modal when it is shown
     $('#taskModal').on('show.bs.modal', function () {
-        setInitialStatus(); // Установить начальный статус при открытии модального окна
+        setInitialStatus(); // Reset the form
     });
+
+    // Handle form submission
+    $('#taskEditForm').on('submit', function (event) {
+        event.preventDefault();
+        const taskId = $('#taskId').text();
+        const formData = new FormData(this);
+
+        if (isCreatingSubtask) {
+            // Creating a subtask
+            const subtaskData = {
+                parent_task_id: taskId,
+                description: formData.get('task_type_description'),
+                status_id: formData.get('status'),
+                task_type_id: formData.get('task_type')
+            };
+
+            // Validate required fields
+            if (!subtaskData.task_type_id || !subtaskData.description) {
+                alert('Please fill in all required fields to create a subtask.');
+                return;
+            }
+
+            fetch(`/tasks/create_subtask`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': formData.get('csrf_token')
+                },
+                body: JSON.stringify(subtaskData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Failed to create subtask');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Close the modal
+                    $('#taskModal').modal('hide');
+                    // Show success toast
+                    $('#successToast').toast('show');
+                    // Optionally, refresh the related tasks section or append the new subtask to the table
+                    appendNewSubtaskToTable(data.subtask);
+                })
+                .catch(error => {
+                    console.error(error);
+                    $('#errorToast').toast('show');
+                });
+        } else {
+            // Updating the status only
+            const statusData = {
+                status_id: formData.get('status')
+            };
+
+            fetch(`/tasks/update/${taskId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': formData.get('csrf_token'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(statusData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Failed to update status');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Close the modal
+                    $('#taskModal').modal('hide');
+                    // Show success toast
+                    $('#successToast').toast('show');
+                    // Update the task row in the table
+                    updateTaskRow(taskId, data.new_status);
+                })
+                .catch(error => {
+                    console.error(error);
+                    $('#errorToast').toast('show');
+                });
+        }
+    });
+
+    // Function to append the new subtask to the table
+    function appendNewSubtaskToTable(subtask) {
+        // Assuming you have a table with tbody id="tasksTableBody"
+        const newRow = `
+            <tr id="task-row-${subtask.id}">
+                <td class="d-none d-md-table-cell">${subtask.id}</td>
+                <td>${subtask.task_type.division.name}</td>
+                <td>${subtask.task_type.name}</td>
+                <td>
+                    <span class="badge bg-${subtask.status.bootstrap_class} text-capitalize"
+                          id="task-status-${subtask.id}">
+                        ${subtask.status.name}
+                    </span>
+                </td>
+                <td class="text-truncate" style="max-width: 150px;" title="${subtask.description}">
+                    ${subtask.description}
+                </td>
+                <td class="d-none d-md-table-cell">${subtask.created_user.name || 'უცნობი'}</td>
+                <td class="d-none d-md-table-cell">${subtask.created_at}</td>
+                <td>
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+                        <button class="btn btn-primary" title="ნახვა" data-toggle="modal"
+                                data-target="#taskModal"
+                                onclick="showTaskDetails(${subtask.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <a href="#" class="btn btn-warning" data-toggle="modal"
+                           data-target="#accountTransfer"
+                           onclick="accountTransfer(${subtask.id})" title="ტრანსფერი">
+                            <i class="fas fa-random"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+        `;
+        $('#tasksTableBody').append(newRow);
+    }
+
+    // Function to update the task row in the table
+    function updateTaskRow(taskId, newStatus) {
+        const $statusCell = $(`#task-status-${taskId}`);
+        if ($statusCell.length) {
+            $statusCell.text(newStatus.name);
+            $statusCell.removeClass().addClass(`badge bg-${newStatus.bootstrap_class} text-capitalize`);
+        }
+    }
 });
 
-// Функция для отображения деталей задачи в модальном окне
+// Function to show task details in the modal
 function showTaskDetails(taskId) {
-    // Сбросить содержимое модального окна
+    // Reset modal content
     $('#taskDetailsContent').hide();
     $('#errorMessage').hide();
     $('#loadingSpinner').show();
+    $('#actionType').val('update_status'); // Reset action type
 
     fetch(`/tasks/details/${taskId}`)
         .then(response => {
@@ -159,13 +305,15 @@ function showTaskDetails(taskId) {
             return response.json();
         })
         .then(data => {
-            // Заполнить данные задачи
+            // Populate modal fields
             $('#taskId').text(data.id);
             $('#taskDivision').text(data.division ? data.division.name : 'არ არის მითითებული');
             $('#taskCurrentStatus').text(data.current_status.name || 'არ არის მითითებული');
+            $('#taskCurrentStatus').data('status-id', data.current_status.id); // Update data attribute
+            $('#taskStatus').val(data.current_status.id); // Set current status in dropdown
             $('#taskDescription').val(data.description || 'არ არის მითითებული');
 
-            // Заполнить выпадающий список статусов
+            // Populate status dropdown
             const $taskStatus = $('#taskStatus');
             $taskStatus.empty();
             data.statuses.forEach(status => {
@@ -178,149 +326,20 @@ function showTaskDetails(taskId) {
                 $taskStatus.append($option);
             });
 
-            // Заполнить тип задачи на основе дивизии
-            const $taskTypeSelect = $('#taskTypeSelect');
-            const $taskTypeContainer = $('#taskTypeContainer');
-            const $taskTypeInputContainer = $('#taskTypeInputContainer');
-            const $taskTypeInput = $('#taskTypeInput');
+            // Hide all additional fields initially
+            $('#divisionSelectContainer').hide();
+            $('#taskTypeContainer').hide();
+            $('#taskTypeInputContainer').hide();
+            $('#taskTypeSelect').html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
+            $('#taskTypeInput').val('');
 
-            $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
-            $taskTypeInput.val('');
-            $taskTypeContainer.slideUp();
-            $taskTypeInputContainer.slideUp();
-
-            if (data.division && data.division.id) {
-                fetch(`/tasks/task_types/get_task_types/${data.division.id}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch task types');
-                        }
-                        return response.json();
-                    })
-                    .then(taskTypes => {
-                        taskTypes.task_types.forEach(taskType => {
-                            const $option = $('<option></option>')
-                                .attr('value', taskType.id)
-                                .text(taskType.name);
-                            if (taskType.id === data.task_type.id) {
-                                $option.prop('selected', true);
-                                // Показать поле ввода описания задачи, если тип уже выбран
-                                $taskTypeInputContainer.slideDown();
-                                $taskTypeInput.val(data.task_type_description || '');
-                            }
-                            $taskTypeSelect.append($option);
-                        });
-                        if (taskTypes.task_types.length > 0) {
-                            $taskTypeContainer.slideDown(); // Показать выбор типа задачи
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching task types:', error);
-                        alert('Failed to load task types. Please try again later.');
-                    });
-            }
-
-            // Показать содержимое и скрыть индикатор загрузки
+            // Show modal content
             $('#loadingSpinner').hide();
-            $('#taskDetailsContent').fadeIn(); // Плавно показать содержимое
+            $('#taskDetailsContent').fadeIn();
         })
         .catch(error => {
             console.error(error);
             $('#loadingSpinner').hide();
-            $('#errorMessage').fadeIn(); // Плавно показать сообщение об ошибке
+            $('#errorMessage').fadeIn();
         });
 }
-
-// Обработчик отправки формы для обновления задачи
-$('#taskEditForm').on('submit', function (event) {
-    event.preventDefault();
-    const taskId = $('#taskId').text();
-    const formData = new FormData(this);
-
-    // Валидация выбора дивизии, если она отображается
-    const $divisionSelect = $('#divisionSelect');
-    const selectedDivisionId = $divisionSelect.val();
-
-    // Валидация выбора типа задачи
-    const $taskTypeSelect = $('#taskTypeSelect');
-    const selectedTaskTypeId = $taskTypeSelect.val();
-
-    // Валидация описания типа задачи
-    const $taskTypeInput = $('#taskTypeInput');
-    const taskTypeDescription = $taskTypeInput.val().trim();
-
-    // Проверка, выбран ли дивизия, если выбор отображается
-    if ($divisionSelect.is(':visible') && !selectedDivisionId) {
-        alert('Please select a division.');
-        return;
-    }
-
-    // Проверка, выбран ли тип задачи, если выбор отображается
-    if ($taskTypeSelect.is(':visible') && !selectedTaskTypeId) {
-        alert('Please select a task type.');
-        return;
-    }
-
-    // Проверка, введено ли описание задачи, если поле отображается
-    if ($taskTypeSelect.is(':visible') && !taskTypeDescription) {
-        alert('Please provide a description for the task type.');
-        return;
-    }
-
-    // Добавляем описание типа задачи в FormData
-    formData.append('task_type_description', taskTypeDescription);
-
-    fetch(`/tasks/update/${taskId}`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': formData.get('csrf_token')
-        },
-        body: formData
-    })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(data => {
-                    throw new Error(data.message || 'Failed to update task');
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Закрыть модальное окно
-            $('#taskModal').modal('hide');
-            // Показать уведомление об успешном обновлении
-            $('#successToast').toast('show');
-            // Обновить строку задачи в таблице
-            updateTaskRow(taskId, data.new_status, data.new_division);
-        })
-        .catch(error => {
-            console.error(error);
-            // Показать уведомление об ошибке
-            $('#errorToast').toast('show');
-        });
-});
-
-// Функция для обновления строки задачи в таблице
-function updateTaskRow(taskId, newStatus, newDivision) {
-    const $statusCell = $(`#task-status-${taskId}`);
-    if ($statusCell.length) {
-        $statusCell.text(newStatus.name);
-        $statusCell.removeClass().addClass(`badge bg-${newStatus.bootstrap_class} text-capitalize`);
-    }
-
-    const $divisionCell = $(`#task-division-${taskId}`);
-    if ($divisionCell.length && newDivision) {
-        $divisionCell.text(newDivision.name);
-    }
-}
-
-// Функция для передачи аккаунта (реализуйте по необходимости)
-function accountTransfer(taskId) {
-    // Реализуйте логику передачи аккаунта здесь
-    alert(`Transfer account for task ID: ${taskId}`);
-}
-
-// Инициализация уведомлений (Toast)
-$(document).ready(function () {
-    $('.toast').toast({ delay: 3000 });
-});

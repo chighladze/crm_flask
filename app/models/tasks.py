@@ -36,4 +36,5 @@ class Tasks(db.Model):
 
     # Добавляем связь для получения division_id из task_type
     task_division = db.relationship('Divisions', secondary='task_types', backref='task_divisions', lazy='joined')
-
+    # Subtasks relationship
+    subtasks = db.relationship('Tasks', backref=db.backref('parent_task', remote_side=[id]), lazy='dynamic')

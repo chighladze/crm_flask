@@ -3,7 +3,7 @@ from flask import Blueprint, request, render_template, redirect, url_for, flash,
 from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
-from ..models import Tasks, TaskStatuses, TaskPriorities, Users, TaskTypes
+from ..models import Tasks, TaskStatuses, TaskPriorities, Users, TaskTypes, Divisions
 from ..forms import TaskForm
 import pandas as pd
 from io import BytesIO
@@ -11,11 +11,20 @@ from io import BytesIO
 tasks = Blueprint('tasks', __name__)
 
 
-@tasks.route('/tasks/details/<int:task_id>')
-@login_required  # Добавьте этот декоратор, если требуется аутентификация
+@tasks.route('/tasks/get_divisions', methods=['GET'])
+@login_required
+def get_divisions():
+    divisions = Divisions.query.all()
+    divisions_data = [{'id': division.id, 'name': division.name} for division in divisions]
+    return jsonify({'divisions': divisions_data}), 200
+
+
+@tasks.route('/tasks/details/<int:task_id>', methods=['GET'])
+@login_required
 def task_details(task_id):
     task = Tasks.query.get_or_404(task_id)
-    statuses = TaskStatuses.query.all()  # Все доступные статусы
+    statuses = TaskStatuses.query.all()
+    divisions = Divisions.query.all()  # To include division details
 
     return jsonify({
         'id': task.id,
@@ -26,22 +35,26 @@ def task_details(task_id):
         'current_status': {
             'id': task.status_id,
             'name': task.status.name,
-            'bootstrap_class': task.status.bootstrap_class  # Добавьте класс для стилизации
+            'bootstrap_class': task.status.bootstrap_class
         },
         'task_type': {
+            'id': task.task_type.id,
             'name': task.task_type.name,
             'division': {
+                'id': task.task_type.division.id,
                 'name': task.task_type.division.name
             } if task.task_type.division else {}
         },
         'statuses': [{'id': status.id, 'name': status.name} for status in statuses],
-    })
+    }), 200
+
 
 @tasks.route('/tasks/update/<int:task_id>', methods=['POST'])
 @login_required
 def update_task(task_id):
     task = Tasks.query.get_or_404(task_id)
-    status_id = request.form.get('status')
+    data = request.get_json()
+    status_id = data.get('status_id')
 
     if status_id:
         try:
@@ -60,7 +73,6 @@ def update_task(task_id):
             return jsonify({'message': f'შეცდომა: {str(e)}'}), 400
     else:
         return jsonify({'message': 'არასწორი სტატუსი'}), 400
-
 
 
 @tasks.route('/tasks/view/<int:task_id>', methods=['GET', 'POST'])
@@ -261,3 +273,65 @@ def create_task():
         form=form,
         active_menu='tasks'
     )
+
+
+@tasks.route('/tasks/create_subtask', methods=['POST'])
+@login_required
+def create_subtask():
+    data = request.get_json()
+    parent_task_id = data.get('parent_task_id')
+    description = data.get('description')
+    status_id = data.get('status_id')
+    task_type_id = data.get('task_type_id')
+
+    # Validate required fields
+    if not parent_task_id or not description or not status_id or not task_type_id:
+        return jsonify({'message': 'Missing required fields.'}), 400
+
+    # Get parent task
+    parent_task = Tasks.query.get(parent_task_id)
+    if not parent_task:
+        return jsonify({'message': 'Parent task not found.'}), 404
+
+    # Create subtask
+    try:
+        subtask = Tasks(
+            parent_task_id=parent_task_id,
+            description=description,
+            status_id=int(status_id),
+            task_type_id=int(task_type_id),
+            created_by=current_user.id
+        )
+        db.session.add(subtask)
+        db.session.commit()
+
+        # Prepare subtask data for response
+        subtask_data = {
+            'id': subtask.id,
+            'description': subtask.description,
+            'status': {
+                'id': subtask.status.id,
+                'name': subtask.status.name,
+                'bootstrap_class': subtask.status.bootstrap_class
+            },
+            'task_type': {
+                'id': subtask.task_type.id,
+                'name': subtask.task_type.name,
+                'division': {
+                    'id': subtask.task_type.division.id,
+                    'name': subtask.task_type.division.name
+                } if subtask.task_type.division else {}
+            },
+            'created_user': {
+                'name': subtask.created_user.name if subtask.created_user else 'უცნობი'
+            },
+            'created_at': subtask.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        return jsonify({
+            'message': 'Subtask created successfully.',
+            'subtask': subtask_data
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'Error creating subtask: {str(e)}'}), 500
