@@ -279,7 +279,7 @@
                                         </div>
                                         <div class="task-detail">
                                             <strong>სტატუსი:</strong>
-                                            <span id="taskCurrentStatus"></span>
+                                            <span id="taskCurrentStatus" data-status-id="{{ order.task.status.id }}">{{ order.task.status.name }}</span>
                                         </div>
                                     </div>
 
@@ -291,13 +291,13 @@
                                     </div>
 
                                     <!-- Обновлённое поле выбора статуса -->
-                                    <div class="form-group status-select-container d-flex justify-content-center">
-                                        <select id="taskStatus" name="status" class="form-control status-select"
-                                                required>
-                                            <option value="in_progress" selected>In Progress</option>
-                                            <option value="completed">Completed</option>
-                                            <option value="pending">Pending</option>
-                                        </select>
+                                    <div class="form-group status-select-container d-flex align-items-center">
+                                        <!-- Выпадающий список статусов -->
+                                        <select id="taskStatus" name="status" class="form-control status-select w-50" required></select>
+                                        <!-- Кнопка "+" -->
+                                        <button type="button" id="addButton" class="btn btn-success ml-2 mb-3" style="display: none;" title="დავალების შექმნა">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -356,6 +356,7 @@
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                             <!-- Добавьте дополнительные кнопки при необходимости -->
                         </div>
+
                     </div>
                 </div>
             </div>

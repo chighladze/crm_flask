@@ -1,4 +1,42 @@
 /* file_path: crm_flask/app/static/dist/js/custom/orders/order_view.js */
+document.addEventListener('DOMContentLoaded', function () {
+    const taskStatus = document.getElementById('taskStatus');
+    const addButton = document.getElementById('addButton');
+    const taskCurrentStatusElement = document.getElementById('taskCurrentStatus');
+
+    let initialStatus;
+
+    // Функция для установки начального статуса на основе содержимого taskCurrentStatus
+    function setInitialStatus() {
+        initialStatus = taskCurrentStatusElement.getAttribute('data-status-id'); // Получаем ID статуса из атрибута
+        addButton.style.display = 'none'; // Скрываем кнопку при открытии модального окна
+    }
+
+    // Обработчик изменения значения select
+    taskStatus.addEventListener('change', function () {
+
+        if (taskStatus.value !== initialStatus) {
+            // Показываем кнопку "+"
+            addButton.style.display = 'inline-block';
+        } else {
+            // Скрываем кнопку "+"
+            addButton.style.display = 'none';
+        }
+    });
+
+    // Дополнительный обработчик нажатия на кнопку "+"
+    addButton.addEventListener('click', function () {
+        alert("Кнопка '+' нажата!");
+        // Реализуй дополнительную логику здесь
+    });
+
+    // Устанавливаем обработчик открытия модального окна
+    $('#taskModal').on('show.bs.modal', function () {
+        setInitialStatus(); // Устанавливаем начальный статус при каждом открытии модального окна
+    });
+});
+
+
 // Функция для отображения деталей задачи в модальном окне
 function showTaskDetails(taskId) {
     // Сброс содержимого модального окна
