@@ -1,45 +1,88 @@
-/* file_path: crm_flask/app/static/dist/js/custom/orders/order_view.js */
+// crm_flask/app/static/dist/js/custom/orders/order_view.js
+
 document.addEventListener('DOMContentLoaded', function () {
     const taskStatus = document.getElementById('taskStatus');
     const addButton = document.getElementById('addButton');
     const taskCurrentStatusElement = document.getElementById('taskCurrentStatus');
+    const divisionSelectContainer = document.getElementById('divisionSelectContainer');
+    const divisionSelect = document.getElementById('divisionSelect');
 
     let initialStatus;
 
-    // Функция для установки начального статуса на основе содержимого taskCurrentStatus
+    // Function to set the initial status
     function setInitialStatus() {
-        initialStatus = taskCurrentStatusElement.getAttribute('data-status-id'); // Получаем ID статуса из атрибута
-        addButton.style.display = 'none'; // Скрываем кнопку при открытии модального окна
+        initialStatus = taskCurrentStatusElement.getAttribute('data-status-id');
+        addButton.style.display = 'none';
+        divisionSelectContainer.style.display = 'none'; // Hide division select on modal open
     }
 
-    // Обработчик изменения значения select
+    // Handle status change
     taskStatus.addEventListener('change', function () {
-
         if (taskStatus.value !== initialStatus) {
-            // Показываем кнопку "+"
             addButton.style.display = 'inline-block';
         } else {
-            // Скрываем кнопку "+"
             addButton.style.display = 'none';
+            divisionSelectContainer.style.display = 'none'; // Hide if status reverted
         }
     });
 
-    // Дополнительный обработчик нажатия на кнопку "+"
+    // Fetch divisions
+    function fetchDivisions() {
+        // Optionally, you can pass department_id if needed
+        // For example: /api/divisions?department_id=1
+        return fetch('/divisions/get_divisions')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => data.divisions)
+            .catch(error => {
+                console.error('Error fetching divisions:', error);
+                throw error;
+            });
+    }
+
+    // Populate the division select with fetched divisions
+    function populateDivisionSelect(divisions) {
+        // Clear existing options except the first placeholder
+        divisionSelect.innerHTML = '<option value="" disabled selected>განყოფილების არჩევა</option>';
+        divisions.forEach(division => {
+            const option = document.createElement('option');
+            option.value = division.id;
+            option.textContent = division.name;
+            divisionSelect.appendChild(option);
+        });
+    }
+
+    // Handle "+" button click
     addButton.addEventListener('click', function () {
-        alert("Кнопка '+' нажата!");
-        // Реализуй дополнительную логику здесь
+        // Fetch divisions from the API
+        fetchDivisions()
+            .then(divisions => {
+                if (divisions.length === 0) {
+                    alert('No divisions available.');
+                    return;
+                }
+                populateDivisionSelect(divisions);
+                divisionSelectContainer.style.display = 'block'; // Show the select container
+            })
+            .catch(error => {
+                console.error('Error fetching divisions:', error);
+                alert('Failed to load divisions. Please try again later.');
+            });
     });
 
-    // Устанавливаем обработчик открытия модального окна
+    // Initialize the modal
     $('#taskModal').on('show.bs.modal', function () {
-        setInitialStatus(); // Устанавливаем начальный статус при каждом открытии модального окна
+        setInitialStatus(); // Set initial status when modal is opened
     });
 });
 
-
-// Функция для отображения деталей задачи в модальном окне
+// Function to show task details in the modal
 function showTaskDetails(taskId) {
-    // Сброс содержимого модального окна
+    // Reset modal content
     document.getElementById('taskDetailsContent').style.display = 'none';
     document.getElementById('errorMessage').style.display = 'none';
     document.getElementById('loadingSpinner').style.display = 'block';
@@ -52,14 +95,14 @@ function showTaskDetails(taskId) {
             return response.json();
         })
         .then(data => {
-            // Заполнение данных задачи
+            // Populate task data
             document.getElementById('taskId').textContent = data.id;
-            document.getElementById('taskDivision').textContent = data.task_type.division.name || 'არ არის მითითებული';
+            document.getElementById('taskDivision').textContent = data.division ? data.division.name : 'არ არის მითითებული';
             document.getElementById('taskType').textContent = data.task_type.name || 'არ არის მითითებული';
             document.getElementById('taskCurrentStatus').textContent = data.current_status.name || 'არ არის მითითებული';
             document.getElementById('taskDescription').value = data.description || 'არ არის მითითებული';
 
-            // Заполнение выпадающего списка статусов
+            // Populate status dropdown
             const taskStatus = document.getElementById('taskStatus');
             taskStatus.innerHTML = '';
             data.statuses.forEach(status => {
@@ -72,7 +115,7 @@ function showTaskDetails(taskId) {
                 taskStatus.appendChild(option);
             });
 
-            // Отображение содержимого и скрытие индикатора загрузки
+            // Show the content and hide the spinner
             document.getElementById('loadingSpinner').style.display = 'none';
             document.getElementById('taskDetailsContent').style.display = 'block';
         })
@@ -83,11 +126,21 @@ function showTaskDetails(taskId) {
         });
 }
 
-// Обработчик отправки формы обновления задачи
+// Handle form submission for updating the task
 document.getElementById('taskEditForm').addEventListener('submit', function (event) {
     event.preventDefault();
     const taskId = document.getElementById('taskId').textContent;
     const formData = new FormData(this);
+
+    // Optionally, you can validate division selection here
+    const divisionSelect = document.getElementById('divisionSelect');
+    const selectedDivisionId = divisionSelect.value;
+
+    // If divisionSelectContainer is visible, ensure a division is selected
+    if (divisionSelectContainer.style.display === 'block' && !selectedDivisionId) {
+        alert('Please select a division.');
+        return;
+    }
 
     fetch(`/tasks/update/${taskId}`, {
         method: 'POST',
@@ -105,36 +158,41 @@ document.getElementById('taskEditForm').addEventListener('submit', function (eve
             return response.json();
         })
         .then(data => {
-            // Закрытие модального окна
+            // Close the modal
             $('#taskModal').modal('hide');
-            // Показ уведомления об успешном обновлении
+            // Show success toast
             $('#successToast').toast('show');
-            // Обновление статуса задачи в таблице без перезагрузки страницы
-            updateTaskRow(taskId, data.new_status);
+            // Update the task row in the table
+            updateTaskRow(taskId, data.new_status, data.new_division);
         })
         .catch(error => {
             console.error(error);
-            // Показ уведомления об ошибке
+            // Show error toast
             $('#errorToast').toast('show');
         });
 });
 
-// Функция для обновления строки задачи в таблице
-function updateTaskRow(taskId, newStatus) {
+// Function to update the task row in the table
+function updateTaskRow(taskId, newStatus, newDivision) {
     const statusCell = document.getElementById(`task-status-${taskId}`);
     if (statusCell) {
         statusCell.textContent = newStatus.name;
         statusCell.className = `badge bg-${newStatus.bootstrap_class} text-capitalize`;
     }
+
+    const divisionCell = document.getElementById(`task-division-${taskId}`);
+    if (divisionCell && newDivision) {
+        divisionCell.textContent = newDivision.name;
+    }
 }
 
-// Функция для передачи аккаунта (реализуйте по необходимости)
+// Function to transfer account (implement as needed)
 function accountTransfer(taskId) {
-    // Реализуйте логику передачи аккаунта здесь
+    // Implement account transfer logic here
     alert(`Transfer account for task ID: ${taskId}`);
 }
 
-// Инициализация уведомлений Toast
+// Initialize Toast notifications
 $(document).ready(function () {
-    $('.toast').toast({delay: 3000});
+    $('.toast').toast({ delay: 3000 });
 });

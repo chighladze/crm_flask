@@ -1,4 +1,4 @@
-from flask import Blueprint, request, render_template, redirect, url_for, flash
+from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 import sqlalchemy as sa
 from ..extensions import db
@@ -8,6 +8,27 @@ from ..models.departments import Departments
 
 divisions = Blueprint('divisions', __name__)
 
+
+@divisions.route('/divisions/get_divisions', methods=['GET'])
+@login_required
+def get_divisions():
+    """
+    API endpoint to fetch divisions.
+    Optionally filter by department_id if provided as a query parameter.
+    """
+    department_id = request.args.get('department_id', type=int)
+    query = sa.select(Divisions)
+    if department_id:
+        query = query.where(Divisions.department_id == department_id)
+
+    divisions_list = db.session.execute(query).scalars().all()
+
+    divisions_data = [
+        {"id": division.id, "name": division.name}
+        for division in divisions_list
+    ]
+
+    return jsonify({"divisions": divisions_data}), 200
 
 @divisions.route('/departments/<int:dep_id>/divisions/list', methods=['GET'])
 @login_required
