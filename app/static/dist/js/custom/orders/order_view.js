@@ -1,3 +1,4 @@
+// file_path: crm_flask/app/static/dist/js/orders/order_view.js
 document.addEventListener('DOMContentLoaded', function () {
     // Using jQuery for element selection
     const $taskStatus = $('#taskStatus');
@@ -156,21 +157,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Handle form submission
+// Handle form submission
     $('#taskEditForm').on('submit', function (event) {
         event.preventDefault();
         const taskId = $('#taskId').text();
         const formData = new FormData(this);
 
         if (isCreatingSubtask) {
-            // Creating a subtask
             const subtaskData = {
                 parent_task_id: taskId,
                 description: formData.get('task_type_description'),
                 status_id: formData.get('status'),
-                task_type_id: formData.get('task_type')
+                task_type_id: formData.get('task_type'),
+                order_id: formData.get('order_id')
             };
 
-            // Validate required fields
             if (!subtaskData.task_type_id || !subtaskData.description) {
                 alert('Please fill in all required fields to create a subtask.');
                 return;
@@ -193,11 +194,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     return response.json();
                 })
                 .then(data => {
-                    // Close the modal
                     $('#taskModal').modal('hide');
-                    // Show success toast
                     $('#successToast').toast('show');
-                    // Optionally, refresh the related tasks section or append the new subtask to the table
+
+                    // Обновляем статус родительской задачи
+                    updateTaskRow(data.parent_task.id, data.parent_task.status);
+
+                    // Добавляем новую подзадачу в таблицу
                     appendNewSubtaskToTable(data.subtask);
                 })
                 .catch(error => {
@@ -205,10 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     $('#errorToast').toast('show');
                 });
         } else {
-            // Updating the status only
-            const statusData = {
-                status_id: formData.get('status')
-            };
+            const statusData = {status_id: formData.get('status')};
 
             fetch(`/tasks/update/${taskId}`, {
                 method: 'POST',
@@ -227,11 +227,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     return response.json();
                 })
                 .then(data => {
-                    // Close the modal
                     $('#taskModal').modal('hide');
-                    // Show success toast
                     $('#successToast').toast('show');
-                    // Update the task row in the table
                     updateTaskRow(taskId, data.new_status);
                 })
                 .catch(error => {
@@ -240,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
         }
     });
+
 
     // Function to append the new subtask to the table
     function appendNewSubtaskToTable(subtask) {

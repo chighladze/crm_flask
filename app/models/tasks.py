@@ -28,6 +28,7 @@ class Tasks(db.Model):
     completed_at = db.Column(db.DateTime)
     comments_count = db.Column(db.Integer, default=0)
     is_recurring = db.Column(db.Boolean, default=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=True)
 
     status = db.relationship('TaskStatuses', backref='tasks', lazy='joined')
     priority = db.relationship('TaskPriorities', backref='tasks', lazy='joined')
@@ -38,3 +39,8 @@ class Tasks(db.Model):
     task_division = db.relationship('Divisions', secondary='task_types', backref='task_divisions', lazy='joined')
     # Subtasks relationship
     subtasks = db.relationship('Tasks', backref=db.backref('parent_task', remote_side=[id]), lazy='dynamic')
+    order = db.relationship(
+        'Orders',
+        backref='tasks_related',  # Уникальное имя для backref
+        foreign_keys=[order_id]
+    )

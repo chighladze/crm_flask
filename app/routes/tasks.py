@@ -122,6 +122,7 @@ def view_task(task_id):
         parent_task=task.parent_task_id,
         comments_count=task.comments_count,
         is_recurring=task.is_recurring,
+        order_id=task.order_id,
         active_menu='tasks'
     )
 
@@ -283,55 +284,65 @@ def create_subtask():
     description = data.get('description')
     status_id = data.get('status_id')
     task_type_id = data.get('task_type_id')
+    order_id = data.get('order_id')  # Убедитесь, что это поле передаётся
 
-    # Validate required fields
     if not parent_task_id or not description or not status_id or not task_type_id:
         return jsonify({'message': 'Missing required fields.'}), 400
 
-    # Get parent task
     parent_task = Tasks.query.get(parent_task_id)
     if not parent_task:
         return jsonify({'message': 'Parent task not found.'}), 404
 
-    # Create subtask
     try:
+        # Обновляем статус родительской задачи
+        parent_task.status_id = int(status_id)
+        db.session.add(parent_task)
+
+        # Создаём подзадачу
         subtask = Tasks(
             parent_task_id=parent_task_id,
             description=description,
-            status_id=int(status_id),
             task_type_id=int(task_type_id),
-            created_by=current_user.id
+            created_by=current_user.id,
+            order_id=order_id
         )
         db.session.add(subtask)
         db.session.commit()
 
-        # Prepare subtask data for response
-        subtask_data = {
-            'id': subtask.id,
-            'description': subtask.description,
-            'status': {
-                'id': subtask.status.id,
-                'name': subtask.status.name,
-                'bootstrap_class': subtask.status.bootstrap_class
+        # Формируем ответ с новой подзадачей и родительской задачей
+        response = {
+            'subtask': {
+                'id': subtask.id,
+                'description': subtask.description,
+                'status': {
+                    'id': subtask.status.id,
+                    'name': subtask.status.name,
+                    'bootstrap_class': subtask.status.bootstrap_class
+                },
+                'task_type': {
+                    'id': subtask.task_type.id,
+                    'name': subtask.task_type.name,
+                    'division': {
+                        'id': subtask.task_type.division.id,
+                        'name': subtask.task_type.division.name
+                    } if subtask.task_type.division else {}
+                },
+                'created_user': {
+                    'name': subtask.created_user.name if subtask.created_user else 'უცნობი'
+                },
+                'created_at': subtask.created_at.strftime('%Y-%m-%d %H:%M:%S')
             },
-            'task_type': {
-                'id': subtask.task_type.id,
-                'name': subtask.task_type.name,
-                'division': {
-                    'id': subtask.task_type.division.id,
-                    'name': subtask.task_type.division.name
-                } if subtask.task_type.division else {}
-            },
-            'created_user': {
-                'name': subtask.created_user.name if subtask.created_user else 'უცნობი'
-            },
-            'created_at': subtask.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            'parent_task': {
+                'id': parent_task.id,
+                'status': {
+                    'id': parent_task.status.id,
+                    'name': parent_task.status.name,
+                    'bootstrap_class': parent_task.status.bootstrap_class
+                }
+            }
         }
 
-        return jsonify({
-            'message': 'Subtask created successfully.',
-            'subtask': subtask_data
-        }), 201
+        return jsonify(response), 201
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Error creating subtask: {str(e)}'}), 500

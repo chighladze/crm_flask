@@ -1,3 +1,4 @@
+{# file_path: crm_flask/app/templates/orders/order_view.html #}
 {% extends 'main/base.html' %}
 
 {% block title %}განაცხადის დეტალები{% endblock %}
@@ -238,6 +239,7 @@
                     <form id="taskEditForm" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" id="actionType" name="action_type" value="update_status">
+                        <input type="hidden" id="order_id" name="order_id" value="{{ order.id }}">
                         <div class="modal-content">
                             <!-- Modal Header -->
                             <div class="modal-header">
@@ -312,7 +314,7 @@
                                     <!-- Task Type Selection -->
                                     <div id="taskTypeContainer" class="form-group" style="display: none;">
                                         <label for="taskTypeSelect"><strong>აირჩიეთ დავალების ტიპი:</strong></label>
-                                        <select id="taskTypeSelect" name="task_type" class="form-control" required>
+                                        <select id="taskTypeSelect" name="task_type" class="form-control">
                                             <option value="" disabled selected>აირჩიეთ ტიპი</option>
                                             <!-- Options populated dynamically -->
                                         </select>

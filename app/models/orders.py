@@ -23,4 +23,8 @@ class Orders(db.Model):
     tariff_plan = db.relationship('TariffPlan', backref='orders', lazy='joined')
     # Add this relationship
     address = db.relationship('Addresses', backref='orders', lazy='joined')
-    task = db.relationship('Tasks', backref='orders', lazy='joined')
+    task = db.relationship(
+        'Tasks',
+        backref='linked_order',  # Задаем уникальное имя для backref
+        foreign_keys=[task_id]
+    )

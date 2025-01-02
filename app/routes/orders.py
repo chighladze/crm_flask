@@ -11,7 +11,6 @@ import pandas as pd
 from io import BytesIO
 from flask import send_file
 
-
 orders = Blueprint('orders', __name__)
 
 
@@ -211,7 +210,7 @@ def order_view(order_id):
     ).get_or_404(order_id)
 
     # Получить связанные задачи
-    related_tasks = Tasks.query.filter(Tasks.id == order.task_id).all()
+    related_tasks = Tasks.query.filter(Tasks.order_id == order_id).all()
 
     return render_template(
         'orders/order_view.html',
@@ -287,6 +286,7 @@ def edit_order(order_id):
         order=order,
         customer=customer
     )
+
 
 @orders.route('/orders/export', methods=['GET'])
 @login_required

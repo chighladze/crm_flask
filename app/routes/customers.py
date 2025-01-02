@@ -104,7 +104,6 @@ def create():
             db.session.add(task)
             db.session.commit()
 
-
             # Now that address and coordinates are added, create the order
             order = Orders(
                 customer_id=order_form.customer_id.data,
@@ -120,6 +119,8 @@ def create():
             db.session.add(order)  # Ensure the order is added to the session
 
             # Commit everything as a transaction
+            db.session.commit()
+            task.order_id = order.id
             db.session.commit()
 
             # Redirect to the newly created order page
