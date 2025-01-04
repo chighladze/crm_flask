@@ -21,12 +21,11 @@ class Orders(db.Model):
 
     customer = db.relationship('Customers', backref='orders', lazy='joined')
     tariff_plan = db.relationship('TariffPlan', backref='orders', lazy='joined')
-    # Add this relationship
     address = db.relationship('Addresses', backref='orders', lazy='joined')
     task = db.relationship(
         'Tasks',
-        backref='linked_order',  # Задаем уникальное имя для backref
+        backref='linked_order',  # Уникальное имя для backref
         foreign_keys=[task_id]
     )
-    # Relationships
-    customer_accounts = db.relationship('CustomerAccount', back_populates='order')
+    # Исправленное отношение с CustomerAccount
+    customer_account = db.relationship('CustomerAccount', back_populates='order', uselist=False)

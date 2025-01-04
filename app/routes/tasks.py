@@ -1,4 +1,6 @@
 # crm_flask/app/routes/tasks.py
+import uuid
+
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, send_file
 from flask_login import login_required, current_user
 import sqlalchemy as sa
@@ -74,37 +76,45 @@ def update_task(task_id):
 
     if status_id:
         try:
+            # Обновляем статус задачи
             task.status_id = int(status_id)
 
-            # Проверка условий для отображения поля MAC-адреса
+            # Проверяем условия для создания или обновления CustomerAccount
             if task.status_id == 3 and task.task_type_id == 3:
                 if not mac_address:
                     return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
 
-                # Проверка существования MAC-адреса
-                existing_account = CustomerAccount.query.filter_by(mac_address=mac_address).first()
-                if not existing_account:
-                    # Создание нового аккаунта
-                    customer_id = task.order.customer_id if task.order else None
-                    if not customer_id:
-                        return jsonify({'message': 'კლიენტის ID ვერ დაემატა.'}), 400
+                # Проверяем, существует ли уже аккаунт с данным order_id
+                existing_account = CustomerAccount.query.filter_by(order_id=task.order_id).first()
+                if existing_account:
+                    return jsonify({'message': 'Аккаунт для данного заказа уже существует.'}), 400
 
-                    # Генерация уникального номера аккаунта
-                    account_pay_number = str(uuid.uuid4())[:20]
+                # Проверяем уникальность MAC-адреса
+                duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
+                if duplicate_mac:
+                    return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.'}), 400
 
-                    # Создание нового CustomerAccount
-                    new_account = CustomerAccount(
-                        customer_id=customer_id,
-                        account_pay_number=account_pay_number,
-                        mac_address=mac_address,
-                        ip_address=None,  # При необходимости добавьте поле для ввода IP
-                        tariff_plan_id=1,  # Укажите актуальный tariff_plan_id
-                        device_name='Unknown Device',  # При необходимости сделайте поле для ввода
-                        device_type='Other',  # При необходимости сделайте выбор из списка
-                        status='Active',
-                        order_id=task.order_id
-                    )
-                    db.session.add(new_account)
+                # Получаем customer_id из заказа
+                customer_id = task.order.customer_id if task.order else None
+                if not customer_id:
+                    return jsonify({'message': 'კლიენტის ID ვერ დაემატა.'}), 400
+
+                # Генерация уникального номера аккаунта
+                account_pay_number = str(uuid.uuid4())[:20]
+
+                # Создание нового CustomerAccount
+                new_account = CustomerAccount(
+                    customer_id=customer_id,
+                    account_pay_number=account_pay_number,
+                    mac_address=mac_address,
+                    ip_address=None,  # При необходимости добавьте поле для ввода IP
+                    tariff_plan_id=1,  # Укажите актуальный tariff_plan_id
+                    device_name='Unknown Device',  # При необходимости сделайте поле для ввода
+                    device_type='Other',  # При необходимости сделайте выбор из списка
+                    status='Active',
+                    order_id=task.order_id
+                )
+                db.session.add(new_account)
             else:
                 # Если условия не выполняются, можно добавить логику очистки MAC-адреса или другие действия
                 pass
@@ -354,28 +364,37 @@ def create_subtask():
             if not mac_address:
                 return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
 
-            existing_account = CustomerAccount.query.filter_by(mac_address=mac_address).first()
-            if not existing_account:
-                customer_id = parent_task.order.customer_id if parent_task.order else None
-                if not customer_id:
-                    return jsonify({'message': 'კლიენტის ID ვერ დაემატა.'}), 400
+            # Проверяем, существует ли аккаунт для данного order_id
+            existing_account = CustomerAccount.query.filter_by(order_id=order_id).first()
+            if existing_account:
+                return jsonify({'message': 'Аккаунт для данного заказа уже существует.'}), 400
 
-                # Генерация уникального номера аккаунта
-                account_pay_number = str(uuid.uuid4())[:20]
+            # Проверка уникальности MAC-адреса
+            duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
+            if duplicate_mac:
+                return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.'}), 400
 
-                # Создание нового CustomerAccount
-                new_account = CustomerAccount(
-                    customer_id=customer_id,
-                    account_pay_number=account_pay_number,
-                    mac_address=mac_address,
-                    ip_address=None,  # При необходимости добавьте поле для ввода IP
-                    tariff_plan_id=1,  # Укажите актуальный tariff_plan_id
-                    device_name='Unknown Device',  # При необходимости сделайте поле для ввода
-                    device_type='Other',  # При необходимости сделайте выбор из списка
-                    status='Active',
-                    order_id=order_id
-                )
-                db.session.add(new_account)
+            # Получаем customer_id из заказа
+            customer_id = parent_task.order.customer_id if parent_task.order else None
+            if not customer_id:
+                return jsonify({'message': 'კლიენტის ID ვერ დაემატა.'}), 400
+
+            # Генерация уникального номера аккаунта
+            account_pay_number = str(uuid.uuid4())[:20]
+
+            # Создание нового CustomerAccount
+            new_account = CustomerAccount(
+                customer_id=customer_id,
+                account_pay_number=account_pay_number,
+                mac_address=mac_address,
+                ip_address=None,  # При необходимости добавьте поле для ввода IP
+                tariff_plan_id=1,  # Укажите актуальный tariff_plan_id
+                device_name='Unknown Device',  # При необходимости сделайте поле для ввода
+                device_type='Other',  # При необходимости сделайте выбор из списка
+                status='Active',
+                order_id=order_id
+            )
+            db.session.add(new_account)
 
         # Создаём подзадачу
         subtask = Tasks(

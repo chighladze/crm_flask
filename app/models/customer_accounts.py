@@ -2,7 +2,6 @@
 from ..extensions import db
 from datetime import datetime
 
-
 class CustomerAccount(db.Model):
     __tablename__ = 'customer_accounts'
 
@@ -19,10 +18,12 @@ class CustomerAccount(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, comment='Date and time of account creation')
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False, comment='Date and time of last update')
 
-    # Relationships
+    # Исправленное отношение с Orders
+    order = db.relationship('Orders', back_populates='customer_account')
+
+    # Связи с другими моделями
     customer = db.relationship('Customers', back_populates='customer_accounts')
     tariff_plan = db.relationship('TariffPlan', back_populates='customer_accounts')
-    order = db.relationship('Orders', back_populates='customer_accounts')
 
     def __repr__(self):
         return f"<CustomerAccount {self.account_pay_number} - {self.mac_address}>"

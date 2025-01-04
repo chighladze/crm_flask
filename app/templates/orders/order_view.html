@@ -21,11 +21,14 @@
     <div class="container">
         <div class="card shadow mb-4">
             <!-- Заголовок заказа -->
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0 d-flex justify-content-between align-items-center">
-                    <span>განაცხადი №{{ order.id }}</span>
-                </h4>
-            </div>
+<div class="card-header bg-primary text-white">
+    <h4 class="mb-0 d-flex justify-content-between align-items-center">
+        <span>განაცხადი №{{ order.id }}</span>
+        {% if order.customer_account %}
+            <span>ანგარიში {{ order.customer_account.account_pay_number }}</span>
+        {% endif %}
+    </h4>
+</div>
             <div class="card-body">
                 <!-- Информация о клиенте и заказе -->
                 <div class="row mb-4">
@@ -255,7 +258,7 @@
                     <strong class="mr-auto">შეცდომა</strong>
                     <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast">&times;</button>
                 </div>
-                <div class="toast-body">
+                <div class="toast-body" id="errorToastBody">
                     მოქმედება ვერ შესრულდა. გთხოვთ, სცადოთ მოგვიანებით.
                 </div>
             </div>

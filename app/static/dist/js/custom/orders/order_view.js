@@ -1,6 +1,6 @@
 // file_path: crm_flask/app/static/dist/js/orders/order_view.js
 document.addEventListener('DOMContentLoaded', function () {
-    // Используем jQuery для выбора элементов
+    // Кэширование элементов
     const $taskStatus = $('#taskStatus');
     const $taskTypeSelect = $('#taskTypeSelect');
     const $addButton = $('#addButton');
@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const $macAddressInput = $('#macAddress');
     const $submitButton = $('#submitTaskButton');
     const $actionType = $('#actionType');
+    const $errorToastBody = $('#errorToastBody');
 
     let initialStatus;
     let isCreatingSubtask = false; // Флаг для отслеживания нажатия "+"
@@ -292,6 +293,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     $('#taskModal').modal('hide');
                     $('body').removeClass('modal-open');
                     $('.modal-backdrop').remove();
+                    // Устанавливаем сообщение об ошибке в toast
+                    $errorToastBody.text(error.message);
                     $('#errorToast').toast('show');
                 });
         } else {
@@ -341,6 +344,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     $('#taskModal').modal('hide');
                     $('body').removeClass('modal-open');
                     $('.modal-backdrop').remove();
+                    // Устанавливаем сообщение об ошибке в toast
+                    $errorToastBody.text(error.message);
                     $('#errorToast').toast('show');
                 });
         }
