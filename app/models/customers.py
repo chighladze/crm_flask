@@ -22,3 +22,8 @@ class Customers(db.Model):
 
     # Define the relationship with the CustomersType model
     customer_type = db.relationship('CustomersType', back_populates='customers', lazy='joined')
+    # Relationships
+    customer_accounts = db.relationship('CustomerAccount', back_populates='customer')
+
+    def __repr__(self):
+        return f"<Customer {self.name}>"

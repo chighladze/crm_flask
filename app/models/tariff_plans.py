@@ -46,6 +46,8 @@ class TariffPlan(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow,
                            nullable=False)
+    # Relationships
+    customer_accounts = db.relationship('CustomerAccount', back_populates='tariff_plan')
 
     connection_technology = db.relationship(
         'ConnectionTechnology',

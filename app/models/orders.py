@@ -28,3 +28,5 @@ class Orders(db.Model):
         backref='linked_order',  # Задаем уникальное имя для backref
         foreign_keys=[task_id]
     )
+    # Relationships
+    customer_accounts = db.relationship('CustomerAccount', back_populates='order')
