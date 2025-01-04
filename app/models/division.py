@@ -15,6 +15,8 @@ class Divisions(db.Model):
 
     # Relationship with Departments model
     department = db.relationship('Departments', back_populates='divisions')
+    # Single relationship to TaskTypes
+    task_types = db.relationship('TaskTypes', back_populates='division')
 
     def __repr__(self):
         return f'<Division {self.name}>'

@@ -9,7 +9,11 @@ class TaskTypes(db.Model):
     name = db.Column(db.String(255), nullable=False)
     division_id = db.Column(db.Integer, db.ForeignKey('divisions.id'), nullable=False)
 
-    division = db.relationship('Divisions', backref='task_types')
+    # Relationship back to Divisions
+    division = db.relationship('Divisions', back_populates='task_types')
+
+    # Relationship to Tasks
+    related_tasks = db.relationship('Tasks', back_populates='task_type')
 
     def __repr__(self):
         return f"<TaskType {self.name}>"

@@ -32,15 +32,19 @@ class Tasks(db.Model):
 
     status = db.relationship('TaskStatuses', backref='tasks', lazy='joined')
     priority = db.relationship('TaskPriorities', backref='tasks', lazy='joined')
-    task_type = db.relationship('TaskTypes', backref='related_tasks', lazy='joined')
+    # Удаляем первый task_type с backref
+    # task_type = db.relationship('TaskTypes', backref='related_tasks', lazy='joined')
+    # Определяем только один раз с back_populates
+    task_type = db.relationship('TaskTypes', back_populates='related_tasks')
     created_user = db.relationship('Users', foreign_keys=[created_by], backref='created_tasks')
 
-    # Добавляем связь для получения division_id из task_type
-    task_division = db.relationship('Divisions', secondary='task_types', backref='task_divisions', lazy='joined')
+    # Удаляем неверное отношение task_division
+    # task_division = db.relationship('Divisions', secondary='task_types', backref='task_divisions', lazy='joined')
+
     # Subtasks relationship
     subtasks = db.relationship('Tasks', backref=db.backref('parent_task', remote_side=[id]), lazy='dynamic')
     order = db.relationship(
         'Orders',
-        backref='tasks_related',  # Уникальное имя для backref
+        backref='tasks_related',  # Unique name for backref
         foreign_keys=[order_id]
     )
