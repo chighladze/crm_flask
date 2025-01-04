@@ -24,12 +24,24 @@ def get_divisions():
 def task_details(task_id):
     task = Tasks.query.get_or_404(task_id)
     statuses = TaskStatuses.query.all()
-    divisions = Divisions.query.all()  # To include division details
+
+    # Получаем список типов задач для текущего раздела
+    if task.task_type and task.task_type.division:
+        task_types = TaskTypes.query.filter_by(division_id=task.task_type.division_id).all()
+    else:
+        task_types = TaskTypes.query.all()
+
+    # Получаем MAC-адрес, если существует
+    mac_address = ''
+    if task.order and task.order.customer_accounts:
+        # Предполагаем, что каждому заказу соответствует один аккаунт
+        account = task.order.customer_accounts[0]
+        mac_address = account.mac_address if account.mac_address else ''
 
     return jsonify({
         'id': task.id,
         'description': task.description,
-        'created_user': task.created_user.name if task.created_user else 'უცნობი',
+        'created_user': task.created_user.name if task.created_user else 'Unknown',
         'due_date': task.due_date.strftime('%Y-%m-%d') if task.due_date else None,
         'progress': task.progress,
         'current_status': {
@@ -45,7 +57,10 @@ def task_details(task_id):
                 'name': task.task_type.division.name
             } if task.task_type.division else {}
         },
+        'customer_id': task.order.customer_id if task.order else None,
         'statuses': [{'id': status.id, 'name': status.name} for status in statuses],
+        'task_types': [{'id': t.id, 'name': t.name} for t in task_types],
+        'mac_address': mac_address
     }), 200
 
 
@@ -55,51 +70,48 @@ def update_task(task_id):
     task = Tasks.query.get_or_404(task_id)
     data = request.get_json()
     status_id = data.get('status_id')
-    task_type_id = task.task_type_id  # Предполагается, что task_type_id уже связан с задачей
+    mac_address = data.get('mac_address')
 
     if status_id:
         try:
             task.status_id = int(status_id)
 
             # Проверка условий для отображения поля MAC-адреса
-            if task.status_id == 3 and task_type_id == 3:
-                mac_address = data.get('mac_address')
+            if task.status_id == 3 and task.task_type_id == 3:
                 if not mac_address:
-                    return jsonify({'message': 'MAC-адрес обязателен при данном статусе и типе задачи.'}), 400
+                    return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
 
                 # Проверка существования MAC-адреса
                 existing_account = CustomerAccount.query.filter_by(mac_address=mac_address).first()
                 if not existing_account:
                     # Создание нового аккаунта
-                    customer_id = task.order.customer_id  # Предполагается, что задача связана с заказом и заказ с клиентом
+                    customer_id = task.order.customer_id if task.order else None
                     if not customer_id:
-                        return jsonify({'message': 'Не удалось определить клиента для создания аккаунта.'}), 400
+                        return jsonify({'message': 'კლიენტის ID ვერ დაემატა.'}), 400
 
-                    # Создание уникального номера аккаунта (можно улучшить генерацию)
-                    import uuid
+                    # Генерация уникального номера аккаунта
                     account_pay_number = str(uuid.uuid4())[:20]
 
-                    # Примерные данные для создания аккаунта, вы можете адаптировать их под ваши нужды
+                    # Создание нового CustomerAccount
                     new_account = CustomerAccount(
                         customer_id=customer_id,
                         account_pay_number=account_pay_number,
                         mac_address=mac_address,
-                        ip_address=None,  # Можно добавить поле для ввода IP, если необходимо
+                        ip_address=None,  # При необходимости добавьте поле для ввода IP
                         tariff_plan_id=1,  # Укажите актуальный tariff_plan_id
-                        device_name='Unknown Device',  # Можно сделать поле для ввода
-                        device_type='Other',  # Можно сделать выбор из списка
+                        device_name='Unknown Device',  # При необходимости сделайте поле для ввода
+                        device_type='Other',  # При необходимости сделайте выбор из списка
                         status='Active',
                         order_id=task.order_id
                     )
                     db.session.add(new_account)
-                    db.session.commit()
             else:
-                # Если статус или тип задачи изменились и условия не выполняются, можно очистить MAC-адрес или выполнить другие действия
+                # Если условия не выполняются, можно добавить логику очистки MAC-адреса или другие действия
                 pass
 
             db.session.commit()
             return jsonify({
-                'message': 'Статус успешно обновлён!',
+                'message': 'სტატუსი წარმატებით განახლდა!',
                 'new_status': {
                     'id': task.status_id,
                     'name': task.status.name,
@@ -108,9 +120,9 @@ def update_task(task_id):
             }), 200
         except Exception as e:
             db.session.rollback()
-            return jsonify({'message': f'Ошибка: {str(e)}'}), 400
+            return jsonify({'message': f'დაფიქსირდა შეცდომა: {str(e)}'}), 400
     else:
-        return jsonify({'message': 'Неверный статус.'}), 400
+        return jsonify({'message': 'სტატუსი არ არის მითითებული.'}), 400
 
 
 @tasks.route('/tasks/view/<int:task_id>', methods=['GET', 'POST'])
@@ -326,11 +338,11 @@ def create_subtask():
     mac_address = data.get('mac_address')  # Новое поле
 
     if not parent_task_id or not description or not status_id or not task_type_id:
-        return jsonify({'message': 'Missing required fields.'}), 400
+        return jsonify({'message': 'საჭიროა ყველა ველის შევსება.'}), 400
 
     parent_task = Tasks.query.get(parent_task_id)
     if not parent_task:
-        return jsonify({'message': 'Parent task not found.'}), 404
+        return jsonify({'message': 'მთავარ დავალება ვერ მოიძებნა.'}), 404
 
     try:
         # Обновляем статус родительской задачи
@@ -340,25 +352,26 @@ def create_subtask():
         # Проверка условий для MAC-адреса
         if parent_task.status_id == 3 and task_type_id == 3:
             if not mac_address:
-                return jsonify({'message': 'MAC-адрес обязателен при данном статусе и типе задачи.'}), 400
+                return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
 
             existing_account = CustomerAccount.query.filter_by(mac_address=mac_address).first()
             if not existing_account:
-                customer_id = parent_task.order.customer_id
+                customer_id = parent_task.order.customer_id if parent_task.order else None
                 if not customer_id:
-                    return jsonify({'message': 'Не удалось определить клиента для создания аккаунта.'}), 400
+                    return jsonify({'message': 'კლიენტის ID ვერ დაემატა.'}), 400
 
-                import uuid
+                # Генерация уникального номера аккаунта
                 account_pay_number = str(uuid.uuid4())[:20]
 
+                # Создание нового CustomerAccount
                 new_account = CustomerAccount(
                     customer_id=customer_id,
                     account_pay_number=account_pay_number,
                     mac_address=mac_address,
-                    ip_address=None,
+                    ip_address=None,  # При необходимости добавьте поле для ввода IP
                     tariff_plan_id=1,  # Укажите актуальный tariff_plan_id
-                    device_name='Unknown Device',
-                    device_type='Other',
+                    device_name='Unknown Device',  # При необходимости сделайте поле для ввода
+                    device_type='Other',  # При необходимости сделайте выбор из списка
                     status='Active',
                     order_id=order_id
                 )
@@ -412,5 +425,4 @@ def create_subtask():
         return jsonify(response), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({'message': f'Error creating subtask: {str(e)}'}), 500
-
+        return jsonify({'message': f'დაფიქსირდა შეცდომა: {str(e)}'}), 500
