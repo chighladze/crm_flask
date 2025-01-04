@@ -275,7 +275,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     return response.json();
                 })
                 .then(data => {
+                    console.log('Subtask created:', data);
                     $('#taskModal').modal('hide');
+                    $('body').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
                     $('#successToast').toast('show');
 
                     // Обновляем статус родительской задачи
@@ -286,6 +289,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 })
                 .catch(error => {
                     console.error(error);
+                    $('#taskModal').modal('hide');
+                    $('body').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
                     $('#errorToast').toast('show');
                 });
         } else {
@@ -296,11 +302,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (statusData.status_id == 3 && taskTypeId == 3) {
                 const macAddress = formData.get('mac_address').trim();
                 if (!macAddress) {
-                    alert('MAC-адრეს обязателен при данном статусе и типе задачи.');
+                    alert('MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.');
                     return;
                 }
                 if (!isValidMacAddress(macAddress)) {
-                    alert('Пожалуйста, введите корректный MAC-адрес в формате XX:XX:XX:XX:XX:XX.');
+                    alert('გთხოვთ, შეიყვანოთ სწორი MAC-მისამართი ფორმატში XX:XX:XX:XX:XX:XX.');
                     return;
                 }
                 statusData.mac_address = macAddress;
@@ -323,12 +329,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     return response.json();
                 })
                 .then(data => {
+                    console.log('Status updated:', data);
                     $('#taskModal').modal('hide');
+                    $('body').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
                     $('#successToast').toast('show');
                     updateTaskRow(taskId, data.new_status);
                 })
                 .catch(error => {
                     console.error(error);
+                    $('#taskModal').modal('hide');
+                    $('body').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
                     $('#errorToast').toast('show');
                 });
         }
