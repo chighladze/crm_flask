@@ -322,13 +322,18 @@
                                         <span id="taskId"></span>
                                     </div>
                                     <div class="task-detail">
+                                        <strong>სტატუსი:</strong>
+                                        <span id="taskCurrentStatus"
+                                              data-status-id="{{ order.task.status.id }}">{{ order.task.status.name }}</span>
+                                    </div>
+                                    <div class="task-detail">
                                         <strong>განყოფილება:</strong>
                                         <span id="taskDivision"></span>
                                     </div>
                                     <div class="task-detail">
-                                        <strong>სტატუსი:</strong>
-                                        <span id="taskCurrentStatus"
-                                              data-status-id="{{ order.task.status.id }}">{{ order.task.status.name }}</span>
+                                        <strong>დავალების ტიპი:</strong>
+                                        <span id="taskType"
+                                              data-status-id="{{ order.task.task_type.name }}">{{ order.task.task_type.name }}</span>
                                     </div>
                                 </div>
 
