@@ -7,142 +7,153 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <!-- Основная информация об аккаунте -->
-        <div class="col-12">
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="fas fa-credit-card mr-2"></i> ანგარიში №{{ account.account_pay_number }}
-                    </h3>
-                    <div class="card-tools">
-                        <a href="{{ url_for('orders.order_view', order_id=account.order.id) }}" class="btn btn-sm btn-secondary">
-                            <i class="fas fa-arrow-left mr-1"></i> უკან დაბრუნება
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <!-- Левый столбец -->
-                        <div class="col-md-6">
-                            <div class="info-box mb-3">
-                                <span class="info-box-icon bg-info elevation-1"><i class="fas fa-user"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Customer ID</span>
-                                    <span class="info-box-number">{{ account.customer_id }}</span>
-                                </div>
-                            </div>
-
-                            <div class="info-box mb-3">
-                                <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-network-wired"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">MAC Address</span>
-                                    <span class="info-box-number">{{ account.mac_address }}</span>
-                                </div>
-                            </div>
-
-                            <div class="info-box mb-3">
-                                <span class="info-box-icon bg-success elevation-1"><i class="fas fa-globe"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">IP Address</span>
-                                    <span class="info-box-number">{{ account.ip_address or 'N/A' }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Правый столбец -->
-                        <div class="col-md-6">
-                            <div class="info-box mb-3">
-                                <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-signal"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Tariff Plan</span>
-                                    <span class="info-box-number">{{ account.tariff_plan.name }}</span>
-                                </div>
-                            </div>
-
-                            <div class="info-box mb-3">
-                                <span class="info-box-icon bg-secondary elevation-1"><i class="fas fa-laptop-house"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Device Name</span>
-                                    <span class="info-box-number">{{ account.device_name }}</span>
-                                </div>
-                            </div>
-
-                            <div class="info-box mb-3">
-                                <span class="info-box-icon bg-primary elevation-1"><i class="fas fa-cogs"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Device Type</span>
-                                    <span class="info-box-number">{{ account.device_type }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Дополнительные сведения -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card card-secondary">
-                                <div class="card-header">
-                                    <h5 class="card-title"><i class="fas fa-info-circle mr-2"></i>Additional Information</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <strong>Status:</strong>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <span class="badge badge-pill badge-{{ 'success' if account.status == 'Active' else 'secondary' if account.status == 'Inactive' else 'warning' }}">{{ account.status }}</span>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-2">
-                                        <div class="col-md-4">
-                                            <strong>Order ID:</strong>
-                                        </div>
-                                        <div class="col-md-8">
-                                            {% if account.order %}
-                                                <a href="{{ url_for('orders.order_view', order_id=account.order.id) }}" class="btn btn-link">
-                                                    Order №{{ account.order.id }}
-                                                </a>
-                                            {% else %}
-                                                <span>N/A</span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                    <div class="row mt-2">
-                                        <div class="col-md-4">
-                                            <strong>Created At:</strong>
-                                        </div>
-                                        <div class="col-md-8">
-                                            {{ account.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
-                                        </div>
-                                    </div>
-                                    <div class="row mt-2">
-                                        <div class="col-md-4">
-                                            <strong>Updated At:</strong>
-                                        </div>
-                                        <div class="col-md-8">
-                                            {{ account.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Кнопки действий -->
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <a href="{{ url_for('orders.order_view', order_id=account.order.id) }}" class="btn btn-secondary">
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <!-- Основная информация об аккаунте -->
+            <div class="col-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-credit-card mr-2"></i> ანგარიში №{{ account.account_pay_number }}
+                        </h3>
+                        <div class="card-tools">
+                            <a href="{{ url_for('orders.order_view', order_id=account.order.id) }}"
+                               class="btn btn-sm btn-secondary">
                                 <i class="fas fa-arrow-left mr-1"></i> უკან დაბრუნება
                             </a>
-                            {% if current_user.is_authenticated and current_user.is_admin %}
-                                <a href="{{ url_for('customer_accounts.edit_customer_account', account_id=account.id) }}" class="btn btn-primary">
-                                    <i class="fas fa-edit mr-1"></i> რედაქტირება
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Левый столбец -->
+                            <div class="col-md-6">
+                                <div class="info-box mb-3">
+                                    <span class="info-box-icon bg-info elevation-1"><i class="fas fa-user"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Customer ID</span>
+                                        <span class="info-box-number">{{ account.customer_id }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="info-box mb-3">
+                                    <span class="info-box-icon bg-warning elevation-1"><i
+                                            class="fas fa-network-wired"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">MAC Address</span>
+                                        <span class="info-box-number">{{ account.mac_address }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="info-box mb-3">
+                                    <span class="info-box-icon bg-success elevation-1"><i
+                                            class="fas fa-globe"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">IP Address</span>
+                                        <span class="info-box-number">{{ account.ip_address or 'N/A' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Правый столбец -->
+                            <div class="col-md-6">
+                                <div class="info-box mb-3">
+                                    <span class="info-box-icon bg-danger elevation-1"><i
+                                            class="fas fa-signal"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Tariff Plan</span>
+                                        <span class="info-box-number">{{ account.tariff_plan.name }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="info-box mb-3">
+                                    <span class="info-box-icon bg-secondary elevation-1"><i
+                                            class="fas fa-laptop-house"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Device Name</span>
+                                        <span class="info-box-number">{{ account.device_name }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="info-box mb-3">
+                                    <span class="info-box-icon bg-primary elevation-1"><i
+                                            class="fas fa-cogs"></i></span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">Device Type</span>
+                                        <span class="info-box-number">{{ account.device_type }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Дополнительные сведения -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card card-secondary">
+                                    <div class="card-header">
+                                        <h5 class="card-title"><i class="fas fa-info-circle mr-2"></i>Additional
+                                            Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <strong>Status:</strong>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <span class="badge badge-pill badge-
+                                                        {{ 'success' if account.status == 'Active' else 'secondary' if account.status == 'Inactive' else 'warning' }}">{{ account.status }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-4">
+                                                <strong>Order ID:</strong>
+                                            </div>
+                                            <div class="col-md-8">
+                                                {% if account.order %}
+                                                    <a href="{{ url_for('orders.order_view', order_id=account.order.id) }}"
+                                                       class="btn btn-link">
+                                                        Order №{{ account.order.id }}
+                                                    </a>
+                                                {% else %}
+                                                    <span>N/A</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-4">
+                                                <strong>Created At:</strong>
+                                            </div>
+                                            <div class="col-md-8">
+                                                {{ account.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-4">
+                                                <strong>Updated At:</strong>
+                                            </div>
+                                            <div class="col-md-8">
+                                                {{ account.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Кнопки действий -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <a href="{{ url_for('orders.order_view', order_id=account.order.id) }}"
+                                   class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left mr-1"></i> უკან დაბრუნება
                                 </a>
-                            {% endif %}
+                                {% if current_user.is_authenticated and current_user.is_admin %}
+                                    <a href="{{ url_for('customer_accounts.edit_customer_account', account_id=account.id) }}"
+                                       class="btn btn-primary">
+                                        <i class="fas fa-edit mr-1"></i> რედაქტირება
+                                    </a>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
 {% endblock %}

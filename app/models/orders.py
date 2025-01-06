@@ -24,8 +24,7 @@ class Orders(db.Model):
     address = db.relationship('Addresses', backref='orders', lazy='joined')
     task = db.relationship(
         'Tasks',
-        backref='linked_order',  # Уникальное имя для backref
+        backref='linked_order',
         foreign_keys=[task_id]
     )
-    # Исправленное отношение с CustomerAccount
     customer_account = db.relationship('CustomerAccount', back_populates='order', uselist=False)

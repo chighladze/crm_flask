@@ -207,20 +207,18 @@ def order_view(order_id):
     order = Orders.query.options(
         db.joinedload(Orders.address).joinedload(Addresses.coordinates),
         db.joinedload(Orders.task),
-        db.joinedload(Orders.customer_account)  # Загружаем CustomerAccount
+        db.joinedload(Orders.customer_account)
     ).get_or_404(order_id)
 
-    # Получить связанные задачи
     related_tasks = Tasks.query.filter(Tasks.order_id == order_id).all()
 
-    # Получить связанный CustomerAccount, если есть
-    account = order.customer_account  # Используем связь, если она определена
+    account = order.customer_account
 
     return render_template(
         'orders/order_view.html',
         order=order,
         related_tasks=related_tasks,
-        account=account,  # Передаём account в шаблон
+        account=account,
         active_menu='orders'
     )
 
