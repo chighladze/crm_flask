@@ -35,9 +35,9 @@ def task_details(task_id):
 
     # Получаем MAC-адрес, если существует
     mac_address = ''
-    if task.order and task.order.customer_accounts:
-        # Предполагаем, что каждому заказу соответствует один аккаунт
-        account = task.order.customer_accounts[0]
+    if task.order and task.order.customer_account:
+        # Поскольку это одно аккаунт, нет необходимости использовать индекс
+        account = task.order.customer_account
         mac_address = account.mac_address if account.mac_address else ''
 
     return jsonify({
