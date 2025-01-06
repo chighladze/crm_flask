@@ -8,101 +8,47 @@
 {% endblock %}
 
 {% block script %}
-    <!-- Подключаем необходимые библиотеки -->
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-    <!-- Ваш собственный скрипт -->
     <script src="{{ url_for('static', filename='dist/js/custom/orders/order_view.js') }}"></script>
 {% endblock %}
 
 {% block content %}
     <div class="container">
         <div class="card shadow mb-4">
-<!-- Заголовок заказа -->
-<!-- Заголовок заказа -->
-<div class="card-header bg-primary text-white">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h4 class="mb-0">
-                განაცხადი №{{ order.id }}
-            </h4>
-        </div>
-        <div>
-            {% if order.customer_account %}
-                <div class="d-flex align-items-center">
-                    <span class="me-2 mr-2">ანგარიში:</span>
-                    <a href="{{ url_for('customer_accounts.view_customer_account', account_id=order.customer_account.id) }}"
-                       class="btn btn-success btn-sm d-flex align-items-center me-2" target="_blank"
-                       data-toggle="tooltip" data-placement="top" title="ანგარიშის ნახვა">
-                        {{ order.customer_account.account_pay_number }}
-                    </a>
-                    <button type="button" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-placement="top" title="კოპირება PayID-ი"
-                            onclick="copyPayID(this, '{{ order.customer_account.account_pay_number }}')">
-                        <i class="fas fa-copy"></i>
-                    </button>
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">
+                            განაცხადი №{{ order.id }}
+                        </h4>
+                    </div>
+                    <div>
+                        {% if order.customer_account %}
+                            <div class="d-flex align-items-center">
+                                <span class="me-2 mr-2">ანგარიში:</span>
+                                <a href="{{ url_for('customer_accounts.view_customer_account', account_id=order.customer_account.id) }}"
+                                   class="btn btn-success btn-sm d-flex align-items-center me-2" target="_blank"
+                                   data-toggle="tooltip" data-placement="top" title="ანგარიშის ნახვა">
+                                    {{ order.customer_account.account_pay_number }}
+                                </a>
+                                <button type="button" class="btn btn-secondary btn-sm" data-toggle="tooltip"
+                                        data-placement="top" title="კოპირება PayID-ი"
+                                        onclick="copyPayID(this, '{{ order.customer_account.account_pay_number }}')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        {% else %}
+                            <span class="badge bg-warning">ანგარიში არ არის შექმნილი</span>
+                        {% endif %}
+                    </div>
                 </div>
-            {% else %}
-                <span class="badge bg-warning">ანგარიში არ არის შექმნილი</span>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<!-- JavaScript для копирования PayID и изменения иконки -->
-<script>
-    function copyPayID(button, payID) {
-        // Создаем временный элемент textarea
-        const tempInput = document.createElement('textarea');
-        tempInput.value = payID;
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        tempInput.setSelectionRange(0, 99999); // Для мобильных устройств
-
-        try {
-            // Копируем текст
-            const successful = document.execCommand('copy');
-
-            if (successful) {
-                // Найдем элемент <i> внутри кнопки
-                const icon = button.querySelector('i');
-
-                // Сохраним исходный класс иконки
-                const originalClass = icon.className;
-
-                // Заменяем иконку на иконку подтверждения и добавляем зелёный цвет
-                icon.className = 'fas fa-check text-success';
-
-                // Через 1 секунду возвращаем исходную иконку и удаляем зелёный цвет
-                setTimeout(() => {
-                    icon.className = originalClass;
-                }, 1000);
-            } else {
-                // Обработка неудачного копирования (можно добавить аналогичную логику)
-                console.error('Не удалось скопировать PayID.');
-            }
-        } catch (err) {
-            console.error('Ошибка при копировании PayID:', err);
-        }
-
-        // Удаляем временный элемент
-        document.body.removeChild(tempInput);
-    }
-
-    // Инициализация тултипов (если используется Bootstrap 5)
-    document.addEventListener('DOMContentLoaded', function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-    });
-</script>
+            </div>
 
             <div class="card-body">
-                <!-- Информация о клиенте и заказе -->
                 <div class="row mb-4">
-                    <!-- Информация о клиенте -->
                     <div class="col-lg-6 col-md-12 mb-4">
                         <div class="card h-100">
                             <div class="card-header bg-light">
@@ -146,7 +92,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Информация о заказе -->
                     <div class="col-lg-6 col-md-12 mb-4">
                         <div class="card h-100">
                             <div class="card-header bg-light">
@@ -258,18 +203,13 @@
                                         </td>
                                         <td class="d-none d-md-table-cell">{{ task.created_user.name if task.created_user else 'უცნობი' }}</td>
                                         <td class="d-none d-md-table-cell">{{ task.created_at.strftime('%d-%m-%Y') }}</td>
-                                        <td>
+                                        <td class="text-center">
                                             <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
                                                 <button class="btn btn-primary" title="ნახვა" data-toggle="modal"
                                                         data-target="#taskModal"
                                                         onclick="showTaskDetails({{ task.id }})">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                                <a href="#" class="btn btn-warning" data-toggle="modal"
-                                                   data-target="#accountTransfer"
-                                                   onclick="accountTransfer({{ task.id }})" title="ტრანსფერი">
-                                                    <i class="fas fa-random"></i>
-                                                </a>
                                             </div>
                                         </td>
                                     </tr>

@@ -495,3 +495,40 @@ function isValidMacAddress(mac) {
     const macRegex = /^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$/;
     return macRegex.test(mac);
 }
+
+
+function copyPayID(button, payID) {
+    const tempInput = document.createElement('textarea');
+    tempInput.value = payID;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    tempInput.setSelectionRange(0, 99999);
+
+    try {
+
+        const successful = document.execCommand('copy');
+
+        if (successful) {
+            const icon = button.querySelector('i');
+
+            const originalClass = icon.className;
+
+            icon.className = 'fas fa-check text-success';
+
+            setTimeout(() => {
+                icon.className = originalClass;
+            }, 1000);
+        }
+    } catch (err) {
+        console.error(err);
+    }
+    document.body.removeChild(tempInput);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
