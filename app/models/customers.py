@@ -17,6 +17,8 @@ class Customers(db.Model):
     resident = db.Column(db.Boolean, default=True, nullable=False)
     legal_address = db.Column(db.String, nullable=False)
     actual_address = db.Column(db.String, nullable=False)
+    contact_person_name = db.Column(db.String(256), nullable=True)
+    contact_person_mobile = db.Column(db.String(20), nullable=True)
     created_at = db.Column(db.TIMESTAMP, default=datetime.utcnow)
     updated_at = db.Column(db.TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
 
