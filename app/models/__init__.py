@@ -25,3 +25,4 @@ from .tariff_plans import TariffPlan
 from .currencies import Currencies
 from .connection_technology import ConnectionTechnology
 from .customer_accounts import CustomerAccount
+from .order_statuses import OrderStatus

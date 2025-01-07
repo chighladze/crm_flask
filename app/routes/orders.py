@@ -1,8 +1,10 @@
 # crm_flask/app/routes/orders.py
 from flask_login import login_required, current_user
 from flask import render_template, redirect, url_for, flash, request, jsonify
-from app.models import Orders, District, Settlement, BuildingType, Customers, Addresses, TariffPlan, Coordinates, Tasks
-from app.forms import OrderForm
+from flask_wtf.csrf import validate_csrf, ValidationError
+from app.models import Orders, District, Settlement, BuildingType, Customers, Addresses, TariffPlan, Coordinates, Tasks, \
+    OrderStatus
+from app.forms import OrderForm, OrderStatusForm
 from flask import Blueprint
 from flask import jsonify
 import sqlalchemy as sa
@@ -209,6 +211,7 @@ def order_view(order_id):
         db.joinedload(Orders.task),
         db.joinedload(Orders.customer_account)
     ).get_or_404(order_id)
+    all_statuses = OrderStatus.query.all()
 
     related_tasks = Tasks.query.filter(Tasks.order_id == order_id).all()
 
@@ -217,6 +220,7 @@ def order_view(order_id):
     return render_template(
         'orders/order_view.html',
         order=order,
+        all_statuses=all_statuses,
         related_tasks=related_tasks,
         account=account,
         active_menu='orders'
@@ -370,3 +374,23 @@ def orders_export():
     # Отправляем файл пользователю
     return send_file(output, as_attachment=True, download_name="orders_list.xlsx",
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+@orders.route('/orders/<int:order_id>/update_status', methods=['POST'])
+@login_required
+def update_order_status(order_id):
+    form = OrderStatusForm()
+    if form.validate_on_submit():
+        try:
+            new_status_id = form.new_status.data
+            order = Orders.query.get_or_404(order_id)
+            order.status_id = new_status_id
+            db.session.commit()
+            flash('სტატუსი განახლებულია!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('სტატუსის განახლებისას დაფიქსირდა შეცდომა', 'danger')
+    else:
+        flash('ვალიდაციის შეცდომა.', 'danger')
+
+    return redirect(url_for('orders.order_view', order_id=order_id))

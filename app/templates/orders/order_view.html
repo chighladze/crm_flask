@@ -18,16 +18,70 @@
 {% block content %}
     <div class="container">
         <div class="card shadow mb-4">
-            <div class="card-header bg-primary text-white">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <!-- Left Column: Order ID -->
+                    <div class="col-md-4 text-left">
                         <h4 class="mb-0">
                             განაცხადი №{{ order.id }}
                         </h4>
                     </div>
-                    <div>
+
+                    <!-- Center Column: Order Status -->
+                    <div class="col-md-4 text-center">
+                        <button type="button"
+                                class="btn btn-block btn-{{ order.status.bootstrap_class }} btn-status"
+                                title="{{ order.status.name }}"
+                                data-toggle="modal"
+                                data-target="#changeStatusModal">
+                            {{ order.status.name }}
+                        </button>
+                    </div>
+
+                    <!-- Change Status Modal -->
+                    <div class="modal fade" id="changeStatusModal" tabindex="-1" role="dialog"
+                         aria-labelledby="changeStatusModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <form id="changeStatusForm"
+                                  action="{{ url_for('orders.update_order_status', order_id=order.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">გაანახლეთ სტატუსი</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="დახურვა">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Status Selection -->
+                                        <div class="form-group">
+                                            <label for="newStatus">ახალი სტატუსი:</label>
+                                            <select id="newStatus" name="new_status" class="form-control" required>
+                                                {% for status in all_statuses %}
+                                                    <option value="{{ status.id }}"
+                                                            {% if status.id == order.status_id %}selected{% endif %}>
+                                                        {{ status.name }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">გაუქმება
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">შენახვა</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+
+                    <!-- Right Column: Customer Account Info -->
+                    <div class="col-md-4 text-right">
                         {% if order.customer_account %}
-                            <div class="d-flex align-items-center">
+                            <div class="d-flex align-items-center justify-content-end">
                                 <span class="me-2 mr-2">ანგარიში:</span>
                                 <a href="{{ url_for('customer_accounts.view_customer_account', account_id=order.customer_account.id) }}"
                                    class="btn btn-success btn-sm d-flex align-items-center me-2" target="_blank"

@@ -2,15 +2,15 @@
 
 from ..extensions import db
 
-
 class OrderStatus(db.Model):
     __tablename__ = 'order_statuses'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     description = db.Column(db.String(255), nullable=True)
+    bootstrap_class = db.Column(db.String(50), nullable=False, default='secondary')  # New attribute
 
-    # Отношение с заказами
+    # Relationship with Orders
     orders = db.relationship('Orders', back_populates='status')
 
     def __repr__(self):
