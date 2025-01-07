@@ -254,6 +254,43 @@
                     </div>
                 </div>
 
+                <!-- Row 2: Email, Mobile, Alt Mobile -->
+                <div class="form-row">
+                    <div class="col-md-4 form-group">
+                        <label>საკონტაქტო პირი</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            </div>
+                            {{ customer_form.contact_person_name(class="form-control", id="contact_person_name", value=existing_customer.contact_person_name if existing_customer else '', placeholder="მაგ: ქეთი პაპიძე (ოფისმენეჯერი)") }}
+                        </div>
+                        {% if customer_form.contact_person_name.errors %}
+                            <div class="text-danger">
+                                {% for error in customer_form.contact_person_name.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-4 form-group">
+                        <label>საკონტაქტო პირის მობილური<span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-mobile"></i></span>
+                            </div>
+                            {{ customer_form.contact_person_mobile(class="form-control", id="contact_person_mobile", value=existing_customer.contact_person_mobile if existing_customer else '', placeholder="მაგ: 595123456") }}
+                        </div>
+                        {% if customer_form.contact_person_mobile.errors %}
+                            <div class="text-danger">
+                                {% for error in customer_form.contact_person_mobile.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <!-- Row 3: District, Settlement, Street -->
                 <div class="form-row">
                     <div class="col-md-4 form-group">

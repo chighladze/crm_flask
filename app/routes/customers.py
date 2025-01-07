@@ -56,7 +56,9 @@ def create():
                     mobile_second=customer_form.mobile_second.data,
                     resident=int(customer_form.resident.data) if customer_form.resident.data else 1,
                     legal_address=customer_form.legal_address.data,
-                    actual_address=customer_form.actual_address.data
+                    actual_address=customer_form.actual_address.data,
+                    contact_person_name=customer_form.contact_person_name.data,
+                    contact_person_mobile=customer_form.contact_person_mobile.data,
                 )
                 db.session.add(customer)
 

@@ -16,6 +16,8 @@ class CustomerForm(FlaskForm):
     resident = SelectField('რეზიდენტი', choices=[(1, 'კი'), (0, 'არა')], coerce=int, default=1)
     legal_address = StringField('იურიდიული მისამართი', validators=[DataRequired(), Length(max=255)])
     actual_address = StringField('ფაქტობრივი მისამართი', validators=[DataRequired(), Length(max=255)])
+    contact_person_name = StringField('საკონტაქტო პირი', validators=[Length(max=255)])
+    contact_person_mobile = StringField('საკონტაქტო პირის მობილული', validators=[Length(max=20)])
     submit = SubmitField('რეგისტრაცია')
 
     def __init__(self, *args, **kwargs):
