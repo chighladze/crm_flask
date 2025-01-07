@@ -38,10 +38,10 @@ def create():
     if customer_form.validate_on_submit() and order_form.validate_on_submit():
         try:
             # Check if the customer already exists based on the identification number
-            existing_customer = Customers.query.filter_by(
+            customer = Customers.query.filter_by(
                 identification_number=customer_form.identification_number.data).first()
 
-            if existing_customer:
+            if customer:
                 # If the customer exists, use their ID to create a new order
                 readonly_fields = True  # Set readonly flag
             else:
@@ -108,7 +108,7 @@ def create():
 
             # Now that address and coordinates are added, create the order
             order = Orders(
-                customer_id=order_form.customer_id.data,
+                customer_id=customer.id,
                 address_id=address.id,  # Now we can safely assign the address_id
                 tariff_plan_id=order_form.tariff_plan_id.data,
                 mobile=order_form.mobile.data,

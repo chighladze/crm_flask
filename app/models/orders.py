@@ -16,6 +16,7 @@ class Orders(db.Model):
     task_id = db.Column(db.Integer, db.ForeignKey('tasks.id'))
     legal_address = db.Column(db.String, nullable=False)
     actual_address = db.Column(db.String, nullable=False)
+    status_id = db.Column(db.Integer, db.ForeignKey('order_statuses.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -28,3 +29,7 @@ class Orders(db.Model):
         foreign_keys=[task_id]
     )
     customer_account = db.relationship('CustomerAccount', back_populates='order', uselist=False)
+    status = db.relationship('OrderStatus', back_populates='orders')
+
+    def __repr__(self):
+        return f"<Order {self.id} - Status: {self.status.name}>"

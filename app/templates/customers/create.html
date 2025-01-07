@@ -7,145 +7,17 @@
 {% endblock %}
 
 {% block styles %}
-    <link rel="icon" href="{{ url_for('static', filename='dist/css/custom/customers/create.css') }}"
-          type="image/x-icon">
+    <link rel="icon" href="{{ url_for('static', filename='dist/css/custom/customers/create.css') }}" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet"/>
 {% endblock %}
 
 {% block script %}
-    <script src="{{ url_for('static', filename='dist/js/custom/customers/create.js') }}"></script>
+    <!-- Подключение jQuery -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Подключение select2 -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
-    <script>
-        // Adjust fields based on customer and building type, placing building-specific fields inline.
-        document.addEventListener("DOMContentLoaded", function () {
-            const customerTypeSelect = document.getElementById('customer-type');
-            const idNumberContainer = document.getElementById('id-number-container');
-            const nameContainer = document.getElementById('name-container');
-            const directorContainer = document.getElementById('director-container');
-            const typeCol = document.getElementById('type-col');
-
-            const buildingTypeSelect = document.getElementById('building_type_id');
-            const dynamicFieldsContainer = document.getElementById('dynamic-fields-container');
-
-            function updateCustomerFields() {
-                const type = customerTypeSelect.value;
-                idNumberContainer.innerHTML = '';
-                nameContainer.innerHTML = '';
-
-                if (type === '1') {
-                    // Individual
-                    typeCol.className = 'col-md-4 form-group';
-                    idNumberContainer.className = 'col-md-4 form-group';
-                    nameContainer.className = 'col-md-4 form-group';
-
-                    const individualFieldsHtml = `
-                <label>პირადი ნომერი <span class="text-danger">*</span></label>
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-address-card"></i></span>
-                    </div>
-                    <input class="form-control" placeholder="მაგ: 01012345678" id="identification_number" name="identification_number" required type="text" maxlength="50">
-                </div>
-            `;
-                    idNumberContainer.insertAdjacentHTML('beforeend', individualFieldsHtml);
-
-                    const individualNameHtml = `
-                <label>სახელი და გვარი <span class="text-danger">*</span></label>
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                    </div>
-                    <input class="form-control" placeholder="მაგ: გიორგი ამბროლაძე" id="name" name="name" required type="text" maxlength="255">
-                </div>
-            `;
-                    nameContainer.insertAdjacentHTML('beforeend', individualNameHtml);
-
-                    directorContainer.style.display = 'none';
-                } else {
-                    // Company
-                    typeCol.className = 'col-md-3 form-group';
-                    idNumberContainer.className = 'col-md-3 form-group';
-                    nameContainer.className = 'col-md-3 form-group';
-                    directorContainer.className = 'col-md-3 form-group';
-
-                    const companyIdHtml = `
-                <label>საიდენტიფიკაციო კოდი <span class="text-danger">*</span></label>
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-address-card"></i></span>
-                    </div>
-                    <input class="form-control" placeholder="მაგ: 405123456" id="identification_number" name="identification_number" required type="text" maxlength="50">
-                </div>
-                {% if customer_form.identification_number.errors %}
-                <div class="text-danger">
-                    {% for error in customer_form.identification_number.errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            `;
-                    idNumberContainer.insertAdjacentHTML('beforeend', companyIdHtml);
-
-                    const companyNameHtml = `
-                <label>კომპანიის სახელი <span class="text-danger">*</span></label>
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fas fa-home"></i></span>
-                    </div>
-                    <input class="form-control" placeholder="მაგ: კომპანია 'დელტა'" id="name" name="name" required type="text" maxlength="255">
-                </div>
-                {% if customer_form.name.errors %}
-                <div class="text-danger">
-                    {% for error in customer_form.name.errors %}
-                        <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            `;
-                    nameContainer.insertAdjacentHTML('beforeend', companyNameHtml);
-
-                    directorContainer.style.display = 'block';
-                }
-            }
-
-            function updateBuildingFields() {
-                const buildingType = buildingTypeSelect.value;
-                dynamicFieldsContainer.innerHTML = '';
-
-                if (buildingType === '2') {
-                    const apartmentFieldsHtml = `
-                <div class="col-md-3 form-group">
-                    <label>სადარბაზო</label>
-                    <input type="number" placeholder="მაგ: 1" name="entrance_number" class="form-control">
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>სართული</label>
-                    <input type="number" placeholder="მაგ: 5" name="floor_number" class="form-control">
-                </div>
-                <div class="col-md-3 form-group">
-                    <label>ბინის ნომერი <span class="text-danger">*</span></label>
-                    <input type="text" placeholder="მაგ: 23" name="apartment_number" class="form-control" required>
-                </div>
-            `;
-                    dynamicFieldsContainer.insertAdjacentHTML('beforeend', apartmentFieldsHtml);
-                }
-            }
-
-            customerTypeSelect.addEventListener('change', updateCustomerFields);
-            updateCustomerFields();
-
-            buildingTypeSelect.addEventListener('change', updateBuildingFields);
-            updateBuildingFields();
-
-            document.getElementById('customer-form').addEventListener('submit', function (e) {
-                if (!document.getElementById('settlement-select').value) {
-                    e.preventDefault();
-                    alert('გთხოვთ აირჩიოთ დასახლება');
-                }
-            });
-        });
-    </script>
+    <!-- Подключение внешнего файла create.js -->
+    <script src="{{ url_for('static', filename='dist/js/custom/customers/create.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -153,7 +25,8 @@
         {{ customer_form.hidden_tag() }}
         {{ order_form.hidden_tag() }}
         <input type="hidden" name="create_order" id="create-order-flag" value="false">
-        <input type="hidden" id="readonly_fields" value="{{ readonly_fields }}">
+        <input type="hidden" id="readonly_fields" name="readonly_fields" value="{{ readonly_fields }}">
+        <input type="hidden" id="customer-id" name="customer_id" value=""> <!-- Новое скрытое поле -->
 
         <div class="card">
             <div class="card-body">
@@ -177,27 +50,22 @@
                     </div>
                     <div id="id-number-container" class="col-md-4 form-group"></div>
                     <div id="name-container" class="col-md-4 form-group"></div>
-                    {% if customer_form.director %}
-                        <div id="director-container" class="col-md-3 form-group" style="display:none;">
-                            <label>დირექტორი</label>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                                </div>
-                                <input class="form-control" placeholder="მაგ: გიორგი დევდარიანი" id="director"
-                                       name="director" required type="text">
+                    <div id="director-container" class="col-md-3 form-group" style="display:none;">
+                        <label>დირექტორი</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
                             </div>
-                            {% if customer_form.director.errors %}
-                                <div class="text-danger">
-                                    {% for error in customer_form.director.errors %}
-                                        <p>{{ error }}</p>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                            <input class="form-control" placeholder="მაგ: გიორგი დევდარიანი" id="director" name="director" required type="text">
                         </div>
-                    {% else %}
-                        <div id="director-container" class="col-md-3 form-group" style="display:none;"></div>
-                    {% endif %}
+                        {% if customer_form.director.errors %}
+                            <div class="text-danger">
+                                {% for error in customer_form.director.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <!-- Row 2: Email, Mobile, Alt Mobile -->
@@ -254,13 +122,13 @@
                     </div>
                 </div>
 
-                <!-- Row 2: Email, Mobile, Alt Mobile -->
-                <div class="form-row">
+                <!-- Контейнер Контактного Лица -->
+                <div id="contact-person-container" class="form-row" style="display: none;">
                     <div class="col-md-4 form-group">
                         <label>საკონტაქტო პირი</label>
                         <div class="input-group">
                             <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
                             </div>
                             {{ customer_form.contact_person_name(class="form-control", id="contact_person_name", value=existing_customer.contact_person_name if existing_customer else '', placeholder="მაგ: ქეთი პაპიძე (ოფისმენეჯერი)") }}
                         </div>
@@ -345,7 +213,7 @@
                             </div>
                             {{ customer_form.actual_address(class="form-control", placeholder="მაგ: თბილისი, გურამიშვილის ქ. 104") }}
                         </div>
-                        {% if customer_form.legal_address.errors %}
+                        {% if customer_form.actual_address.errors %}
                             <div class="text-danger">
                                 {% for error in customer_form.actual_address.errors %}
                                     <p>{{ error }}</p>
