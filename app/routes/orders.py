@@ -211,7 +211,7 @@ def order_view(order_id):
         db.joinedload(Orders.task),
         db.joinedload(Orders.customer_account)
     ).get_or_404(order_id)
-    all_statuses = OrderStatus.query.all()
+    all_statuses = OrderStatus.query.filter(OrderStatus.hided == 0).all()
 
     related_tasks = Tasks.query.filter(Tasks.order_id == order_id).all()
 

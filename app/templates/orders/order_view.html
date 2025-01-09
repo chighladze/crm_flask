@@ -34,7 +34,7 @@
                                 title="{{ order.status.name }}"
                                 data-toggle="modal"
                                 data-target="#changeStatusModal">
-                            {{ order.status.name }}
+                            {{ order.status.name_geo }}
                         </button>
                     </div>
 
@@ -61,7 +61,7 @@
                                                 {% for status in all_statuses %}
                                                     <option value="{{ status.id }}"
                                                             {% if status.id == order.status_id %}selected{% endif %}>
-                                                        {{ status.name }}
+                                                        {{ status.name_geo }}
                                                     </option>
                                                 {% endfor %}
                                             </select>
