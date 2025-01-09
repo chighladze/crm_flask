@@ -11,22 +11,25 @@
     <div class="card-body">
         <!-- Filter Form -->
         <form id="filter-form" class="mb-4">
-            <div class="row">
-                <div class="col-md-4 mb-3">
+            <div class="row g-2">
+                <div class="col-md-3 mb-3">
                     <label for="search">ძიება</label>
                     <input type="text" id="search" name="search" class="form-control" placeholder="სახელი ან მობილური ნომერი">
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="identification_number">პერსონალური ნომერი</label>
                     <input type="text" id="identification_number" name="identification_number" class="form-control" placeholder="პერსონალური ნომერი">
                 </div>
-                <div class="col-md-4 mb-3">
+                <div class="col-md-3 mb-3">
                     <label for="mobile">მობილური ტელეფონი</label>
                     <input type="text" id="mobile" name="mobile" class="form-control" placeholder="მობილური ტელეფონი">
                 </div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">ფილტრაცია</button>
+                </div>
             </div>
-            <div class="row">
-                <div class="col-md-4 mb-3">
+            <div class="row g-2">
+                <div class="col-md-3 mb-3">
                     <label for="tariff_plan_id">სატარიფო გეგმა</label>
                     <select id="tariff_plan_id" name="tariff_plan_id" class="form-control">
                         <option value="">ყველა</option>
@@ -36,6 +39,35 @@
                     </select>
                 </div>
                 <div class="col-md-3 mb-3">
+                    <label for="status_id">სტატუსი</label>
+                    <select id="status_id" name="status_id" class="form-control">
+                        <option value="">ყველა</option>
+                        {% for status in order_statuses %}
+                            <option value="{{ status.id }}">{{ status.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="district_id">რაიონი</label>
+                    <select id="district_id" name="district_id" class="form-control">
+                        <option value="">ყველა</option>
+                        {% for district in districts %}
+                            <option value="{{ district.id }}">{{ district.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="building_type_id">ტიპი</label>
+                    <select id="building_type_id" name="building_type_id" class="form-control">
+                        <option value="">ყველა</option>
+                        {% for btype in building_types %}
+                            <option value="{{ btype.id }}">{{ btype.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-3 mb-3">
                     <label for="start_date">დაწყების თარიღი</label>
                     <input type="date" id="start_date" name="start_date" class="form-control">
                 </div>
@@ -43,8 +75,11 @@
                     <label for="end_date">დამთავრების თარიღი</label>
                     <input type="date" id="end_date" name="end_date" class="form-control">
                 </div>
-                <div class="col-md-2 mb-3 align-self-end">
-                    <button type="submit" class="btn btn-primary w-100">ფილტრაცია</button>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <button type="button" id="export-btn" class="btn btn-success w-100">ექსპორტი</button>
+                </div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <button type="button" id="clear-filters" class="btn btn-secondary w-100">ფილტრის გასუფთავება</button>
                 </div>
             </div>
         </form>
@@ -60,6 +95,9 @@
                         <th>მობილური</th>
                         <th>გადამოსხმელი მობილური</th>
                         <th>სატარიფო გეგმა</th>
+                        <th>სტატუსი</th>
+                        <th>რაიონი</th>
+                        <th>ტიპი</th>
                         <th>დაწყების თარიღი</th>
                         <th>განახლების თარიღი</th>
                         <th>კომენტარი</th>
@@ -86,6 +124,8 @@
         const filterForm = document.getElementById('filter-form');
         const ordersTableBody = document.getElementById('orders-table-body');
         const paginationContainer = document.getElementById('pagination');
+        const exportBtn = document.getElementById('export-btn');
+        const clearFiltersBtn = document.getElementById('clear-filters');
 
         // Load saved filters from localStorage
         const savedFilters = JSON.parse(localStorage.getItem('orders_filters')) || {};
@@ -132,6 +172,9 @@
                         <td>${order.Mobile}</td>
                         <td>${order["Alt Mobile"] || 'N/A'}</td>
                         <td>${order["Tariff Plan"]}</td>
+                        <td>${order["Status"]}</td>
+                        <td>${order["District"]}</td>
+                        <td>${order["Building Type"]}</td>
                         <td>${order["Created At"]}</td>
                         <td>${order["Updated At"]}</td>
                         <td>${order.Comment || 'N/A'}</td>
@@ -153,8 +196,16 @@
                 prevLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page - 1}">უკან</a>`;
                 paginationContainer.appendChild(prevLi);
 
-                // Page Numbers
-                for (let i = 1; i <= pagination.pages; i++) {
+                // Page Numbers (limit to a range for better UX)
+                const maxPagesToShow = 5;
+                let startPage = Math.max(1, pagination.current_page - Math.floor(maxPagesToShow / 2));
+                let endPage = startPage + maxPagesToShow - 1;
+                if (endPage > pagination.pages) {
+                    endPage = pagination.pages;
+                    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
                     const li = document.createElement('li');
                     li.classList.add('page-item', i === pagination.current_page ? 'active' : '');
                     li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
@@ -210,17 +261,26 @@
             }
         });
 
-        // Optional: Clear filters button
-        /*
-        const clearFiltersBtn = document.getElementById('clear-filters');
-        if (clearFiltersBtn) {
-            clearFiltersBtn.addEventListener('click', function() {
-                localStorage.removeItem('orders_filters');
-                filterForm.reset();
-                fetchOrders(1);
+        // Handle export button click
+        exportBtn.addEventListener('click', function() {
+            const formData = new FormData(filterForm);
+            const params = new URLSearchParams();
+            formData.forEach((value, key) => {
+                if (value) {
+                    params.append(key, value);
+                }
             });
-        }
-        */
+
+            // Redirect to the export URL with current filters
+            window.location.href = `/orders/export?${params.toString()}`;
+        });
+
+        // Handle clear filters button
+        clearFiltersBtn.addEventListener('click', function() {
+            localStorage.removeItem('orders_filters');
+            filterForm.reset();
+            fetchOrders(1);
+        });
     });
 </script>
 {% endblock %}

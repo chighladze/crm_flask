@@ -1,4 +1,3 @@
-# crm_flask/app/routes/orders.py
 from flask_login import login_required, current_user
 from flask import render_template, redirect, url_for, flash, request, jsonify
 from flask_wtf.csrf import validate_csrf, ValidationError
@@ -37,7 +36,6 @@ def find_customer(identification_number):
         return jsonify({'found': False})
 
 
-# crm_flask/app/routes/orders.py
 @orders.route('/orders/create', methods=['GET', 'POST'])
 @login_required
 def create_order():
@@ -94,6 +92,9 @@ def create_order():
             alt_mobile=form.alt_mobile.data,
             tariff_plan_id=form.tariff_plan_id.data,
             comment=form.comment.data,
+            status_id=1,  # Assuming default status
+            legal_address=form.legal_address.data,  # Ensure these fields are in the form
+            actual_address=form.actual_address.data
         )
         db.session.add(order)
         db.session.commit()
@@ -107,6 +108,7 @@ def create_order():
             task_priority_id=2,
             created_by=current_user.id,
             created_division_id=current_user.division_id if hasattr(current_user, 'division_id') else None,
+            order_id=order.id  # Assuming Tasks has order_id field
         )
         db.session.add(task)
         db.session.commit()
@@ -128,8 +130,6 @@ def get_settlements(district_id):
     return jsonify({'settlements': [{'id': settlement.id, 'name': settlement.name} for settlement in settlements]})
 
 
-# crm_flask/app/routes/orders.py
-
 @orders.route('/orders/orders_list', methods=['GET'])
 @login_required
 def orders_list_page():
@@ -143,15 +143,20 @@ def orders_list_page():
 
     # Получаем список тарифных планов для фильтрации
     tariff_plans = TariffPlan.query.all()
+    order_statuses = OrderStatus.query.filter_by(hided=False).all()  # New
+    districts = District.query.all()  # New
+    building_types = BuildingType.query.all()  # New
 
     return render_template(
         'orders/order_list.html',
         tariff_plans=tariff_plans,
+        order_statuses=order_statuses,  # New
+        districts=districts,  # New
+        building_types=building_types,  # New
         active_menu='orders'
     )
 
 
-# Существующий маршрут преобразован в API-эндпоинт
 @orders.route('/api/orders_list', methods=['GET'])
 @login_required
 def api_orders_list():
@@ -162,13 +167,16 @@ def api_orders_list():
     mobile = request.args.get('mobile', '')
     identification_number = request.args.get('identification_number', '')
     tariff_plan_id = request.args.get('tariff_plan_id', type=int)
+    status_id = request.args.get('status_id', type=int)  # New filter
+    district_id = request.args.get('district_id', type=int)  # New filter
+    building_type_id = request.args.get('building_type_id', type=int)  # New filter
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
     # Build the query with filters
-    query = Orders.query.join(Customers).filter(
+    query = Orders.query.join(Customers).join(Addresses).join(Settlement).filter(
         sa.or_(
             Orders.mobile.ilike(f'%{search_query}%'),
             Customers.name.ilike(f'%{search_query}%'),
@@ -184,6 +192,15 @@ def api_orders_list():
 
     if tariff_plan_id:
         query = query.filter(Orders.tariff_plan_id == tariff_plan_id)
+
+    if status_id:
+        query = query.filter(Orders.status_id == status_id)
+
+    if district_id:
+        query = query.filter(Settlement.district_id == district_id)
+
+    if building_type_id:
+        query = query.filter(Addresses.building_type_id == building_type_id)
 
     if start_date:
         query = query.filter(Orders.created_at >= start_date)
@@ -203,6 +220,9 @@ def api_orders_list():
         "Mobile": order.mobile,
         "Alt Mobile": order.alt_mobile,
         "Tariff Plan": order.tariff_plan.name if order.tariff_plan else "N/A",
+        "Status": order.status.name if order.status else "N/A",
+        "District": order.address.settlement.district.name if order.address.settlement.district else "N/A",
+        "Building Type": order.address.building_type.name if order.address.building_type else "N/A",
         "Created At": order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         "Updated At": order.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
         "Comment": order.comment,
@@ -302,6 +322,9 @@ def edit_order(order_id):
         order.alt_mobile = form.alt_mobile.data
         order.tariff_plan_id = form.tariff_plan_id.data
         order.comment = form.comment.data
+        order.status_id = form.status_id.data  # Update status if present in form
+        order.legal_address = form.legal_address.data
+        order.actual_address = form.actual_address.data
         db.session.commit()
 
         flash('შეკვეთა წარმატებით განახლდა!', 'success')
@@ -325,12 +348,16 @@ def orders_export():
 
     search_query = request.args.get('search', '')
     mobile = request.args.get('mobile', '')
+    identification_number = request.args.get('identification_number', '')
     tariff_plan_id = request.args.get('tariff_plan_id', type=int)
+    status_id = request.args.get('status_id', type=int)  # New filter
+    district_id = request.args.get('district_id', type=int)  # New filter
+    building_type_id = request.args.get('building_type_id', type=int)  # New filter
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
 
     # Строим основной запрос с фильтрацией по имени клиента и мобильному телефону
-    query = Orders.query.join(Customers).filter(
+    query = Orders.query.join(Customers).join(Addresses).join(Settlement).filter(
         sa.or_(
             Orders.mobile.ilike(f'%{search_query}%'),
             Customers.name.ilike(f'%{search_query}%')
@@ -341,9 +368,25 @@ def orders_export():
     if mobile:
         query = query.filter(Orders.mobile.ilike(f'%{mobile}%'))
 
+    # Фильтрация по персональному номеру
+    if identification_number:
+        query = query.filter(Customers.identification_number.ilike(f'%{identification_number}%'))
+
     # Фильтрация по тарифному плану
     if tariff_plan_id:
         query = query.filter(Orders.tariff_plan_id == tariff_plan_id)
+
+    # Фильтрация по статусу
+    if status_id:
+        query = query.filter(Orders.status_id == status_id)
+
+    # Фильтрация по району
+    if district_id:
+        query = query.filter(Settlement.district_id == district_id)
+
+    # Фильтрация по типу здания
+    if building_type_id:
+        query = query.filter(Addresses.building_type_id == building_type_id)
 
     # Фильтрация по датам
     if start_date:
@@ -358,9 +401,13 @@ def orders_export():
     orders_data = [{
         "ID": order.id,
         "Customer": order.customer.name,
+        "Identification Number": order.customer.identification_number,
         "Mobile": order.mobile,
         "Alt Mobile": order.alt_mobile,
         "Tariff Plan": order.tariff_plan.name if order.tariff_plan else "N/A",
+        "Status": order.status.name if order.status else "N/A",
+        "District": order.address.settlement.district.name if order.address.settlement.district else "N/A",
+        "Building Type": order.address.building_type.name if order.address.building_type else "N/A",
         "Created At": order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
         "Updated At": order.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
         "Comment": order.comment,
