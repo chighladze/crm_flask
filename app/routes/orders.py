@@ -128,79 +128,99 @@ def get_settlements(district_id):
     return jsonify({'settlements': [{'id': settlement.id, 'name': settlement.name} for settlement in settlements]})
 
 
-@orders.route('/orders/orders_list', methods=['GET', 'POST'])
+# crm_flask/app/routes/orders.py
+
+@orders.route('/orders/orders_list', methods=['GET'])
 @login_required
-def orders_list():
+def orders_list_page():
+    """
+    Render the orders list HTML page.
+    """
     # Проверка прав доступа
     if 'orders_list' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
         flash("თქვენ არ გაქვთ წვდომა ამ გვერდზე. წვდომის სახელი: ['orders_list']", 'danger')
         return redirect(url_for('dashboard.index'))
 
+    # Получаем список тарифных планов для фильтрации
+    tariff_plans = TariffPlan.query.all()
+
+    return render_template(
+        'orders/order_list.html',
+        tariff_plans=tariff_plans,
+        active_menu='orders'
+    )
+
+
+# Существующий маршрут преобразован в API-эндпоинт
+@orders.route('/api/orders_list', methods=['GET'])
+@login_required
+def api_orders_list():
+    """
+    API endpoint to get the list of orders based on filters.
+    """
     search_query = request.args.get('search', '')
     mobile = request.args.get('mobile', '')
+    identification_number = request.args.get('identification_number', '')
     tariff_plan_id = request.args.get('tariff_plan_id', type=int)
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
-    # Строим основной запрос с фильтрацией по имени клиента и мобильному телефону
+    # Build the query with filters
     query = Orders.query.join(Customers).filter(
         sa.or_(
             Orders.mobile.ilike(f'%{search_query}%'),
-            Customers.name.ilike(f'%{search_query}%')
+            Customers.name.ilike(f'%{search_query}%'),
+            Customers.identification_number.ilike(f'%{search_query}%')
         )
     )
 
-    # Фильтрация по мобильному номеру
     if mobile:
         query = query.filter(Orders.mobile.ilike(f'%{mobile}%'))
 
-    # Фильтрация по тарифному плану
+    if identification_number:
+        query = query.filter(Customers.identification_number.ilike(f'%{identification_number}%'))
+
     if tariff_plan_id:
         query = query.filter(Orders.tariff_plan_id == tariff_plan_id)
 
-    # Фильтрация по датам
     if start_date:
         query = query.filter(Orders.created_at >= start_date)
+
     if end_date:
         query = query.filter(Orders.created_at <= end_date)
 
-    # Пагинация
-    total_count = query.count()
-    offset = (page - 1) * per_page
-    orders = query.limit(per_page).offset(offset).all()
+    # Pagination
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    orders = pagination.items
 
-    # Пагинация
-    class Pagination:
-        def __init__(self, total, page, per_page):
-            self.total = total
-            self.page = page
-            self.per_page = per_page
-            self.pages = (total + per_page - 1) // per_page
-            self.has_prev = page > 1
-            self.has_next = page < self.pages
-            self.prev_num = page - 1
-            self.next_num = page + 1
+    # Serialize orders
+    orders_data = [{
+        "ID": order.id,
+        "Customer": order.customer.name,
+        "Identification Number": order.customer.identification_number,
+        "Mobile": order.mobile,
+        "Alt Mobile": order.alt_mobile,
+        "Tariff Plan": order.tariff_plan.name if order.tariff_plan else "N/A",
+        "Created At": order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        "Updated At": order.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+        "Comment": order.comment,
+    } for order in orders]
 
-    pagination = Pagination(total_count, page, per_page)
+    response = {
+        "orders": orders_data,
+        "pagination": {
+            "total": pagination.total,
+            "pages": pagination.pages,
+            "current_page": pagination.page,
+            "per_page": pagination.per_page,
+            "has_prev": pagination.has_prev,
+            "has_next": pagination.has_next,
+        }
+    }
 
-    # Получаем список тарифных планов для фильтрации
-    tariff_plans = db.session.query(TariffPlan).all()
-
-    return render_template(
-        'orders/order_list.html',
-        orders=orders,
-        pagination=pagination,
-        per_page=per_page,
-        search_query=search_query,
-        mobile=mobile,
-        tariff_plan_id=tariff_plan_id,
-        start_date=start_date,
-        end_date=end_date,
-        tariff_plans=tariff_plans,
-        active_menu='orders'
-    )
+    return jsonify(response)
 
 
 @orders.route('/orders/<int:order_id>/view', methods=['GET'])

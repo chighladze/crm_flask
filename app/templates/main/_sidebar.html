@@ -112,7 +112,8 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('orders.orders_list') }}" class="nav-link {% if request.path.split('/')[2] == 'წქწ' %}active{% endif %}">
+                            <a href="{{ url_for('orders.orders_list_page') }}" class="nav-link {% if request.path.split('/')[2] == 'წქწ' %}active{% endif %}">
+
                                 <i class="fas fa-user-plus nav-icon"></i>
                                 <p>ყველა შეკვეთა</p>
                             </a>
