@@ -220,11 +220,10 @@ def api_orders_list():
         "Mobile": order.mobile,
         "Alt Mobile": order.alt_mobile,
         "Tariff Plan": order.tariff_plan.name if order.tariff_plan else "N/A",
-        "Status": order.status.name if order.status else "N/A",
+        "Status": order.status.name_geo if order.status else "N/A",
         "District": order.address.settlement.district.name if order.address.settlement.district else "N/A",
         "Building Type": order.address.building_type.name if order.address.building_type else "N/A",
         "Created At": order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-        "Updated At": order.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
         "Comment": order.comment,
     } for order in orders]
 
