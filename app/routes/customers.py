@@ -116,7 +116,8 @@ def create():
                 comment=order_form.comment.data,
                 legal_address=customer_form.legal_address.data,
                 actual_address=customer_form.actual_address.data,
-                task_id=task.id
+                task_id=task.id,
+                status_id=1
             )
             db.session.add(order)  # Ensure the order is added to the session
 

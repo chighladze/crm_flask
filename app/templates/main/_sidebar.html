@@ -81,14 +81,6 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('customers.create') }}" class="nav-link {% if request.path.split('/')[2] == 'create' %}active{% endif %}">
-                                <i class="fas fa-user-plus nav-icon"></i>
-                                <p>რეგისტრაცია</p>
-                            </a>
-                        </li>
-                    </ul>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
                             <a href="{{ url_for('customers.customers_list') }}" class="nav-link {% if request.path.split('/')[2] == 'list' %}active{% endif %}">
                                 <i class="fas fa-users nav-icon"></i>
                                 <p>ყველა კლიენტები</p>
