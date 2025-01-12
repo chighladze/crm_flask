@@ -290,11 +290,6 @@
                                                     onclick="showTaskDetails({{ task.id }})">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <a href="#" class="btn btn-warning" data-toggle="modal"
-                                               data-target="#accountTransfer"
-                                               onclick="accountTransfer({{ task.id }})" title="ტრანსფერი">
-                                                <i class="fas fa-random"></i>
-                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -327,26 +322,6 @@
                 </div>
             </div>
 
-            <!-- Account Transfer Modal (Placeholder) -->
-            <div class="modal fade" id="accountTransfer" tabindex="-1" role="dialog"
-                 aria-labelledby="accountTransferLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="accountTransferLabel">Account Transfer</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Account transfer functionality is under development.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                            <!-- Add additional buttons if needed -->
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Task Modal for Viewing and Editing -->
@@ -393,9 +368,12 @@
                                             <span id="taskDivision"></span>
                                         </div>
                                         <div class="task-detail">
+                                            <strong>განყოფილება:</strong>
+                                            <span id="taskType"></span>
+                                        </div>
+                                        <div class="task-detail">
                                             <strong>სტატუსი:</strong>
-                                            <span id="taskCurrentStatus"
-                                                  data-status-id="{{ order.task.status.id }}">{{ order.task.status.name }}</span>
+                                            <span>{{ order.task.status.name }}</span>
                                         </div>
                                     </div>
 
@@ -409,8 +387,13 @@
                                     <!-- Status Selection -->
                                     <div class="form-group status-select-container d-flex align-items-center">
                                         <label for="taskStatus" class="mr-2"><strong>სტატუსი:</strong></label>
-                                        <select id="taskStatus" name="status" class="form-control status-select w-50"
+                                        <select id="taskStatus"
+                                                data-status-id=""
+                                                name="status"
+                                                class="form-control status-select w-50"
                                                 required>
+                                            <!-- Options populated dynamically -->
+                                        </select>
                                             <!-- Options populated dynamically -->
                                         </select>
                                         <button type="button" id="addButton" class="btn btn-success ml-2 mb-3"
@@ -418,6 +401,15 @@
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
+                                    <!-- Поле MAC-адреса -->
+                                    <div class="form-group" id="macAddressContainer" style="display: none;">
+                                        <label for="macAddress"><strong>MAC-მისამართი:</strong></label>
+                                        <input type="text" id="macAddress" name="mac_address" class="form-control"
+                                               placeholder="XX:XX:XX:XX:XX:XX">
+                                        <small class="form-text text-muted">MAC-მისამართი უნდა იყოს ფორმატის
+                                            XX:XX:XX:XX:XX:XX.</small>
+                                    </div>
+                                    <!-- Конец поля MAC-адреса -->
 
                                     <!-- Division Selection -->
                                     <div id="divisionSelectContainer" class="mt-3" style="display: none;">
@@ -444,16 +436,6 @@
                                                   class="form-control" placeholder="დაამატეთ აღწერა"
                                                   rows="4"></textarea>
                                     </div>
-
-                                    <!-- Поле MAC-адреса -->
-                                    <div class="form-group" id="macAddressContainer" style="display: none;">
-                                        <label for="macAddress"><strong>MAC-მისამართი:</strong></label>
-                                        <input type="text" id="macAddress" name="mac_address" class="form-control"
-                                               placeholder="XX:XX:XX:XX:XX:XX">
-                                        <small class="form-text text-muted">MAC-მისამართი უნდა იყოს ფორმატის
-                                            XX:XX:XX:XX:XX:XX.</small>
-                                    </div>
-                                    <!-- Конец поля MAC-адреса -->
                                 </div>
                             </div>
 

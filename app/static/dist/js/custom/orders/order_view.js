@@ -81,23 +81,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Обработка изменения типа задачи
-    $taskTypeSelect.on('change', function () {
-        const selectedTaskType = parseInt($(this).val());
-        const selectedStatus = parseInt($taskStatus.val());
-
-        if (selectedStatus === 3 && selectedTaskType === 3) {
-            $macAddressContainer.slideDown();
-            const macValue = $macAddressInput.val().trim();
-            if (macValue === '') {
-                $submitButton.prop('disabled', true);
-            }
-        } else {
-            $macAddressContainer.slideUp();
-            $macAddressInput.val('');
-            $submitButton.prop('disabled', false);
-        }
-    });
 
     // Обработка ввода в поле MAC-адреса
     $macAddressInput.on('input', function () {
@@ -376,11 +359,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                 onclick="showTaskDetails(${subtask.id})">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <a href="#" class="btn btn-warning" data-toggle="modal"
-                           data-target="#accountTransfer"
-                           onclick="accountTransfer(${subtask.id})" title="Transfer">
-                            <i class="fas fa-random"></i>
-                        </a>
                     </div>
                 </td>
             </tr>

@@ -401,7 +401,7 @@ def create_subtask():
             parent_task_id=parent_task_id,
             description=description,
             task_type_id=int(task_type_id),
-            status_id=int(status_id),
+            status_id=1,
             created_by=current_user.id,
             order_id=order_id
         )
