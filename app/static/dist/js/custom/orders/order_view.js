@@ -1,345 +1,310 @@
 // file_path: crm_flask/app/static/dist/js/orders/order_view.js
 document.addEventListener('DOMContentLoaded', function () {
-    // Кэширование элементов
-    const $taskStatus = $('#taskStatus');
-    const $taskTypeSelect = $('#taskTypeSelect');
-    const $addButton = $('#addButton');
-    const $taskCurrentStatusElement = $('#taskCurrentStatus');
-    const $divisionSelectContainer = $('#divisionSelectContainer');
-    const $divisionSelect = $('#divisionSelect');
-    const $taskTypeContainer = $('#taskTypeContainer');
-    const $taskTypeInputContainer = $('#taskTypeInputContainer');
-    const $taskTypeInput = $('#taskTypeInput');
+    // Кэшируем элементы
+    const $parentTaskID = $('#parentTaskID');
+    const $parentTaskTypeID = $('#parentTaskTypeID');
+    const $parentTaskStatusID = $('#parentTaskStatusID');
+    const $parentTaskStatusChangeID = $('#parentTaskStatusChangeID');
     const $macAddressContainer = $('#macAddressContainer');
-    const $macAddressInput = $('#macAddress');
-    const $submitButton = $('#submitTaskButton');
+    const $macAddressInput = $('#macAddressInput');
+    const $subTaskCreate = $('#subTaskCreate');
+    const $subTaskDivisionContainer = $('#subTaskDivisionContainer');
+    const $subTaskDivisionId = $('#subTaskDivisionId');
+    const $subTaskTypeContainer = $('#subTaskTypeContainer');
+    const $subTaskTypeId = $('#subTaskTypeId');
+    const $subTaskDescriptionContainer = $('#subTaskDescriptionContainer');
+    const $subTaskDescriptionID = $('#subTaskDescriptionID');
     const $actionType = $('#actionType');
+    const $submitButton = $('#submitTaskButton');
     const $errorToastBody = $('#errorToastBody');
 
-    let initialStatus;
-    let isCreatingSubtask = false; // Флаг для отслеживания нажатия "+"
+    let initialStatusId = null;
+    let initialTypeId = null;
+    let isCreatingSubtask = false;
 
-    // Функция для установки начального статуса и скрытия дополнительных полей
-    function setInitialStatus() {
-        initialStatus = $taskCurrentStatusElement.data('status-id');
-        $addButton.hide();
-        isCreatingSubtask = false; // Сбрасываем флаг
-        $actionType.val('update_status'); // Действие по умолчанию
-
-        // Скрываем все дополнительные поля
-        $divisionSelectContainer.hide();
-        $taskTypeContainer.hide();
-        $taskTypeInputContainer.hide();
-        $macAddressContainer.hide();
-        $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
-        $taskTypeInput.val('');
-        $macAddressInput.val('');
-        $submitButton.prop('disabled', false); // Включаем кнопку отправки
-    }
-
-    // Функция для проверки формата MAC-адреса
+    // -- Проверка валидности MAC-адреса --
     function isValidMacAddress(mac) {
         const macRegex = /^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$/;
         return macRegex.test(mac);
     }
 
-    // Обработка изменения статуса
-    $taskStatus.on('change', function () {
-        const selectedStatus = parseInt($(this).val());
-        const selectedTaskType = parseInt($taskTypeSelect.val()) || 0;
+    // -- Сброс состояния модалки --
+    function resetModalState() {
+        isCreatingSubtask = false;
+        $actionType.val('update_status');
+        $subTaskCreate.hide();
+        $subTaskDivisionContainer.hide();
+        $subTaskTypeContainer.hide();
+        $subTaskDescriptionContainer.hide();
+        $subTaskDivisionId.html('<option value="" disabled selected>Выберите дивизион</option>');
+        $subTaskTypeId.html('<option value="" disabled selected>Выберите тип задачи</option>');
+        $subTaskDescriptionID.val('');
+        $macAddressContainer.hide();
+        $macAddressInput.val('');
+        $macAddressInput.removeClass('is-invalid is-valid');
+        $submitButton.prop('disabled', false);
+    }
 
-        if (selectedStatus !== initialStatus) {
-            $addButton.fadeIn(); // Показываем кнопку "+"
+    // -- Обработка изменения статуса родительской задачи --
+    $parentTaskStatusChangeID.on('change', function () {
+        const newStatusId = parseInt($(this).val(), 10);
+        const currentTypeId = parseInt($parentTaskTypeID.text(), 10);
+
+        // Если статус изменился с начального, показываем кнопку создания подзадачи
+        if (newStatusId !== initialStatusId) {
+            $subTaskCreate.show();
         } else {
-            $addButton.fadeOut(); // Скрываем кнопку "+"
-            // Сбрасываем действие, если статус вернулся к начальному
-            isCreatingSubtask = false;
-            $actionType.val('update_status');
-            // Скрываем дополнительные поля
-            $divisionSelectContainer.slideUp();
-            $taskTypeContainer.slideUp();
-            $taskTypeInputContainer.slideUp();
-            $macAddressContainer.slideUp();
-            $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
-            $taskTypeInput.val('');
-            $macAddressInput.val('');
-            $submitButton.prop('disabled', false);
+            // Возвращаемся к начальному состоянию
+            $subTaskCreate.hide();
         }
 
-        // Проверка условий для отображения поля MAC-адреса
-        if (selectedStatus === 3 && selectedTaskType === 3) {
+        // Логика показа поля MAC, если тип = 3 и статус = 3
+        if (currentTypeId === 3 && newStatusId === 3) {
             $macAddressContainer.slideDown();
-            // Проверяем наличие значения в поле MAC-адреса
-            const macValue = $macAddressInput.val().trim();
-            if (macValue === '') {
+            // Проверяем, есть ли введённый MAC
+            const macVal = $macAddressInput.val().trim();
+            if (!isValidMacAddress(macVal)) {
                 $submitButton.prop('disabled', true);
             }
         } else {
             $macAddressContainer.slideUp();
             $macAddressInput.val('');
+            $macAddressInput.removeClass('is-valid is-invalid');
             $submitButton.prop('disabled', false);
         }
     });
 
-
-    // Обработка ввода в поле MAC-адреса
+    // -- Обработка ввода в поле MAC-адреса (родительская задача) --
     $macAddressInput.on('input', function () {
-        const macValue = $(this).val().trim();
-        if (isValidMacAddress(macValue)) {
-            $submitButton.prop('disabled', false);
-            // Добавляем визуальное подтверждение валидности
-            $(this).removeClass('is-invalid').addClass('is-valid');
-        } else {
-            $submitButton.prop('disabled', true);
-            // Визуальное оповещение о некорректном формате
-            if (macValue === '') {
-                $(this).removeClass('is-invalid is-valid');
+        const macVal = $(this).val().trim();
+        const currentTypeId = parseInt($parentTaskTypeID.text(), 10);
+        const newStatusId = parseInt($parentTaskStatusChangeID.val(), 10);
+
+        // Если мы в состоянии "тип=3 и статус=3"
+        if (currentTypeId === 3 && newStatusId === 3) {
+            if (isValidMacAddress(macVal)) {
+                $(this).removeClass('is-invalid').addClass('is-valid');
+                $submitButton.prop('disabled', false);
             } else {
-                $(this).removeClass('is-valid').addClass('is-invalid');
+                if (macVal === '') {
+                    $(this).removeClass('is-valid is-invalid');
+                } else {
+                    $(this).removeClass('is-valid').addClass('is-invalid');
+                }
+                $submitButton.prop('disabled', true);
             }
         }
     });
 
-    // Обработка нажатия на кнопку "+"
-    $addButton.on('click', function () {
-        isCreatingSubtask = true; // Устанавливаем флаг
-        $actionType.val('create_subtask'); // Обновляем тип действия
-
-        // Получаем ID заказа из скрытого поля
-        const orderId = $('#order_id').val();
-
-        // Fetch и populate divisions
+    // -- Кнопка "плюс" для создания подзадачи --
+    $subTaskCreate.on('click', function () {
+        isCreatingSubtask = true;
+        $actionType.val('create_subtask');
+        // Открываем выбор дивизиона
         fetchDivisions()
             .then(divisions => {
                 if (divisions.length === 0) {
-                    alert('No divisions available.');
+                    alert('Нет доступных дивизионов.');
                     return;
                 }
-                populateDivisionSelect(divisions);
-                $divisionSelectContainer.slideDown(); // Показываем выбор дивизиона
+                populateSubTaskDivisionSelect(divisions);
+                $subTaskDivisionContainer.slideDown();
             })
-            .catch(error => {
-                console.error('Error fetching divisions:', error);
-                alert('Failed to load divisions. Please try again later.');
+            .catch(err => {
+                console.error(err);
+                alert('Ошибка при загрузке дивизионов.');
             });
     });
 
-    // Функция для получения дивизионов с сервера
+    // -- Получить список дивизионов --
     function fetchDivisions() {
         return fetch('/tasks/get_divisions')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
+            .then(resp => {
+                if (!resp.ok) throw new Error('Failed to fetch divisions');
+                return resp.json();
             })
-            .then(data => data.divisions)
-            .catch(error => {
-                console.error('Error fetching divisions:', error);
-                throw error;
-            });
+            .then(data => data.divisions);
     }
 
-    // Функция для заполнения выпадающего списка дивизионов
-    function populateDivisionSelect(divisions) {
-        $divisionSelect.html('<option value="" disabled selected>განყოფილების არჩევა</option>');
-        divisions.forEach(division => {
-            const option = $('<option></option>').attr('value', division.id).text(division.name);
-            $divisionSelect.append(option);
+    // -- Заполнить select с дивизионами для подзадачи --
+    function populateSubTaskDivisionSelect(divisions) {
+        $subTaskDivisionId.html('<option value="" disabled selected>Выберите дивизион</option>');
+        divisions.forEach(div => {
+            const $option = $('<option></option>').attr('value', div.id).text(div.name);
+            $subTaskDivisionId.append($option);
         });
     }
 
-    // Обработка выбора дивизиона для получения типов задач
-    $divisionSelect.on('change', function () {
-        const selectedDivisionId = $(this).val();
-        if (selectedDivisionId) {
-            fetchTaskTypes(selectedDivisionId)
+    // -- Когда выбираем дивизион подзадачи --
+    $subTaskDivisionId.on('change', function () {
+        const divisionId = parseInt($(this).val(), 10);
+        if (divisionId) {
+            fetchTaskTypesByDivision(divisionId)
                 .then(taskTypes => {
-                    populateTaskTypeSelect(taskTypes);
-                    $taskTypeContainer.slideDown(); // Показываем выбор типа задачи
+                    populateSubTaskTypeSelect(taskTypes);
+                    $subTaskTypeContainer.slideDown();
                 })
-                .catch(error => {
-                    console.error('Error fetching task types:', error);
-                    alert('Failed to load task types. Please try again later.');
+                .catch(err => {
+                    console.error(err);
+                    alert('Ошибка при загрузке типов задач.');
                 });
         } else {
-            $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
-            $taskTypeContainer.slideUp();
-            $taskTypeInputContainer.slideUp();
-            $taskTypeInput.val('');
+            // Скрываем всё ниже
+            $subTaskTypeContainer.slideUp();
+            $subTaskTypeId.html('<option value="" disabled selected>Выберите тип задачи</option>');
+            $subTaskDescriptionContainer.slideUp();
+            $subTaskDescriptionID.val('');
         }
     });
 
-    // Функция для получения типов задач на основе дивизиона
-    function fetchTaskTypes(divisionId) {
+    // -- Получить типы задач по дивизиону --
+    function fetchTaskTypesByDivision(divisionId) {
         return fetch(`/tasks/task_types/get_task_types/${divisionId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch task types');
-                }
-                return response.json();
+            .then(resp => {
+                if (!resp.ok) throw new Error('Failed to fetch task types');
+                return resp.json();
             })
-            .then(data => data.task_types)
-            .catch(error => {
-                console.error('Error fetching task types:', error);
-                throw error;
-            });
+            .then(data => data.task_types);
     }
 
-    // Функция для заполнения выпадающего списка типов задач
-    function populateTaskTypeSelect(taskTypes) {
-        $taskTypeSelect.html('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
-        taskTypes.forEach(taskType => {
-            const option = $('<option></option>').attr('value', taskType.id).text(taskType.name);
-            $taskTypeSelect.append(option);
+    // -- Заполняем select типов подзадачи --
+    function populateSubTaskTypeSelect(taskTypes) {
+        $subTaskTypeId.html('<option value="" disabled selected>Выберите тип задачи</option>');
+        taskTypes.forEach(t => {
+            const $option = $('<option></option>').attr('value', t.id).text(t.name);
+            $subTaskTypeId.append($option);
         });
-        $taskTypeInputContainer.slideUp();
-        $taskTypeInput.val('');
     }
 
-    // Обработка выбора типа задачи для отображения поля описания
-    $taskTypeSelect.on('change', function () {
-        if ($(this).val()) {
-            $taskTypeInputContainer.slideDown(); // Показываем поле описания
+    // -- Когда выбираем тип подзадачи --
+    $subTaskTypeId.on('change', function () {
+        const selectedTypeId = parseInt($(this).val(), 10);
+        // Показываем поле описания
+        if (selectedTypeId) {
+            $subTaskDescriptionContainer.slideDown();
         } else {
-            $taskTypeInputContainer.slideUp(); // Скрываем поле описания
-            $taskTypeInput.val('');
+            $subTaskDescriptionContainer.slideUp();
+            $subTaskDescriptionID.val('');
         }
     });
 
-    // Инициализация модального окна при показе
-    $('#taskModal').on('show.bs.modal', function () {
-        setInitialStatus(); // Сбрасываем форму
-    });
-
-    // Обработка отправки формы
+    // -- Обработка отправки формы модального окна --
     $('#taskEditForm').on('submit', function (event) {
         event.preventDefault();
-        const taskId = $('#taskId').text();
-        const formData = new FormData(this);
+        const parentTaskId = parseInt($parentTaskID.text(), 10);
+        const statusValue = parseInt($parentTaskStatusChangeID.val(), 10);
+        const macAddressValue = $macAddressInput.val().trim();
 
-        if (isCreatingSubtask) {
+        if ($actionType.val() === 'create_subtask') {
+            // Создаём подзадачу
             const subtaskData = {
-                parent_task_id: taskId,
-                description: formData.get('task_type_description'),
-                status_id: formData.get('status'),
-                task_type_id: formData.get('task_type'),
-                order_id: formData.get('order_id'),
-                mac_address: formData.get('mac_address') // Добавляем MAC-адрес
+                parent_task_id: parentTaskId,
+                description: $subTaskDescriptionID.val().trim(),
+                status_id: statusValue,
+                task_type_id: parseInt($subTaskTypeId.val() || '0', 10),
+                order_id: $('#order_id').val(),
+                mac_address: ''
             };
 
-            // Проверка обязательных полей
-            if (!subtaskData.task_type_id || !subtaskData.description || (subtaskData.status_id == 3 && subtaskData.task_type_id == 3 && !subtaskData.mac_address)) {
-                alert('Please fill in all required fields to create a subtask.');
+            // Если выбрали тип=3 и статус=3 => спрашиваем MAC
+            if (subtaskData.task_type_id === 3 && subtaskData.status_id === 3) {
+                // Уточним, нужно ли у подзадачи свой MAC:
+                // По ТЗ: "Если тип = 3 и статус = 3, то поле MAC должно отображаться" – Но мы можем
+                // сделать *отдельное* поле для подзадачи. Либо переиспользовать то же поле.
+                // Для упрощения переиспользуем то же поле MAC
+                if (!isValidMacAddress(macAddressValue)) {
+                    // Если невалидный или пустой
+                    alert('MAC-адрес обязателен и должен быть в корректном формате.');
+                    return;
+                }
+                subtaskData.mac_address = macAddressValue;
+            }
+
+            if (!subtaskData.description) {
+                alert('Введите описание подзадачи!');
+                return;
+            }
+            if (!subtaskData.task_type_id) {
+                alert('Выберите тип подзадачи!');
                 return;
             }
 
-            // Если статус и тип задачи требуют MAC-адрес
-            if (subtaskData.status_id == 3 && subtaskData.task_type_id == 3) {
-                if (!isValidMacAddress(subtaskData.mac_address)) {
-                    alert('Please enter a valid MAC address in the format XX:XX:XX:XX:XX:XX.');
-                    return;
-                }
-            }
-
-            fetch(`/tasks/create_subtask`, {
+            fetch('/tasks/create_subtask', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': formData.get('csrf_token')
+                    'X-CSRFToken': $('input[name="csrf_token"]').val()
                 },
                 body: JSON.stringify(subtaskData)
             })
                 .then(response => {
                     if (!response.ok) {
-                        return response.json().then(data => {
-                            throw new Error(data.message || 'Failed to create subtask');
-                        });
+                        return response.json().then(data => { throw data; });
                     }
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Subtask created:', data);
                     $('#taskModal').modal('hide');
-                    $('body').removeClass('modal-open');
-                    $('.modal-backdrop').remove();
                     $('#successToast').toast('show');
-
-                    // Обновляем статус родительской задачи
-                    updateTaskRow(data.parent_task.id, data.parent_task.status);
-
-                    // Добавляем новую подзадачу в таблицу
                     appendNewSubtaskToTable(data.subtask);
                 })
                 .catch(error => {
                     console.error(error);
-                    $('#taskModal').modal('hide');
-                    $('body').removeClass('modal-open');
-                    $('.modal-backdrop').remove();
-                    // Устанавливаем сообщение об ошибке в toast
-                    $errorToastBody.text(error.message);
+                    const msg = error.message || 'Ошибка при создании подзадачи.';
+                    $errorToastBody.text(msg);
                     $('#errorToast').toast('show');
                 });
         } else {
-            const statusData = {status_id: formData.get('status')};
-            const taskTypeId = parseInt($taskTypeSelect.val()) || 0;
+            // Обновляем статус родительской задачи
+            const updateData = {
+                status_id: statusValue,
+                macAddress: ''
+            };
 
-            // Если статус и тип задачи требуют MAC-адрес
-            if (statusData.status_id == 3 && taskTypeId == 3) {
-                const macAddress = formData.get('mac_address').trim();
-                if (!macAddress) {
-                    alert('MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.');
+            // Если у родительской задачи тип=3 и статус=3, то нужно MAC
+            const currentTypeId = parseInt($parentTaskTypeID.text(), 10);
+            if (currentTypeId === 3 && statusValue === 3) {
+                if (!isValidMacAddress(macAddressValue)) {
+                    alert('MAC-адрес обязателен и должен быть корректен (тип=3, статус=3).');
                     return;
                 }
-                if (!isValidMacAddress(macAddress)) {
-                    alert('გთხოვთ, შეიყვანოთ სწორი MAC-მისამართი ფორმატში XX:XX:XX:XX:XX:XX.');
-                    return;
-                }
-                statusData.mac_address = macAddress;
+                updateData.macAddress = macAddressValue;
             }
 
-            fetch(`/tasks/update/${taskId}`, {
+            fetch(`/tasks/update/${parentTaskId}`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': formData.get('csrf_token'),
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': $('input[name="csrf_token"]').val()
                 },
-                body: JSON.stringify(statusData)
+                body: JSON.stringify(updateData)
             })
                 .then(response => {
                     if (!response.ok) {
-                        return response.json().then(data => {
-                            throw new Error(data.message || 'Failed to update status');
-                        });
+                        return response.json().then(data => { throw data; });
                     }
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Status updated:', data);
                     $('#taskModal').modal('hide');
-                    $('body').removeClass('modal-open');
-                    $('.modal-backdrop').remove();
                     $('#successToast').toast('show');
-                    updateTaskRow(taskId, data.new_status);
+                    updateTaskRow(parentTaskId, data.new_status);
                 })
                 .catch(error => {
                     console.error(error);
-                    $('#taskModal').modal('hide');
-                    $('body').removeClass('modal-open');
-                    $('.modal-backdrop').remove();
-                    // Устанавливаем сообщение об ошибке в toast
-                    $errorToastBody.text(error.message);
+                    const msg = error.message || 'Ошибка при обновлении статуса.';
+                    $errorToastBody.text(msg);
                     $('#errorToast').toast('show');
                 });
         }
     });
 
-    // Функция для добавления новой подзадачи в таблицу
+    // -- Добавить новую подзадачу в таблицу --
     function appendNewSubtaskToTable(subtask) {
         const newRow = `
             <tr id="task-row-${subtask.id}">
                 <td class="d-none d-md-table-cell">${subtask.id}</td>
-                <td>${subtask.task_type.division.name}</td>
+                <td>${subtask.task_type.division ? subtask.task_type.division.name : ''}</td>
                 <td>${subtask.task_type.name}</td>
                 <td>
                     <span class="badge bg-${subtask.status.bootstrap_class} text-capitalize"
@@ -352,9 +317,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 </td>
                 <td class="d-none d-md-table-cell">${subtask.created_user.name || 'Unknown'}</td>
                 <td class="d-none d-md-table-cell">${subtask.created_at}</td>
-                <td>
+                <td class="text-center">
                     <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
-                        <button class="btn btn-primary" title="View" data-toggle="modal"
+                        <button class="btn btn-primary"
+                                title="Просмотр"
+                                data-toggle="modal"
                                 data-target="#taskModal"
                                 onclick="showTaskDetails(${subtask.id})">
                             <i class="fas fa-eye"></i>
@@ -366,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#tasksTableBody').append(newRow);
     }
 
-    // Функция для обновления строки задачи в таблице
+    // -- Обновить строку задачи (badge статуса) --
     function updateTaskRow(taskId, newStatus) {
         const $statusCell = $(`#task-status-${taskId}`);
         if ($statusCell.length) {
@@ -374,139 +341,116 @@ document.addEventListener('DOMContentLoaded', function () {
             $statusCell.removeClass().addClass(`badge bg-${newStatus.bootstrap_class} text-capitalize`);
         }
     }
-});
 
-// Функция для отображения деталей задачи в модальном окне
-function showTaskDetails(taskId) {
-    // Сбрасываем содержимое модального окна
-    $('#taskDetailsContent').hide();
-    $('#errorMessage').hide();
-    $('#loadingSpinner').show();
-    $('#actionType').val('update_status'); // Сбрасываем тип действия
+    // -- Показать детали задачи в модальном окне --
+    window.showTaskDetails = function (taskId) {
+        // Сбросить состояние
+        resetModalState();
+        $('#taskDetailsContent').hide();
+        $('#errorMessage').hide();
+        $('#loadingSpinner').show();
 
-    // Запрашиваем детали задачи с сервера
-    fetch(`/tasks/details/${taskId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to load task details');
+fetch(`/tasks/details/${taskId}`)
+    .then(resp => {
+        if (!resp.ok) throw new Error('Failed to load task details');
+        return resp.json();
+    })
+    .then(data => {
+        // 1) Заполняем идентификаторы, как раньше
+        $parentTaskID.text(data.id);
+        $parentTaskTypeID.text(data.task_type.id || '');
+        $parentTaskStatusID.text(data.current_status.id || '');
+
+        // 2) Заполняем новые поля с названиями
+        // Название подразделения
+        const divisionName = data.task_type && data.task_type.division
+            ? data.task_type.division.name
+            : '';
+        $('#parentTaskDivisionName').text(divisionName);
+
+        // Название типа задачи
+        const taskTypeName = data.task_type && data.task_type.name
+            ? data.task_type.name
+            : '';
+        $('#parentTaskTypeName').text(taskTypeName);
+
+        // Название статуса
+        const statusName = data.current_status && data.current_status.name
+            ? data.current_status.name
+            : '';
+        $('#parentTaskStatusName').text(statusName);
+
+        // 3) Описание задачи
+        $('#taskDescription').val(data.description || '');
+
+        // 4) Список статусов (select)
+        $parentTaskStatusChangeID.empty();
+        data.statuses.forEach(st => {
+            const $option = $('<option></option>').val(st.id).text(st.name);
+            if (st.id === data.current_status.id) {
+                $option.prop('selected', true);
             }
-            return response.json();
-        })
-        .then(data => {
-            // Заполняем поля модального окна
-            $('#taskId').text(data.id);
-            $('#taskDivision').text(data.task_type.division ? data.task_type.division.name : 'N/A');
-            $('#taskCurrentStatus').text(data.current_status.name || 'N/A');
-            $('#taskCurrentStatus').data('status-id', data.current_status.id); // Обновляем data-атрибут
-
-            // Заполняем выпадающий список статусов
-            const $taskStatus = $('#taskStatus');
-            $taskStatus.empty();
-            data.statuses.forEach(status => {
-                const $option = $('<option></option>')
-                    .attr('value', status.id)
-                    .text(status.name);
-                if (status.id === data.current_status.id) {
-                    $option.prop('selected', true);
-                }
-                $taskStatus.append($option);
-            });
-
-            // Заполняем выпадающий список типов задач
-            const $taskTypeSelect = $('#taskTypeSelect');
-            $taskTypeSelect.empty();
-            $taskTypeSelect.append('<option value="" disabled selected>აირჩიეთ ტიპი</option>');
-            data.task_types.forEach(taskType => {
-                const $option = $('<option></option>')
-                    .attr('value', taskType.id)
-                    .text(taskType.name);
-                if (taskType.id === data.task_type.id) {
-                    $option.prop('selected', true);
-                }
-                $taskTypeSelect.append($option);
-            });
-
-            // Заполняем описание задачи
-            $('#taskDescription').val(data.description || 'N/A');
-
-            // Проверяем условия для отображения поля MAC-адреса
-            if (data.current_status.id === 3 && data.task_type.id === 3) {
-                $('#macAddressContainer').slideDown();
-                const macValue = $('#macAddress').val().trim();
-                if (macValue === '') {
-                    $('#submitTaskButton').prop('disabled', true);
-                }
-            } else {
-                $('#macAddressContainer').slideUp();
-                $('#macAddress').val('');
-                $('#submitTaskButton').prop('disabled', false);
-            }
-
-            // Заполняем поле MAC-адреса, если оно существует
-            if (data.mac_address) {
-                $('#macAddress').val(data.mac_address);
-                if (isValidMacAddress(data.mac_address)) {
-                    $('#macAddress').removeClass('is-invalid').addClass('is-valid');
-                    $('#submitTaskButton').prop('disabled', false);
-                } else {
-                    $('#macAddress').removeClass('is-valid').addClass('is-invalid');
-                    $('#submitTaskButton').prop('disabled', true);
-                }
-            } else {
-                $('#macAddress').val('');
-                $('#macAddress').removeClass('is-valid is-invalid');
-            }
-
-            // Показываем содержимое модального окна
-            $('#loadingSpinner').hide();
-            $('#taskDetailsContent').fadeIn();
-        })
-        .catch(error => {
-            console.error(error);
-            $('#loadingSpinner').hide();
-            $('#errorMessage').fadeIn();
+            $parentTaskStatusChangeID.append($option);
         });
-}
 
-// Функция для проверки формата MAC-адреса
-function isValidMacAddress(mac) {
-    const macRegex = /^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$/;
-    return macRegex.test(mac);
-}
-
-
-function copyPayID(button, payID) {
-    const tempInput = document.createElement('textarea');
-    tempInput.value = payID;
-    document.body.appendChild(tempInput);
-    tempInput.select();
-    tempInput.setSelectionRange(0, 99999);
-
-    try {
-
-        const successful = document.execCommand('copy');
-
-        if (successful) {
-            const icon = button.querySelector('i');
-
-            const originalClass = icon.className;
-
-            icon.className = 'fas fa-check text-success';
-
-            setTimeout(() => {
-                icon.className = originalClass;
-            }, 1000);
+        // 5) Если у задачи тип=3 и статус=3 => поле MAC
+        if (initialTypeId === 3 && initialStatusId === 3) {
+            $macAddressContainer.slideDown();
+            if (data.mac_address) {
+                $macAddressInput.val(data.mac_address);
+                if (isValidMacAddress(data.mac_address)) {
+                    $macAddressInput.removeClass('is-invalid').addClass('is-valid');
+                    $submitButton.prop('disabled', false);
+                } else {
+                    $macAddressInput.removeClass('is-valid').addClass('is-invalid');
+                    $submitButton.prop('disabled', true);
+                }
+            }
+        } else {
+            $macAddressContainer.hide();
+            $macAddressInput.val('');
+            $macAddressInput.removeClass('is-valid is-invalid');
         }
-    } catch (err) {
-        console.error(err);
-    }
-    document.body.removeChild(tempInput);
-}
 
-document.addEventListener('DOMContentLoaded', function () {
+        // 6) Убираем спиннер, показываем контент
+        $('#loadingSpinner').hide();
+        $('#taskDetailsContent').fadeIn();
+    })
+    .catch(error => {
+        console.error(error);
+        $('#loadingSpinner').hide();
+        $('#errorMessage').fadeIn();
+    });
+
+    };
+
+    // -- Копирование PayID --
+    window.copyPayID = function (button, payID) {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = payID;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        tempInput.setSelectionRange(0, 99999);
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) {
+                const icon = button.querySelector('i');
+                const originalClass = icon.className;
+                icon.className = 'fas fa-check text-success';
+                setTimeout(() => {
+                    icon.className = originalClass;
+                }, 1000);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+        document.body.removeChild(tempInput);
+    };
+
+    // -- Инициализация Bootstrap tooltip --
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
-

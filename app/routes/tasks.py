@@ -12,36 +12,53 @@ from io import BytesIO
 
 tasks = Blueprint('tasks', __name__)
 
-
 @tasks.route('/tasks/get_divisions', methods=['GET'])
 @login_required
 def get_divisions():
+    """
+    Возвращает список всех доступных дивизионов.
+    """
     divisions = Divisions.query.all()
     divisions_data = [{'id': division.id, 'name': division.name} for division in divisions]
     return jsonify({'divisions': divisions_data}), 200
 
 
+@tasks.route('/tasks/task_types/get_task_types/<int:division_id>', methods=['GET'])
+@login_required
+def get_task_types_by_division(division_id):
+    """
+    Возвращает список типов задач для выбранного дивизиона.
+    """
+    task_types = TaskTypes.query.filter_by(division_id=division_id).all()
+    task_types_data = [{'id': t.id, 'name': t.name} for t in task_types]
+    return jsonify({'task_types': task_types_data}), 200
+
+
 @tasks.route('/tasks/details/<int:task_id>', methods=['GET'])
 @login_required
 def task_details(task_id):
+    """
+    Возвращает детальную информацию о задаче.
+    """
     task = Tasks.query.get_or_404(task_id)
     statuses = TaskStatuses.query.all()
 
-    # Получаем список типов задач для текущего раздела
+    # Список типов задач для текущего дивизиона (если есть)
     if task.task_type and task.task_type.division:
         task_types = TaskTypes.query.filter_by(division_id=task.task_type.division_id).all()
     else:
         task_types = TaskTypes.query.all()
 
-    # Получаем MAC-адрес, если существует
+    # MAC-адрес, если он существует у привязанного аккаунта
     mac_address = ''
     if task.order and task.order.customer_account:
-        # Поскольку это одно аккаунт, нет необходимости использовать индекс
         account = task.order.customer_account
         mac_address = account.mac_address if account.mac_address else ''
 
     return jsonify({
         'id': task.id,
+        "current_status": {"id": ..., "name": ...},
+        "task_type": {"id": ..., "name": ..., "division": {"id": ..., "name": ...}},
         'description': task.description,
         'created_user': task.created_user.name if task.created_user else 'Unknown',
         'due_date': task.due_date.strftime('%Y-%m-%d') if task.due_date else None,
@@ -52,12 +69,12 @@ def task_details(task_id):
             'bootstrap_class': task.status.bootstrap_class
         },
         'task_type': {
-            'id': task.task_type.id,
-            'name': task.task_type.name,
+            'id': task.task_type.id if task.task_type else None,
+            'name': task.task_type.name if task.task_type else None,
             'division': {
                 'id': task.task_type.division.id,
                 'name': task.task_type.division.name
-            } if task.task_type.division else {}
+            } if task.task_type and task.task_type.division else {}
         },
         'customer_id': task.order.customer_id if task.order else None,
         'statuses': [{'id': status.id, 'name': status.name} for status in statuses],
@@ -69,76 +86,51 @@ def task_details(task_id):
 @tasks.route('/tasks/update/<int:task_id>', methods=['POST'])
 @login_required
 def update_task(task_id):
+    """
+    Обновление статуса задачи и проверка логики с MAC-адресом.
+    """
     task = Tasks.query.get_or_404(task_id)
     data = request.get_json()
     status_id = data.get('status_id')
-    mac_address = data.get('mac_address')
+    mac_address = data.get('macAddress')
 
     if status_id:
         try:
             # Обновляем статус задачи
             task.status_id = int(status_id)
 
-            # Проверяем условия для создания или обновления CustomerAccount
-            if task.status_id == 3 and task.task_type_id == 3:
+            # Если выбрали тип задачи = 3 и статус = 3, необходимо проверять MAC
+            if task.task_type_id == 3 and task.status_id == 3:
                 if not mac_address:
-                    return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
-
-                # Проверяем, существует ли уже аккаунт с данным order_id
-                existing_account = CustomerAccount.query.filter_by(order_id=task.order_id).first()
-                if existing_account:
-                    return jsonify({'message': 'Аккаунт для данного заказа уже существует.'}), 400
-
-                # Проверяем уникальность MAC-адреса
+                    return jsonify({'message': 'MAC-адрес обязателен для задачи с типом 3 и статусом 3.'}), 400
+                # Проверяем уникальность MAC
                 duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
                 if duplicate_mac:
-                    return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.'}), 400
-
-                # Получаем customer_id из заказа
-                customer_id = task.order.customer_id if task.order else None
-                if not customer_id:
-                    return jsonify({'message': 'კლიენტის ID ვერ დაემატა.'}), 400
-
-                # Генерация уникального номера аккаунта
-                account_pay_number = str(uuid.uuid4())[:20]
-
-                # Создание нового CustomerAccount
-                new_account = CustomerAccount(
-                    customer_id=customer_id,
-                    account_pay_number=account_pay_number,
-                    mac_address=mac_address,
-                    ip_address=None,  # При необходимости добавьте поле для ввода IP
-                    tariff_plan_id=1,  # Укажите актуальный tariff_plan_id
-                    device_name='Unknown Device',  # При необходимости сделайте поле для ввода
-                    device_type='Other',  # При необходимости сделайте выбор из списка
-                    status='Active',
-                    order_id=task.order_id
-                )
-                db.session.add(new_account)
-            else:
-                # Если условия не выполняются, можно добавить логику очистки MAC-адреса или другие действия
-                pass
+                    return jsonify({'message': 'MAC-адрес уже используется.'}), 400
 
             db.session.commit()
             return jsonify({
-                'message': 'სტატუსი წარმატებით განახლდა!',
+                'message': 'Статус успешно обновлён!',
                 'new_status': {
                     'id': task.status_id,
                     'name': task.status.name,
                     'bootstrap_class': task.status.bootstrap_class
                 }
             }), 200
+
         except Exception as e:
             db.session.rollback()
-            return jsonify({'message': f'დაფიქსირდა შეცდომა: {str(e)}'}), 400
+            return jsonify({'message': f'Ошибка: {str(e)}'}), 400
     else:
-        return jsonify({'message': 'სტატუსი არ არის მითითებული.'}), 400
+        return jsonify({'message': 'Не указан статус.'}), 400
 
 
 @tasks.route('/tasks/view/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def view_task(task_id):
-    # Получаем задачу с необходимыми данными
+    """
+    Страница просмотра/редактирования задачи (форма WTForms).
+    """
     task = Tasks.query.get_or_404(task_id)
     form = TaskForm(obj=task)
 
@@ -148,7 +140,7 @@ def view_task(task_id):
     form.assigned_to.choices = [(user.id, user.name) for user in Users.query.all()]
     form.completed_by.choices = [(user.id, user.name) for user in Users.query.all()]
 
-    # Настраиваем поля только для чтения
+    # Делаем некоторые поля только для чтения
     form.task_category_id.render_kw = {'readonly': True, 'disabled': True}
     form.task_type_id.render_kw = {'readonly': True, 'disabled': True}
     form.description.render_kw = {'readonly': True, 'disabled': True}
@@ -173,23 +165,16 @@ def view_task(task_id):
     return render_template(
         'tasks/view_task.html',
         form=form,
-        task=task,
-        creator_name=task.created_user.name if task.created_user else "Неизвестный пользователь",
-        created_division=task.created_division_id,
-        completed_division=task.completed_division_id,
-        estimated_time=task.estimated_time,
-        actual_time=task.actual_time,
-        parent_task=task.parent_task_id,
-        comments_count=task.comments_count,
-        is_recurring=task.is_recurring,
-        order_id=task.order_id,
-        active_menu='tasks'
+        task=task
     )
 
 
 @tasks.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def edit_task(task_id):
+    """
+    Пример редактирования задачи по форме WTForms (другая форма).
+    """
     task = Tasks.query.get_or_404(task_id)
 
     form = TaskForm(obj=task)
@@ -212,17 +197,15 @@ def edit_task(task_id):
             db.session.rollback()
             flash(f"Ошибка при редактировании задачи: {str(e)}", "danger")
 
-    return render_template(
-        'tasks/edit_task.html',
-        form=form,
-        task=task,
-        active_menu='tasks'
-    )
+    return render_template('tasks/edit_task.html', form=form, task=task)
 
 
 @tasks.route('/tasks/list', methods=['GET'])
 @login_required
 def tasks_list():
+    """
+    Фильтрация и пагинация списка задач.
+    """
     search_query = request.args.get('search', '')
     status_id = request.args.get('status_id', type=int)
     task_category_id = request.args.get('task_category_id', type=int)
@@ -236,7 +219,6 @@ def tasks_list():
 
     query = Tasks.query
 
-    # Применение фильтров
     if search_query:
         query = query.filter(Tasks.description.ilike(f'%{search_query}%'))
     if status_id:
@@ -254,18 +236,15 @@ def tasks_list():
     if end_date:
         query = query.filter(Tasks.created_at <= end_date)
 
-    # Пагинация
-    tasks_list = query.paginate(page=page, per_page=per_page)
-
-    # Данные для фильтров
+    tasks_list_paginated = query.paginate(page=page, per_page=per_page)
     statuses = TaskStatuses.query.all()
     priorities = TaskPriorities.query.all()
-    users = Users.query.all()  # Загрузка списка пользователей
+    users = Users.query.all()
 
     return render_template(
         'tasks/task_list.html',
-        tasks=tasks_list.items,
-        pagination=tasks_list,
+        tasks=tasks_list_paginated.items,
+        pagination=tasks_list_paginated,
         statuses=statuses,
         priorities=priorities,
         users=users,
@@ -284,14 +263,17 @@ def tasks_list():
 @tasks.route('/tasks/export', methods=['GET'])
 @login_required
 def export():
-    tasks = Tasks.query.all()
+    """
+    Экспорт задач в Excel.
+    """
+    tasks_query = Tasks.query.all()
     task_data = [{
         'ID': task.id,
         'Описание': task.description,
         'Статус': task.status.name if task.status else '',
         'Приоритет': task.priority.name if task.priority else '',
         'Дата создания': task.created_at.strftime('%Y-%m-%d %H:%M:%S')
-    } for task in tasks]
+    } for task in tasks_query]
 
     df = pd.DataFrame(task_data)
     output = BytesIO()
@@ -308,7 +290,9 @@ def create_task():
     from ..forms.tasks import TaskForm
     form = TaskForm()
 
-    # Adding categories to the form choices so they are available in the dropdown
+    # Предположим, у вас есть список категорий (здесь для примера пусто)
+    categories = []
+
     form.task_category_id.choices = [(category.id, category.name) for category in categories]
 
     if form.validate_on_submit():
@@ -323,92 +307,54 @@ def create_task():
             )
             db.session.add(task)
             db.session.commit()
-            flash("დავალება წარმატებით შეიქმნა!", "success")
+            flash("Дело успешно создано!", "success")
             return redirect(url_for('tasks.tasks_list'))
         except Exception as e:
             db.session.rollback()
-            flash(f"დავალების შექმნის შეცდომა: {str(e)}", "danger")
+            flash(f"Ошибка при создании задачи: {str(e)}", "danger")
 
-    return render_template(
-        'tasks/create_task.html',
-        form=form,
-        active_menu='tasks'
-    )
+    return render_template('tasks/create_task.html', form=form)
 
 
 @tasks.route('/tasks/create_subtask', methods=['POST'])
 @login_required
 def create_subtask():
+    """
+    Создаёт подзадачу, если статус = 3 и тип задачи = 3, проверяет MAC-адрес.
+    """
     data = request.get_json()
     parent_task_id = data.get('parent_task_id')
     description = data.get('description')
     status_id = data.get('status_id')
     task_type_id = data.get('task_type_id')
-    order_id = data.get('order_id')  # Убедитесь, что это поле передаётся
-    mac_address = data.get('mac_address')  # Новое поле
-
-    if not parent_task_id or not description or not status_id or not task_type_id:
-        return jsonify({'message': 'საჭიროა ყველა ველის შევსება.'}), 400
+    order_id = data.get('order_id')
+    mac_address = data.get('mac_address')
 
     parent_task = Tasks.query.get(parent_task_id)
     if not parent_task:
-        return jsonify({'message': 'მთავარ დავალება ვერ მოიძებნა.'}), 404
+        return jsonify({'message': 'Родительская задача не найдена.'}), 404
 
     try:
-        # Обновляем статус родительской задачи
-        parent_task.status_id = int(status_id)
-        db.session.add(parent_task)
-
-        # Проверка условий для MAC-адреса
-        if parent_task.status_id == 3 and task_type_id == 3:
+        # Если пытаемся создать подзадачу тип=3 и статус=3, проверяем MAC
+        if int(task_type_id) == 3 and int(status_id) == 3:
             if not mac_address:
-                return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
-
-            # Проверяем, существует ли аккаунт для данного order_id
-            existing_account = CustomerAccount.query.filter_by(order_id=order_id).first()
-            if existing_account:
-                return jsonify({'message': 'Аккаунт для данного заказа уже существует.'}), 400
-
-            # Проверка уникальности MAC-адреса
+                return jsonify({'message': 'MAC-адрес обязателен для подзадачи с типом 3 и статусом 3.'}), 400
             duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
             if duplicate_mac:
-                return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.'}), 400
-
-            # Получаем customer_id из заказа
-            customer_id = parent_task.order.customer_id if parent_task.order else None
-            if not customer_id:
-                return jsonify({'message': 'კლიენტის ID ვერ დაემატა.'}), 400
-
-            # Генерация уникального номера аккаунта
-            account_pay_number = str(uuid.uuid4())[:20]
-
-            # Создание нового CustomerAccount
-            new_account = CustomerAccount(
-                customer_id=customer_id,
-                account_pay_number=account_pay_number,
-                mac_address=mac_address,
-                ip_address=None,  # При необходимости добавьте поле для ввода IP
-                tariff_plan_id=1,  # Укажите актуальный tariff_plan_id
-                device_name='Unknown Device',  # При необходимости сделайте поле для ввода
-                device_type='Other',  # При необходимости сделайте выбор из списка
-                status='Active',
-                order_id=order_id
-            )
-            db.session.add(new_account)
+                return jsonify({'message': 'MAC-адрес уже используется.', 'field': 'mac_address'}), 400
 
         # Создаём подзадачу
         subtask = Tasks(
             parent_task_id=parent_task_id,
             description=description,
             task_type_id=int(task_type_id),
-            status_id=1,
+            status_id=int(status_id),  # <-- можно сразу ставить выбранный статус
             created_by=current_user.id,
             order_id=order_id
         )
         db.session.add(subtask)
         db.session.commit()
 
-        # Формируем ответ с новой подзадачей и родительской задачей
         response = {
             'subtask': {
                 'id': subtask.id,
@@ -430,18 +376,11 @@ def create_subtask():
                     'name': subtask.created_user.name if subtask.created_user else 'Unknown'
                 },
                 'created_at': subtask.created_at.strftime('%Y-%m-%d %H:%M:%S')
-            },
-            'parent_task': {
-                'id': parent_task.id,
-                'status': {
-                    'id': parent_task.status.id,
-                    'name': parent_task.status.name,
-                    'bootstrap_class': parent_task.status.bootstrap_class
-                }
             }
         }
 
         return jsonify(response), 201
+
     except Exception as e:
         db.session.rollback()
-        return jsonify({'message': f'დაფიქსირდა შეცდომა: {str(e)}'}), 500
+        return jsonify({'message': f'Ошибка: {str(e)}'}), 500
