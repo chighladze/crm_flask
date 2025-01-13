@@ -94,35 +94,52 @@ def task_details(task_id):
 def update_task(task_id):
     """
     Updates task status and checks MAC address logic if required.
+    Additionally checks if parent_task_type_id=3 and parent_status_change_id=3 => need MAC.
     """
     task = Tasks.query.get_or_404(task_id)
     data = request.get_json()
+
+    # 1) Получаем из JSON поля "parent_task_type_id" и "parent_status_change_id"
+    parent_task_type_id = data.get('parent_task_type_id')
+    parent_status_change_id = data.get('parent_status_change_id')
+
+    # 2) Обычные поля
     status_id = data.get('status_id')
     mac_address = data.get('macAddress')
 
     if status_id:
         try:
-            # Update the status
-            task.status_id = int(status_id)
+            # 3) Если у родителя тип=3 и статус=3, а mac_address пуст => ошибка
+            if parent_task_type_id == 3 and parent_status_change_id == 3 and not mac_address:
+                return jsonify({
+                    'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის (Parent).'
+                }), 400
 
-            # If task_type=3 and status=3, need a MAC address
+            # 4) Обновляем статус текущей задачи
+            task.status_id = parent_status_change_id
+
+            # 5) Если текущая задача (this task) тоже тип=3 и статус=3 => проверяем MAC
             if task.task_type_id == 3 and task.status_id == 3:
                 if not mac_address:
                     return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
-                # Check for MAC uniqueness
+
+                # Проверяем дубли
                 duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
                 if duplicate_mac:
-                    return jsonify({'message': f'MAC-მისამართი უკვე გამოყენებულია payID: ( {duplicate_mac.account_pay_number} ).'}), 400
-                else:
-                    new_account = CustomerAccount(
-                        customer_id=task.order.customer_id,
-                        mac_address=mac_address,
-                        tariff_plan_id=task.order.tariff_plan_id,
-                        order_id=task.order.id,
-                        device_name='Wi-Fi Router',
-                        device_type='Router'
-                    )
-                    db.session.add(new_account)
+                    return jsonify({
+                        'message': f'MAC-მისამართი უკვე გამოყენებულია payID: ( {duplicate_mac.account_pay_number} ).'
+                    }), 400
+
+                # Если всё ок, создаём новый CustomerAccount
+                new_account = CustomerAccount(
+                    customer_id=task.order.customer_id,
+                    mac_address=mac_address,
+                    tariff_plan_id=task.order.tariff_plan_id,
+                    order_id=task.order.id,
+                    device_name='Wi-Fi Router',
+                    device_type='Router'
+                )
+                db.session.add(new_account)
 
             db.session.commit()
             return jsonify({
@@ -348,13 +365,16 @@ def create_subtask():
     order_id = data.get('order_id')
     mac_address = data.get('mac_address')
 
+    parent_task_type_id = data.get('parent_task_type_id')
+    parent_status_change_id = data.get('parent_status_change_id')
+
     parent_task = Tasks.query.get(parent_task_id)
     if not parent_task:
         return jsonify({'message': 'მთავარი დავალება ვერ მოიძებნა.'}), 404
 
     try:
         # If we create a subtask with type=3 and status=3, we must check MAC
-        if int(task_type_id) == 3 and int(status_id) == 3:
+        if int(parent_task_type_id) == 3 and parent_status_change_id == 3:
             if not mac_address:
                 return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
             duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
@@ -366,11 +386,14 @@ def create_subtask():
             parent_task_id=parent_task_id,
             description=description,
             task_type_id=int(task_type_id),
-            status_id=int(status_id),
             created_by=current_user.id,
             order_id=order_id
         )
         db.session.add(subtask)
+        db.session.commit()
+
+        parent_task.status_id = parent_status_change_id
+        db.session.add(parent_task)
         db.session.commit()
 
         response = {

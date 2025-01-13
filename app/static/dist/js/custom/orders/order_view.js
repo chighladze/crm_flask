@@ -189,6 +189,8 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#taskEditForm').on('submit', function (event) {
         event.preventDefault();
         const parentTaskId = parseInt($parentTaskID.text(), 10);
+        const parentTaskTypeId = parseInt($parentTaskTypeID.text(), 10);
+        const parentTaskStatusChangeId = parseInt($parentTaskStatusChangeID.text(), 10);
         const statusValue = parseInt($parentTaskStatusChangeID.val(), 10);
         const macAddressValue = $macAddressInput.val().trim();
 
@@ -196,6 +198,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Creating a subtask
             const subtaskData = {
                 parent_task_id: parentTaskId,
+                parent_task_type_id: parentTaskTypeId,
+                parent_status_change_id: parseInt($parentTaskStatusChangeID.val(), 10), // <-- добавили
                 description: $subTaskDescriptionID.val().trim(),
                 status_id: statusValue,
                 task_type_id: parseInt($subTaskTypeId.val() || '0', 10),
@@ -204,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             // If type=3 and status=3 => need a MAC
-            if (subtaskData.task_type_id === 3 && subtaskData.status_id === 3) {
+            if (subtaskData.parent_task_type_id === 3 && subtaskData.parentTaskStatusChangeId === 3) {
                 if (!isValidMacAddress(macAddressValue)) {
                     // Show Georgian user message
                     alert('MAC-მისამართი აუცილებელია და უნდა იყოს სწორი ფორმატის!');
@@ -253,7 +257,9 @@ document.addEventListener('DOMContentLoaded', function () {
             // Updating parent task status
             const updateData = {
                 status_id: statusValue,
-                macAddress: ''
+                macAddress: '',
+                parent_task_type_id: parseInt($parentTaskTypeID.text(), 10),
+                parent_status_change_id: parseInt($parentTaskStatusChangeID.val(), 10)
             };
 
             // If parent task type=3 and status=3 => need MAC
