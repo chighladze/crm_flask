@@ -113,6 +113,16 @@ def update_task(task_id):
                 duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
                 if duplicate_mac:
                     return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.'}), 400
+                else:
+                    new_account = CustomerAccount(
+                        customer_id=task.order.customer_id,
+                        mac_address=mac_address,
+                        tariff_plan_id=task.order.tariff_plan_id,
+                        order_id=task.order.id,
+                        device_name='Wi-Fi Router',
+                        device_type='Router'
+                    )
+                    db.session.add(new_account)
 
             db.session.commit()
             return jsonify({
