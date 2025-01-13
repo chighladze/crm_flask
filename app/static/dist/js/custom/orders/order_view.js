@@ -237,7 +237,9 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(response => {
                     if (!response.ok) {
-                        return response.json().then(data => { throw data; });
+                        return response.json().then(data => {
+                            throw data;
+                        });
                     }
                     return response.json();
                 })
@@ -280,7 +282,9 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(response => {
                     if (!response.ok) {
-                        return response.json().then(data => { throw data; });
+                        return response.json().then(data => {
+                            throw data;
+                        });
                     }
                     return response.json();
                 })
@@ -288,6 +292,24 @@ document.addEventListener('DOMContentLoaded', function () {
                     $('#taskModal').modal('hide');
                     $('#successToast').toast('show');
                     updateTaskRow(parentTaskId, data.new_status);
+                    if (data.customer_account) {
+                        $('#orderAccountInfo').html(
+                            '<div class="d-flex align-items-center justify-content-end">' +
+                            '<span class="me-2 mr-2">ანგარიში:</span>' +
+                            '<a href="/customer_accounts/customer_accounts/' + data.customer_account.id + '/view" ' +
+                            'class="btn btn-success btn-sm d-flex align-items-center me-2" target="_blank" ' +
+                            'data-toggle="tooltip" data-placement="top" title="ანგარიშის ნახვა">' +
+                            data.customer_account.account_pay_number +
+                            '</a>' +
+                            '<button type="button" class="btn btn-secondary btn-sm" ' +
+                            'data-toggle="tooltip" data-placement="top" ' +
+                            'title="PayID-ის კოპირება" ' +
+                            'onclick="copyPayID(this, \'' + data.customer_account.account_pay_number + '\')">' +
+                            '<i class="fas fa-copy"></i>' +
+                            '</button>' +
+                            '</div>'
+                        );
+                    }
                 })
                 .catch(error => {
                     console.error(error);
@@ -446,5 +468,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    $('#taskModal').on('hidden.bs.modal', function () {
+        $('.modal-backdrop').remove();
     });
 });

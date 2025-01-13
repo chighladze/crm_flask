@@ -42,23 +42,23 @@ def task_details(task_id):
     task = Tasks.query.get_or_404(task_id)
     statuses = TaskStatuses.query.all()
 
-    # Retrieve task types for the current division, if available
+    # Retrieve task types for the current division if available
     if task.task_type and task.task_type.division:
         task_types = TaskTypes.query.filter_by(division_id=task.task_type.division_id).all()
     else:
         task_types = TaskTypes.query.all()
 
-    # Get existing MAC address if there's an associated customer account
+    # Get MAC address if a related customer account exists
     mac_address = ''
     if task.order and task.order.customer_account:
         account = task.order.customer_account
         mac_address = account.mac_address if account.mac_address else ''
 
-    # Return JSON response with task details
+    # Return JSON response (user sees Georgian messages for text)
     return jsonify({
         'id': task.id,
         'description': task.description,
-        'created_user': task.created_user.name if task.created_user else 'Unknown',
+        'created_user': task.created_user.name if task.created_user else 'უცნობი',
         'due_date': task.due_date.strftime('%Y-%m-%d') if task.due_date else None,
         'progress': task.progress,
         'current_status': {
@@ -86,34 +86,40 @@ def task_details(task_id):
 def update_task(task_id):
     """
     Updates the task status and checks MAC address logic if required.
-    Additionally, if parent's type and parent's status are both 3, a MAC address is required.
+    Additionally checks if parent_task_type_id=3 and parent_status_change_id=3 => need MAC.
+    User messages are in Georgian.
     """
     task = Tasks.query.get_or_404(task_id)
     data = request.get_json()
 
-    # Retrieve parent's type and status change IDs from the JSON
-    parent_task_type_id = data.get('parent_task_type_id')
-    parent_status_change_id = data.get('parent_status_change_id')
+    # Get parent's type and parent's status change IDs from JSON payload
+    try:
+        parent_task_type_id = int(data.get('parent_task_type_id'))
+        parent_status_change_id = int(data.get('parent_status_change_id'))
+    except (ValueError, TypeError):
+        return jsonify({'message': 'მიღებული მონაცემები არ არის სწორად ფორმატირებული.'}), 400
 
-    # Retrieve common fields
+    # Get common fields from JSON payload
     status_id = data.get('status_id')
     mac_address = data.get('macAddress')
 
     if status_id:
         try:
-            # If parent's type and status are both 3 but no MAC address provided -> error
+            # If parent's type and parent's status are both 3, MAC address must be provided
             if parent_task_type_id == 3 and parent_status_change_id == 3 and not mac_address:
                 return jsonify({
-                    'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის (Parent).'
+                    'message': 'MAC-მისამართი აუცილებელია ამ STATუსისა და TIPის დავალებისთვის (Parent).'
                 }), 400
 
-            # Update the current task's status to the parent's status change ID
+            # Update the current task's status using the parent's status change value
             task.status_id = parent_status_change_id
 
-            # If the current task also has type=3 and status=3, then check MAC address
+            # If the current task is also of type 3 and status 3, then check MAC address
             if task.task_type_id == 3 and task.status_id == 3:
                 if not mac_address:
-                    return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
+                    return jsonify({
+                        'message': 'MAC-მისამართი აუცილებელია ამ STATუსისა და TIPის დავალებისთვის.'
+                    }), 400
 
                 duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
                 if duplicate_mac:
@@ -121,6 +127,7 @@ def update_task(task_id):
                         'message': f'MAC-მისამართი უკვე გამოყენებულია payID: ( {duplicate_mac.account_pay_number} ).'
                     }), 400
 
+                # Create a new CustomerAccount
                 new_account = CustomerAccount(
                     customer_id=task.order.customer_id,
                     mac_address=mac_address,
@@ -130,16 +137,28 @@ def update_task(task_id):
                     device_type='Router'
                 )
                 db.session.add(new_account)
+                db.session.flush()  # new_account получает id до commit()
+                # Если необходимо, можно сгенерировать account_pay_number здесь:
+                # new_account.account_pay_number = str(new_account.id)
+            else:
+                new_account = None
 
             db.session.commit()
-            return jsonify({
+            response = {
                 'message': 'სტატუსი წარმატებით განახლდა!',
                 'new_status': {
                     'id': task.status_id,
                     'name': task.status.name,
                     'bootstrap_class': task.status.bootstrap_class
                 }
-            }), 200
+            }
+            if new_account:
+                response['customer_account'] = {
+                    'id': new_account.id,
+                    'account_pay_number': new_account.account_pay_number,
+                    'mac_address': new_account.mac_address
+                }
+            return jsonify(response), 200
 
         except Exception as e:
             db.session.rollback()
@@ -148,23 +167,21 @@ def update_task(task_id):
         return jsonify({'message': 'სტატუსი არ არის მითითებული.'}), 400
 
 
+
 @tasks.route('/tasks/view/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def view_task(task_id):
-    """
-    Renders a page to view/edit a task via WTForms.
-    """
     task = Tasks.query.get_or_404(task_id)
     form = TaskForm(obj=task)
 
-    # Populate choices for select fields
+    # Populate select options for task type, status, priority, etc.
     form.task_type_id.choices = [(type.id, type.name) for type in TaskTypes.query.all()]
     form.status_id.choices = [(status.id, status.name) for status in TaskStatuses.query.all()]
     form.task_priority_id.choices = [(priority.id, priority.level) for priority in TaskPriorities.query.all()]
     form.assigned_to.choices = [(user.id, user.name) for user in Users.query.all()]
     form.completed_by.choices = [(user.id, user.name) for user in Users.query.all()]
 
-    # Make some fields read-only
+    # Make certain fields read-only
     form.task_category_id.render_kw = {'readonly': True, 'disabled': True}
     form.task_type_id.render_kw = {'readonly': True, 'disabled': True}
     form.description.render_kw = {'readonly': True, 'disabled': True}
@@ -196,9 +213,6 @@ def view_task(task_id):
 @tasks.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def edit_task(task_id):
-    """
-    Example of editing a task using an alternative WTForms approach.
-    """
     task = Tasks.query.get_or_404(task_id)
     form = TaskForm(obj=task)
 
@@ -311,12 +325,12 @@ def export():
 @login_required
 def create_task():
     """
-    Renders a page to create a new task (using WTForms).
+    Renders a page to create a new task using WTForms.
     """
     from ..forms.tasks import TaskForm
     form = TaskForm()
 
-    # Suppose we have a list of categories (empty for example)
+    # Assume an empty categories list as an example
     categories = []
 
     form.task_category_id.choices = [(category.id, category.name) for category in categories]
@@ -338,7 +352,6 @@ def create_task():
         except Exception as e:
             db.session.rollback()
             flash(f"შეცდომა დავალების შექმნისას: {str(e)}", "danger")
-
     return render_template('tasks/create_task.html', form=form)
 
 
@@ -346,34 +359,39 @@ def create_task():
 @login_required
 def create_subtask():
     """
-    Creates a subtask if the parent's status is 3 and task type is 3, checks MAC address.
+    Creates a subtask if the parent's status and task type are both 3.
+    Checks that a MAC address is provided and is unique if required.
+    The parent's task type and parent's status change values must be supplied.
     """
     data = request.get_json()
     parent_task_id = data.get('parent_task_id')
     description = data.get('description')
-    status_id = data.get('status_id')
+    # Note: status_id is not directly used since parent's status change is used.
     task_type_id = data.get('task_type_id')
     order_id = data.get('order_id')
     mac_address = data.get('mac_address')
 
-    # Retrieve parent's type and status change IDs for subtask creation
-    parent_task_type_id = data.get('parent_task_type_id')
-    parent_status_change_id = data.get('parent_status_change_id')
+    # Get parent's type and parent's status change IDs from JSON payload
+    try:
+        parent_task_type_id = int(data.get('parent_task_type_id'))
+        parent_status_change_id = int(data.get('parent_status_change_id'))
+    except (ValueError, TypeError):
+        return jsonify({'message': 'მიღებული მონაცემები არ არის სწორად ფორმატირებული.'}), 400
 
     parent_task = Tasks.query.get(parent_task_id)
     if not parent_task:
         return jsonify({'message': 'მთავარი დავალება ვერ მოიძებნა.'}), 404
 
     try:
-        # If creating a subtask with parent's type=3 and parent's status=3, then MAC is required
-        if int(parent_task_type_id) == 3 and int(parent_status_change_id) == 3:
+        # If the parent's type and parent's status change are both 3, MAC address is required
+        if parent_task_type_id == 3 and parent_status_change_id == 3:
             if not mac_address:
-                return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
+                return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ STATუსისა და TIPის დავალებისთვის.'}), 400
             duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
             if duplicate_mac:
                 return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.', 'field': 'mac_address'}), 400
 
-        # Create a new subtask (note: status is set later on parent)
+        # Create the new subtask (its status will be updated on the parent)
         subtask = Tasks(
             parent_task_id=parent_task_id,
             description=description,
@@ -384,7 +402,7 @@ def create_subtask():
         db.session.add(subtask)
         db.session.commit()
 
-        # Update parent's status to the new status (passed as parent's status change)
+        # Update the parent's status to the new status (provided in parent's status change)
         parent_task.status_id = parent_status_change_id
         db.session.add(parent_task)
         db.session.commit()

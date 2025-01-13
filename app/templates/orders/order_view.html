@@ -83,33 +83,25 @@
                         </div>
                     </div>
 
-                    <!-- Right column: Account info -->
-                    <div class="col-md-4 text-right">
-                        {% if order.customer_account %}
-                            <div class="d-flex align-items-center justify-content-end">
-                                <span class="me-2 mr-2">ანგარიში:</span>
-                                <a href="{{ url_for('customer_accounts.view_customer_account',
-                                                account_id=order.customer_account.id) }}"
-                                   class="btn btn-success btn-sm d-flex align-items-center me-2"
-                                   target="_blank"
-                                   data-toggle="tooltip"
-                                   data-placement="top"
-                                   title="ანგარიშის ნახვა">
-                                    {{ order.customer_account.account_pay_number }}
-                                </a>
-                                <button type="button"
-                                        class="btn btn-secondary btn-sm"
-                                        data-toggle="tooltip"
-                                        data-placement="top"
-                                        title="PayID-ის კოპირება"
-                                        onclick="copyPayID(this, '{{ order.customer_account.account_pay_number }}')">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        {% else %}
-                            <span class="badge bg-warning">ანგარიში არ არის შექმნილი</span>
-                        {% endif %}
-                    </div>
+<!-- Right column: Account info (the user sees text in Georgian) -->
+<div class="col-md-4 text-right" id="orderAccountInfo">
+    {% if order.customer_account %}
+        <div class="d-flex align-items-center justify-content-end">
+            <span class="me-2 mr-2">ანგარიში:</span>
+            <a href="{{ url_for('customer_accounts.view_customer_account', account_id=order.customer_account.id) }}"
+               class="btn btn-success btn-sm d-flex align-items-center me-2" target="_blank"
+               data-toggle="tooltip" data-placement="top" title="ანგარიშის ნახვა">
+                {{ order.customer_account.account_pay_number }}
+            </a>
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="tooltip" data-placement="top"
+                    title="PayID-ის კოპირება" onclick="copyPayID(this, '{{ order.customer_account.account_pay_number }}')">
+                <i class="fas fa-copy"></i>
+            </button>
+        </div>
+    {% else %}
+        <span class="badge bg-warning">ანგარიში არ არის შექმნილი</span>
+    {% endif %}
+</div>
                 </div>
             </div>
 
