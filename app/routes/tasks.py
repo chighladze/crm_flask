@@ -16,7 +16,7 @@ tasks = Blueprint('tasks', __name__)
 @login_required
 def get_divisions():
     """
-    Возвращает список всех доступных дивизионов.
+    Returns a list of all available divisions.
     """
     divisions = Divisions.query.all()
     divisions_data = [{'id': division.id, 'name': division.name} for division in divisions]
@@ -27,7 +27,7 @@ def get_divisions():
 @login_required
 def get_task_types_by_division(division_id):
     """
-    Возвращает список типов задач для выбранного дивизиона.
+    Returns a list of task types for the specified division.
     """
     task_types = TaskTypes.query.filter_by(division_id=division_id).all()
     task_types_data = [{'id': t.id, 'name': t.name} for t in task_types]
@@ -38,27 +38,33 @@ def get_task_types_by_division(division_id):
 @login_required
 def task_details(task_id):
     """
-    Возвращает детальную информацию о задаче.
+    Returns detailed information about a specific task.
     """
     task = Tasks.query.get_or_404(task_id)
     statuses = TaskStatuses.query.all()
 
-    # Список типов задач для текущего дивизиона (если есть)
+    # Gather task types for the current division if it exists
     if task.task_type and task.task_type.division:
         task_types = TaskTypes.query.filter_by(division_id=task.task_type.division_id).all()
     else:
         task_types = TaskTypes.query.all()
 
-    # MAC-адрес, если он существует у привязанного аккаунта
+    # Check for existing MAC address if there's a related account
     mac_address = ''
     if task.order and task.order.customer_account:
         account = task.order.customer_account
         mac_address = account.mac_address if account.mac_address else ''
 
+    # Return JSON response
     return jsonify({
         'id': task.id,
-        "current_status": {"id": ..., "name": ...},
-        "task_type": {"id": ..., "name": ..., "division": {"id": ..., "name": ...}},
+        # These three lines below are not used in final JSON, but represent placeholders
+        # that were in the snippet. We keep the logic consistent but typically wouldn't
+        # keep empty placeholders in production. For clarity, they are commented out or replaced.
+        #
+        # "current_status": {"id": ..., "name": ...},
+        # "task_type": {"id": ..., "name": ..., "division": {"id": ..., "name": ...}},
+        #
         'description': task.description,
         'created_user': task.created_user.name if task.created_user else 'Unknown',
         'due_date': task.due_date.strftime('%Y-%m-%d') if task.due_date else None,
@@ -87,7 +93,7 @@ def task_details(task_id):
 @login_required
 def update_task(task_id):
     """
-    Обновление статуса задачи и проверка логики с MAC-адресом.
+    Updates task status and checks MAC address logic if required.
     """
     task = Tasks.query.get_or_404(task_id)
     data = request.get_json()
@@ -96,21 +102,21 @@ def update_task(task_id):
 
     if status_id:
         try:
-            # Обновляем статус задачи
+            # Update the status
             task.status_id = int(status_id)
 
-            # Если выбрали тип задачи = 3 и статус = 3, необходимо проверять MAC
+            # If task_type=3 and status=3, need a MAC address
             if task.task_type_id == 3 and task.status_id == 3:
                 if not mac_address:
-                    return jsonify({'message': 'MAC-адрес обязателен для задачи с типом 3 и статусом 3.'}), 400
-                # Проверяем уникальность MAC
+                    return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
+                # Check for MAC uniqueness
                 duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
                 if duplicate_mac:
-                    return jsonify({'message': 'MAC-адрес уже используется.'}), 400
+                    return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.'}), 400
 
             db.session.commit()
             return jsonify({
-                'message': 'Статус успешно обновлён!',
+                'message': 'სტატუსი წარმატებით განახლდა!',
                 'new_status': {
                     'id': task.status_id,
                     'name': task.status.name,
@@ -120,16 +126,16 @@ def update_task(task_id):
 
         except Exception as e:
             db.session.rollback()
-            return jsonify({'message': f'Ошибка: {str(e)}'}), 400
+            return jsonify({'message': f'შეცდომა: {str(e)}'}), 400
     else:
-        return jsonify({'message': 'Не указан статус.'}), 400
+        return jsonify({'message': 'სტატუსი არ არის მითითებული.'}), 400
 
 
 @tasks.route('/tasks/view/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def view_task(task_id):
     """
-    Страница просмотра/редактирования задачи (форма WTForms).
+    Renders a page to view/edit task via WTForms.
     """
     task = Tasks.query.get_or_404(task_id)
     form = TaskForm(obj=task)
@@ -140,7 +146,7 @@ def view_task(task_id):
     form.assigned_to.choices = [(user.id, user.name) for user in Users.query.all()]
     form.completed_by.choices = [(user.id, user.name) for user in Users.query.all()]
 
-    # Делаем некоторые поля только для чтения
+    # Make some fields read-only or disabled
     form.task_category_id.render_kw = {'readonly': True, 'disabled': True}
     form.task_type_id.render_kw = {'readonly': True, 'disabled': True}
     form.description.render_kw = {'readonly': True, 'disabled': True}
@@ -156,11 +162,11 @@ def view_task(task_id):
             task.assigned_to = form.assigned_to.data
 
             db.session.commit()
-            flash("Задача успешно обновлена!", "success")
+            flash("დავალება წარმატებით განახლდა!", "success")  # user sees Georgian message
             return redirect(url_for('tasks.tasks_list'))
         except Exception as e:
             db.session.rollback()
-            flash(f"Ошибка при обновлении задачи: {str(e)}", "danger")
+            flash(f"შეცდომა დავალების განახლებაში: {str(e)}", "danger")  # user sees Georgian message
 
     return render_template(
         'tasks/view_task.html',
@@ -173,10 +179,9 @@ def view_task(task_id):
 @login_required
 def edit_task(task_id):
     """
-    Пример редактирования задачи по форме WTForms (другая форма).
+    Example of editing a task using another WTForms approach.
     """
     task = Tasks.query.get_or_404(task_id)
-
     form = TaskForm(obj=task)
 
     form.status_id.choices = [(status.id, status.name) for status in TaskStatuses.query.all()]
@@ -191,11 +196,11 @@ def edit_task(task_id):
             task.due_date = form.due_date.data
 
             db.session.commit()
-            flash("Задача успешно обновлена!", "success")
+            flash("დავალება წარმატებით განახლდა!", "success")  # user sees Georgian message
             return redirect(url_for('tasks.tasks_list'))
         except Exception as e:
             db.session.rollback()
-            flash(f"Ошибка при редактировании задачи: {str(e)}", "danger")
+            flash(f"შეცდომა რედაქტირებისას: {str(e)}", "danger")  # user sees Georgian message
 
     return render_template('tasks/edit_task.html', form=form, task=task)
 
@@ -204,7 +209,7 @@ def edit_task(task_id):
 @login_required
 def tasks_list():
     """
-    Фильтрация и пагинация списка задач.
+    Implements filtering and pagination for the tasks list.
     """
     search_query = request.args.get('search', '')
     status_id = request.args.get('status_id', type=int)
@@ -264,7 +269,7 @@ def tasks_list():
 @login_required
 def export():
     """
-    Экспорт задач в Excel.
+    Exports task data to an Excel file.
     """
     tasks_query = Tasks.query.all()
     task_data = [{
@@ -287,10 +292,13 @@ def export():
 @tasks.route('/tasks/create', methods=['GET', 'POST'])
 @login_required
 def create_task():
+    """
+    Renders a page to create a new task (using WTForms).
+    """
     from ..forms.tasks import TaskForm
     form = TaskForm()
 
-    # Предположим, у вас есть список категорий (здесь для примера пусто)
+    # Suppose we have a list of categories (empty for example):
     categories = []
 
     form.task_category_id.choices = [(category.id, category.name) for category in categories]
@@ -307,11 +315,11 @@ def create_task():
             )
             db.session.add(task)
             db.session.commit()
-            flash("Дело успешно создано!", "success")
+            flash("დავალება წარმატებით შეიქმნა!", "success")  # user sees Georgian message
             return redirect(url_for('tasks.tasks_list'))
         except Exception as e:
             db.session.rollback()
-            flash(f"Ошибка при создании задачи: {str(e)}", "danger")
+            flash(f"შეცდომა დავალების შექმნისას: {str(e)}", "danger")  # user sees Georgian message
 
     return render_template('tasks/create_task.html', form=form)
 
@@ -320,7 +328,7 @@ def create_task():
 @login_required
 def create_subtask():
     """
-    Создаёт подзадачу, если статус = 3 и тип задачи = 3, проверяет MAC-адрес.
+    Creates a subtask if status=3 and task_type=3, checks MAC address.
     """
     data = request.get_json()
     parent_task_id = data.get('parent_task_id')
@@ -332,23 +340,23 @@ def create_subtask():
 
     parent_task = Tasks.query.get(parent_task_id)
     if not parent_task:
-        return jsonify({'message': 'Родительская задача не найдена.'}), 404
+        return jsonify({'message': 'მთავარი დავალება ვერ მოიძებნა.'}), 404
 
     try:
-        # Если пытаемся создать подзадачу тип=3 и статус=3, проверяем MAC
+        # If we create a subtask with type=3 and status=3, we must check MAC
         if int(task_type_id) == 3 and int(status_id) == 3:
             if not mac_address:
-                return jsonify({'message': 'MAC-адрес обязателен для подзадачи с типом 3 и статусом 3.'}), 400
+                return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
             duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
             if duplicate_mac:
-                return jsonify({'message': 'MAC-адрес уже используется.', 'field': 'mac_address'}), 400
+                return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.', 'field': 'mac_address'}), 400
 
-        # Создаём подзадачу
+        # Create a new subtask
         subtask = Tasks(
             parent_task_id=parent_task_id,
             description=description,
             task_type_id=int(task_type_id),
-            status_id=int(status_id),  # <-- можно сразу ставить выбранный статус
+            status_id=int(status_id),
             created_by=current_user.id,
             order_id=order_id
         )
@@ -383,4 +391,4 @@ def create_subtask():
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({'message': f'Ошибка: {str(e)}'}), 500
+        return jsonify({'message': f'შეცდომა: {str(e)}'}), 500
