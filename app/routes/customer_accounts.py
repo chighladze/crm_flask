@@ -5,10 +5,10 @@ from flask_login import login_required
 from ..models.customer_accounts import CustomerAccount
 from ..extensions import db
 
-customer_accounts = Blueprint('customer_accounts', __name__, url_prefix='/customer_accounts')
+customer_accounts = Blueprint('customer_accounts', __name__)
 
 
-@customer_accounts.route('customer_accounts/<int:account_id>/view', methods=['GET'])
+@customer_accounts.route('/customer_accounts/<int:account_id>/view', methods=['GET'])
 @login_required
 def view_customer_account(account_id):
     """
