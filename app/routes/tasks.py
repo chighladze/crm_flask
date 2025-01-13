@@ -366,12 +366,12 @@ def create_subtask():
     data = request.get_json()
     parent_task_id = data.get('parent_task_id')
     description = data.get('description')
-    # Note: status_id is not directly used since parent's status change is used.
+    # Note: status_id is not used directly because parent's status change is applied.
     task_type_id = data.get('task_type_id')
     order_id = data.get('order_id')
     mac_address = data.get('mac_address')
 
-    # Get parent's type and parent's status change IDs from JSON payload
+    # Parse parent's type and status change from input (ensure integer conversion)
     try:
         parent_task_type_id = int(data.get('parent_task_type_id'))
         parent_status_change_id = int(data.get('parent_status_change_id'))
@@ -383,7 +383,7 @@ def create_subtask():
         return jsonify({'message': 'მთავარი დავალება ვერ მოიძებნა.'}), 404
 
     try:
-        # If the parent's type and parent's status change are both 3, MAC address is required
+        # If parent's type and status are both 3, a MAC address is required.
         if parent_task_type_id == 3 and parent_status_change_id == 3:
             if not mac_address:
                 return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ STATუსისა და TIPის დავალებისთვის.'}), 400
@@ -391,7 +391,7 @@ def create_subtask():
             if duplicate_mac:
                 return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.', 'field': 'mac_address'}), 400
 
-        # Create the new subtask (its status will be updated on the parent)
+        # Create the subtask.
         subtask = Tasks(
             parent_task_id=parent_task_id,
             description=description,
@@ -402,7 +402,7 @@ def create_subtask():
         db.session.add(subtask)
         db.session.commit()
 
-        # Update the parent's status to the new status (provided in parent's status change)
+        # Update the parent's status to the new status (provided in parent's status change).
         parent_task.status_id = parent_status_change_id
         db.session.add(parent_task)
         db.session.commit()
@@ -428,9 +428,15 @@ def create_subtask():
                     'name': subtask.created_user.name if subtask.created_user else 'Unknown'
                 },
                 'created_at': subtask.created_at.strftime('%Y-%m-%d %H:%M:%S')
-            }
+            },
+            # Return the updated parent's status and account info if applicable.
+            'new_status': {
+                'id': parent_task.status_id,
+                'name': parent_task.status.name,
+                'bootstrap_class': parent_task.status.bootstrap_class
+            },
+            'customer_account': None
         }
-
         return jsonify(response), 201
 
     except Exception as e:
