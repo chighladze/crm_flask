@@ -112,7 +112,7 @@ def update_task(task_id):
                 # Check for MAC uniqueness
                 duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
                 if duplicate_mac:
-                    return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.'}), 400
+                    return jsonify({'message': f'MAC-მისამართი უკვე გამოყენებულია payID: ( {duplicate_mac.account_pay_number} ).'}), 400
                 else:
                     new_account = CustomerAccount(
                         customer_id=task.order.customer_id,
