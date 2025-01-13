@@ -1,289 +1,292 @@
-<!-- crm_flask/app/templates/orders/order_list.html -->
+{# file_path: crm_flask/app/templates/orders/order_list.html #}
 {% extends 'main/base.html' %}
 
 {% block title %}განაცხადების სია{% endblock %}
 
+{% block head_extra %}
+  <!-- Мета-тег для адаптивности -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+{% endblock %}
+
 {% block content %}
-    <div class="card">
-        <div class="card-body">
-            <!-- Filter Form -->
-            <form id="filter-form" class="mb-4">
-                <div class="row g-2">
-                    <div class="col-md-3 mb-3">
-                        <label for="search">ძიება</label>
-                        <input type="text" id="search" name="search" class="form-control"
-                               placeholder="სახელი ან მობილური ნომერი">
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="identification_number">პერსონალური ნომერი</label>
-                        <input type="text" id="identification_number" name="identification_number" class="form-control"
-                               placeholder="პერსონალური ნომერი">
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="mobile">მობილური ტელეფონი</label>
-                        <input type="text" id="mobile" name="mobile" class="form-control"
-                               placeholder="მობილური ტელეფონი">
-                    </div>
-                    <div class="col-md-3 mb-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">ფილტრაცია</button>
-                    </div>
-                </div>
-                <div class="row g-2">
-                    <div class="col-md-3 mb-3">
-                        <label for="tariff_plan_id">სატარიფო გეგმა</label>
-                        <select id="tariff_plan_id" name="tariff_plan_id" class="form-control">
-                            <option value="">ყველა</option>
-                            {% for plan in tariff_plans %}
-                                <option value="{{ plan.id }}">{{ plan.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="status_id">სტატუსი</label>
-                        <select id="status_id" name="status_id" class="form-control">
-                            <option value="">ყველა</option>
-                            {% for status in order_statuses %}
-                                <option value="{{ status.id }}">{{ status.name_geo }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="district_id">რაიონი</label>
-                        <select id="district_id" name="district_id" class="form-control">
-                            <option value="">ყველა</option>
-                            {% for district in districts %}
-                                <option value="{{ district.id }}">{{ district.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="building_type_id">ტიპი</label>
-                        <select id="building_type_id" name="building_type_id" class="form-control">
-                            <option value="">ყველა</option>
-                            {% for btype in building_types %}
-                                <option value="{{ btype.id }}">{{ btype.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="row g-2">
-                    <div class="col-md-3 mb-3">
-                        <label for="start_date">დაწყების თარიღი</label>
-                        <input type="date" id="start_date" name="start_date" class="form-control">
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="end_date">დამთავრების თარიღი</label>
-                        <input type="date" id="end_date" name="end_date" class="form-control">
-                    </div>
-                    <div class="col-md-3 mb-3 d-flex align-items-end">
-                        <button type="button" id="export-btn" class="btn btn-success w-100">ექსპორტი</button>
-                    </div>
-                    <div class="col-md-3 mb-3 d-flex align-items-end">
-                        <button type="button" id="clear-filters" class="btn btn-secondary w-100">ფილტრის გასუფთავება
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-            <!-- Orders Table -->
-            <div id="orders-table-container">
-                <table class="table table-bordered">
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>კლიენტი</th>
-                        <th>პ.ნ./ს.კ.</th>
-                        <th>მობილური</th>
-                        <th title="დამატებითი საკონტაქტო">დ.საკონტაქტო</th>
-                        <th>ტარიფი</th>
-                        <th>სტატუსი</th>
-                        <th>რაიონი</th>
-                        <th>ტიპი</th>
-                        <th>თარიღი</th>
-                        <th>კომენტარი</th>
-                        <th>მოქმედება</th>
-                    </tr>
-                    </thead>
-                    <tbody id="orders-table-body">
-                    <!-- Orders will be populated here via JavaScript -->
-                    </tbody>
-                </table>
-                <!-- Pagination Controls -->
-                <nav>
-                    <ul class="pagination" id="pagination">
-                        <!-- Pagination buttons will be populated here via JavaScript -->
-                    </ul>
-                </nav>
-            </div>
+<div class="card">
+  <div class="card-body">
+    <!-- Compact Filter Form -->
+    <form id="filter-form" class="mb-3">
+      <div class="row g-2 align-items-end">
+        <!-- Developer Note: Fields are arranged compactly -->
+        <div class="col-12 col-sm-6 col-md-2">
+          <label for="search">ძიება</label>
+          <input type="text" id="search" name="search" class="form-control" placeholder="სახელი/ტელეფონი">
         </div>
+        <div class="col-12 col-sm-6 col-md-2">
+          <label for="identification_number">პ.ნ./ს.კ.</label>
+          <input type="text" id="identification_number" name="identification_number" class="form-control" placeholder="პ.ნ./ს.კ.">
+        </div>
+        <div class="col-12 col-sm-6 col-md-2">
+          <label for="mobile">მობილური</label>
+          <input type="text" id="mobile" name="mobile" class="form-control" placeholder="ტელეფონის ნომერი">
+        </div>
+        <div class="col-12 col-sm-6 col-md-2">
+          <label for="tariff_plan_id">სატარიფო გეგმა</label>
+          <select id="tariff_plan_id" name="tariff_plan_id" class="form-control">
+            <option value="">ყველა</option>
+            {% for plan in tariff_plans %}
+              <option value="{{ plan.id }}">{{ plan.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-sm-6 col-md-2">
+          <label for="status_id">სტატუსი</label>
+          <select id="status_id" name="status_id" class="form-control">
+            <option value="">ყველა</option>
+            {% for status in order_statuses %}
+              <option value="{{ status.id }}">{{ status.name_geo }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-sm-6 col-md-2">
+          <label for="per_page">ერთი გვერდზე</label>
+          <select id="per_page" name="per_page" class="form-control">
+            <option value="10">10</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 mt-2">
+        <div class="col-12 col-sm-4">
+          <label for="district_id">რაიონი</label>
+          <select id="district_id" name="district_id" class="form-control">
+            <option value="">ყველა</option>
+            {% for district in districts %}
+              <option value="{{ district.id }}">{{ district.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-sm-4">
+          <label for="building_type_id">ტიპი</label>
+          <select id="building_type_id" name="building_type_id" class="form-control">
+            <option value="">ყველა</option>
+            {% for btype in building_types %}
+              <option value="{{ btype.id }}">{{ btype.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-6 col-sm-4">
+          <label for="start_date">დაწყების თარიღი</label>
+          <input type="date" id="start_date" name="start_date" class="form-control">
+        </div>
+        <div class="col-6 col-sm-4">
+          <label for="end_date">დამთავრების თარიღი</label>
+          <input type="date" id="end_date" name="end_date" class="form-control">
+        </div>
+      </div>
+      <!-- Compact Action Buttons -->
+      <div class="row g-2 mt-3">
+        <div class="col-12 d-flex justify-content-center">
+          <button type="submit" class="btn btn-primary btn-sm mx-1">ფილტრაცია</button>
+          <button type="button" id="export-btn" class="btn btn-success btn-sm mx-1">ექსპორტი</button>
+          <button type="button" id="clear-filters" class="btn btn-secondary btn-sm mx-1">ფილტრის გასუფთავება</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Orders Table -->
+    <div id="orders-table-container" class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>კლიენტი</th>
+            <th>პ/ნ/ს/კ</th>
+            <th>მობილური</th>
+            <th>დამატებითი</th>
+            <th>ტარიფი</th>
+            <th>სტატუსი</th>
+            <th>რაიონი</th>
+            <th>ტიპი</th>
+            <th>თარიღი</th>
+            <th>კომენტარი</th>
+            <th>მოქმედება</th>
+          </tr>
+        </thead>
+        <tbody id="orders-table-body">
+          <!-- Orders will be injected via JavaScript -->
+        </tbody>
+      </table>
+      <!-- Pagination Controls -->
+      <nav>
+        <ul class="pagination" id="pagination">
+          <!-- Pagination buttons will be injected here via JavaScript -->
+        </ul>
+      </nav>
     </div>
+  </div>
+</div>
+{% endblock %}
 
-    <!-- JavaScript for handling filters and AJAX requests -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const filterForm = document.getElementById('filter-form');
-            const ordersTableBody = document.getElementById('orders-table-body');
-            const paginationContainer = document.getElementById('pagination');
-            const exportBtn = document.getElementById('export-btn');
-            const clearFiltersBtn = document.getElementById('clear-filters');
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Cache DOM elements (Developer: use meaningful variable names)
+  const filterForm = document.getElementById('filter-form');
+  const ordersTableBody = document.getElementById('orders-table-body');
+  const paginationContainer = document.getElementById('pagination');
+  const exportBtn = document.getElementById('export-btn');
+  const clearFiltersBtn = document.getElementById('clear-filters');
+  const perPageSelect = document.getElementById('per_page');
 
-            // Load saved filters from localStorage
-            const savedFilters = JSON.parse(localStorage.getItem('orders_filters')) || {};
+  // Load saved filters from localStorage
+  const savedFilters = JSON.parse(localStorage.getItem('orders_filters')) || {};
 
-            // Populate the filter form with saved filters
-            for (const key in savedFilters) {
-                const field = document.querySelector(`[name="${key}"]`);
-                if (field) {
-                    field.value = savedFilters[key];
-                }
-            }
+  // Populate form fields with saved filters
+  for (const key in savedFilters) {
+    const field = document.querySelector(`[name="${key}"]`);
+    if (field) {
+      field.value = savedFilters[key];
+    }
+  }
 
-            // Function to fetch and display orders
-            function fetchOrders(page = 1) {
-                // Get current filter values
-                const formData = new FormData(filterForm);
-                const params = new URLSearchParams();
-                formData.forEach((value, key) => {
-                    if (value) {
-                        params.append(key, value);
-                    }
-                });
-                params.append('page', page);
-                params.append('per_page', 10);
+  // Function to fetch orders using AJAX and update table and pagination
+  function fetchOrders(page = 1) {
+    const formData = new FormData(filterForm);
+    const params = new URLSearchParams();
+    formData.forEach((value, key) => {
+      if (value) params.append(key, value);
+    });
+    params.append('page', page);
+    params.append('per_page', perPageSelect.value); // Dynamic per_page
 
-                // Fetch orders via API
-                fetch(`/api/orders_list?${params.toString()}`, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Populate the orders table
-                        ordersTableBody.innerHTML = '';
-                        data.orders.forEach(order => {
-                            const row = document.createElement('tr');
+    fetch(`/api/orders_list?${params.toString()}`, {
+      method: 'GET',
+      headers: {'X-Requested-With': 'XMLHttpRequest'}
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Clear existing orders
+      ordersTableBody.innerHTML = '';
+      data.orders.forEach(order => {
+        // Truncate comment to 20 characters; display full in title on hover
+        let commentDisplay = 'N/A';
+        let titleAttr = '';
+        if (order.Comment) {
+          titleAttr = order.Comment;
+          commentDisplay = order.Comment.length > 20 ? order.Comment.substring(0,20) + '...' : order.Comment;
+        }
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${order.ID}</td>
+          <td>${order.Customer}</td>
+          <td>${order["Identification Number"]}</td>
+          <td>${order.Mobile}</td>
+          <td>${order["Alt Mobile"] || 'N/A'}</td>
+          <td>${order["Tariff Plan"]}</td>
+          <td>${order["Status"]}</td>
+          <td>${order["District"]}</td>
+          <td>${order["Building Type"]}</td>
+          <td>${order["Created At"]}</td>
+          <td title="${titleAttr}">${commentDisplay}</td>
+          <td>
+            <a href="/orders/${order.ID}/view" class="btn btn-sm btn-info" title="ნახვა">
+              <i class="fa fa-eye"></i>
+            </a>
+            <a href="/orders/${order.ID}/edit" class="btn btn-sm btn-warning" title="რედაქტირება">
+              <i class="fa fa-edit"></i>
+            </a>
+          </td>
+        `;
+        ordersTableBody.appendChild(row);
+      });
 
-                            row.innerHTML = `
-                        <td>${order.ID}</td>
-                        <td>${order.Customer}</td>
-                        <td>${order["Identification Number"]}</td>
-                        <td>${order.Mobile}</td>
-                        <td>${order["Alt Mobile"] || 'N/A'}</td>
-                        <td>${order["Tariff Plan"]}</td>
-                        <td>${order["Status"]}</td>
-                        <td>${order["District"]}</td>
-                        <td>${order["Building Type"]}</td>
-                        <td>${order["Created At"]}</td>
-                        <td>${order.Comment || 'N/A'}</td>
-                        <td>
-                            <a href="/orders/${order.ID}/view" class="btn btn-sm btn-info" title="ნახვა">
-                                <i class="fa fa-eye"></i>
-                            </a>
-                            <a href="/orders/${order.ID}/edit" class="btn btn-sm btn-warning" title="რედაქტირება">
-                                <i class="fa fa-edit"></i>
-                            </a>
-                        </td>
-                    `;
-                            ordersTableBody.appendChild(row);
-                        });
+      // Build pagination buttons
+      const pagination = data.pagination;
+      paginationContainer.innerHTML = '';
 
-                        // Handle pagination
-                        const pagination = data.pagination;
-                        paginationContainer.innerHTML = '';
+      // Previous button
+      const prevLi = document.createElement('li');
+      prevLi.classList.add('page-item');
+      if (!pagination.has_prev) {
+        prevLi.classList.add('disabled');
+      }
+      prevLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page - 1}">უკან</a>`;
+      paginationContainer.appendChild(prevLi);
 
-                        // Previous Button
-                        const prevLi = document.createElement('li');
-                        prevLi.classList.add('page-item', pagination.has_prev ? '' : 'disabled');
-                        prevLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page - 1}">უკან</a>`;
-                        paginationContainer.appendChild(prevLi);
+      // Limit visible pages (maximum 5 pages)
+      const maxPagesToShow = 5;
+      let startPage = Math.max(1, pagination.current_page - Math.floor(maxPagesToShow / 2));
+      let endPage = startPage + maxPagesToShow - 1;
+      if (endPage > pagination.pages) {
+        endPage = pagination.pages;
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      }
+      for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.classList.add('page-item');
+        if (i === pagination.current_page) {
+          li.classList.add('active');
+        }
+        li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+        paginationContainer.appendChild(li);
+      }
 
-                        // Page Numbers (limit to a range for better UX)
-                        const maxPagesToShow = 5;
-                        let startPage = Math.max(1, pagination.current_page - Math.floor(maxPagesToShow / 2));
-                        let endPage = startPage + maxPagesToShow - 1;
-                        if (endPage > pagination.pages) {
-                            endPage = pagination.pages;
-                            startPage = Math.max(1, endPage - maxPagesToShow + 1);
-                        }
+      // Next button
+      const nextLi = document.createElement('li');
+      nextLi.classList.add('page-item');
+      if (!pagination.has_next) {
+        nextLi.classList.add('disabled');
+      }
+      nextLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page + 1}">წინ</a>`;
+      paginationContainer.appendChild(nextLi);
+    })
+    .catch(error => {
+      console.error('Error fetching orders:', error);
+    });
+  }
 
-                        for (let i = startPage; i <= endPage; i++) {
-                            const li = document.createElement('li');
-                            li.classList.add('page-item', i === pagination.current_page ? 'active' : '');
-                            li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
-                            paginationContainer.appendChild(li);
-                        }
+  // Initial fetch using saved page or page 1
+  fetchOrders(savedFilters.page || 1);
 
-                        // Next Button
-                        const nextLi = document.createElement('li');
-                        nextLi.classList.add('page-item', pagination.has_next ? '' : 'disabled');
-                        nextLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page + 1}">წინ</a>`;
-                        paginationContainer.appendChild(nextLi);
-                    })
-                    .catch(error => {
-                        console.error('Error fetching orders:', error);
-                    });
-            }
+  // Save filters and fetch orders on filter form submission
+  filterForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    const formData = new FormData(filterForm);
+    const filters = {};
+    formData.forEach((value, key) => { filters[key] = value; });
+    filters.page = 1; // Reset to first page
+    localStorage.setItem('orders_filters', JSON.stringify(filters));
+    fetchOrders(1);
+  });
 
-            // Initial fetch with saved filters
-            fetchOrders(savedFilters.page || 1);
+  // Handle pagination click events
+  paginationContainer.addEventListener('click', function (event) {
+    event.preventDefault();
+    const target = event.target;
+    if (target.tagName === 'A' && !target.parentElement.classList.contains('disabled') && !target.parentElement.classList.contains('active')) {
+      const page = parseInt(target.getAttribute('data-page'));
+      if (!isNaN(page) && page > 0) {
+        const filters = JSON.parse(localStorage.getItem('orders_filters')) || {};
+        filters.page = page;
+        localStorage.setItem('orders_filters', JSON.stringify(filters));
+        fetchOrders(page);
+      }
+    }
+  });
 
-            // Handle filter form submission
-            filterForm.addEventListener('submit', function (event) {
-                event.preventDefault();
+  // Export button handler
+  exportBtn.addEventListener('click', function () {
+    const formData = new FormData(filterForm);
+    const params = new URLSearchParams();
+    formData.forEach((value, key) => { if (value) params.append(key, value); });
+    window.location.href = `/orders/export?${params.toString()}`;
+  });
 
-                // Save filters to localStorage
-                const formData = new FormData(filterForm);
-                const filters = {};
-                formData.forEach((value, key) => {
-                    filters[key] = value;
-                });
-                filters.page = 1; // Reset to first page on new filter
-                localStorage.setItem('orders_filters', JSON.stringify(filters));
-
-                // Fetch orders with new filters
-                fetchOrders(1);
-            });
-
-            // Handle pagination click
-            paginationContainer.addEventListener('click', function (event) {
-                event.preventDefault();
-                const target = event.target;
-                if (target.tagName === 'A') {
-                    const page = parseInt(target.getAttribute('data-page'));
-                    if (!isNaN(page)) {
-                        // Update the page in localStorage
-                        const filters = JSON.parse(localStorage.getItem('orders_filters')) || {};
-                        filters.page = page;
-                        localStorage.setItem('orders_filters', JSON.stringify(filters));
-
-                        // Fetch orders for the selected page
-                        fetchOrders(page);
-                    }
-                }
-            });
-
-            // Handle export button click
-            exportBtn.addEventListener('click', function () {
-                const formData = new FormData(filterForm);
-                const params = new URLSearchParams();
-                formData.forEach((value, key) => {
-                    if (value) {
-                        params.append(key, value);
-                    }
-                });
-
-                // Redirect to the export URL with current filters
-                window.location.href = `/orders/export?${params.toString()}`;
-            });
-
-            // Handle clear filters button
-            clearFiltersBtn.addEventListener('click', function () {
-                localStorage.removeItem('orders_filters');
-                filterForm.reset();
-                fetchOrders(1);
-            });
-        });
-    </script>
+  // Clear filters handler
+  clearFiltersBtn.addEventListener('click', function () {
+    localStorage.removeItem('orders_filters');
+    filterForm.reset();
+    fetchOrders(1);
+  });
+});
+</script>
 {% endblock %}

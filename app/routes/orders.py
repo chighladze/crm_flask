@@ -173,6 +173,7 @@ def api_orders_list():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     page = request.args.get('page', 1, type=int)
+    # Get per_page parameter from request; default to 10 if not provided
     per_page = request.args.get('per_page', 10, type=int)
 
     # Build the query with filters
@@ -208,7 +209,7 @@ def api_orders_list():
     if end_date:
         query = query.filter(Orders.created_at <= end_date)
 
-    # Pagination
+    # Apply pagination with the dynamic per_page value
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     orders = pagination.items
 
@@ -238,7 +239,6 @@ def api_orders_list():
             "has_next": pagination.has_next,
         }
     }
-
     return jsonify(response)
 
 
