@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const $parentTaskID = $('#parentTaskID');
     const $parentTaskTypeID = $('#parentTaskTypeID');
     const $parentTaskStatusID = $('#parentTaskStatusID');
+    // For status change, we use the <select> value
     const $parentTaskStatusChangeID = $('#parentTaskStatusChangeID');
     const $macAddressContainer = $('#macAddressContainer');
     const $macAddressInput = $('#macAddressInput');
@@ -57,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
             $subTaskCreate.hide();
         }
 
-        // Show MAC address field if task_type=3 and status=3
+        // Show MAC address field if task_type=3 and new status=3
         if (currentTypeId === 3 && newStatusId === 3) {
             $macAddressContainer.slideDown();
             const macVal = $macAddressInput.val().trim();
@@ -78,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const currentTypeId = parseInt($parentTaskTypeID.text(), 10);
         const newStatusId = parseInt($parentTaskStatusChangeID.val(), 10);
 
-        // Check if we are in state "task_type=3 and status=3"
+        // Check if we are in state "task_type=3 and new status=3"
         if (currentTypeId === 3 && newStatusId === 3) {
             if (isValidMacAddress(macVal)) {
                 $(this).removeClass('is-invalid').addClass('is-valid');
@@ -94,11 +95,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // -- "Plus" button for creating subtask
+    // -- "Plus" button for creating subtask (English comment)
     $subTaskCreate.on('click', function () {
         isCreatingSubtask = true;
         $actionType.val('create_subtask');
-        // Fetch divisions when user wants to create a subtask
+        // Fetch divisions for the subtask creation
         fetchDivisions()
             .then(divisions => {
                 if (divisions.length === 0) {
@@ -124,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => data.divisions);
     }
 
-    // -- Populate division <select> for subtask
+    // -- Populate division <select> for subtask (English comment)
     function populateSubTaskDivisionSelect(divisions) {
         $subTaskDivisionId.html('<option value="" disabled selected>დივიზიონის არჩევა</option>');
         divisions.forEach(div => {
@@ -133,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // -- Handle division selection for subtask
+    // -- Handle division selection for subtask (English comment)
     $subTaskDivisionId.on('change', function () {
         const divisionId = parseInt($(this).val(), 10);
         if (divisionId) {
@@ -154,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // -- Fetch task types by division
+    // -- Fetch task types by division (English comment)
     function fetchTaskTypesByDivision(divisionId) {
         return fetch(`/tasks/task_types/get_task_types/${divisionId}`)
             .then(resp => {
@@ -164,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => data.task_types);
     }
 
-    // -- Populate <select> for subtask types
+    // -- Populate <select> for subtask types (English comment)
     function populateSubTaskTypeSelect(taskTypes) {
         $subTaskTypeId.html('<option value="" disabled selected>დავალების ტიპის არჩევა</option>');
         taskTypes.forEach(t => {
@@ -173,10 +174,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // -- Handle subtask type selection
+    // -- Handle subtask type selection (English comment)
     $subTaskTypeId.on('change', function () {
         const selectedTypeId = parseInt($(this).val(), 10);
-        // Show description field for subtask
+        // Show description field for subtask if a type is selected
         if (selectedTypeId) {
             $subTaskDescriptionContainer.slideDown();
         } else {
@@ -185,13 +186,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // -- Handle form submission in the modal
+    // -- Handle form submission in the modal (English comment)
     $('#taskEditForm').on('submit', function (event) {
         event.preventDefault();
         const parentTaskId = parseInt($parentTaskID.text(), 10);
         const parentTaskTypeId = parseInt($parentTaskTypeID.text(), 10);
-        const parentTaskStatusChangeId = parseInt($parentTaskStatusChangeID.text(), 10);
-        const statusValue = parseInt($parentTaskStatusChangeID.val(), 10);
+        // Use .val() for select to get the currently selected value
+        const parentTaskStatusChangeId = parseInt($parentTaskStatusChangeID.val(), 10);
+        const statusValue = parentTaskStatusChangeId;
         const macAddressValue = $macAddressInput.val().trim();
 
         if ($actionType.val() === 'create_subtask') {
@@ -199,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const subtaskData = {
                 parent_task_id: parentTaskId,
                 parent_task_type_id: parentTaskTypeId,
-                parent_status_change_id: parseInt($parentTaskStatusChangeID.val(), 10), // <-- добавили
+                parent_status_change_id: parseInt($parentTaskStatusChangeID.val(), 10),
                 description: $subTaskDescriptionID.val().trim(),
                 status_id: statusValue,
                 task_type_id: parseInt($subTaskTypeId.val() || '0', 10),
@@ -207,10 +209,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 mac_address: ''
             };
 
-            // If type=3 and status=3 => need a MAC
-            if (subtaskData.parent_task_type_id === 3 && subtaskData.parentTaskStatusChangeId === 3) {
+            // If parent's type=3 and parent's status=3, then MAC is required for subtask creation
+            if (subtaskData.parent_task_type_id === 3 && subtaskData.parent_status_change_id === 3) {
                 if (!isValidMacAddress(macAddressValue)) {
-                    // Show Georgian user message
                     alert('MAC-მისამართი აუცილებელია და უნდა იყოს სწორი ფორმატის!');
                     return;
                 }
@@ -236,9 +237,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(response => {
                     if (!response.ok) {
-                        return response.json().then(data => {
-                            throw data;
-                        });
+                        return response.json().then(data => { throw data; });
                     }
                     return response.json();
                 })
@@ -258,13 +257,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const updateData = {
                 status_id: statusValue,
                 macAddress: '',
-                parent_task_type_id: parseInt($parentTaskTypeID.text(), 10),
-                parent_status_change_id: parseInt($parentTaskStatusChangeID.val(), 10)
+                parent_task_type_id: parentTaskTypeId,
+                parent_status_change_id: parentTaskStatusChangeId
             };
 
-            // If parent task type=3 and status=3 => need MAC
-            const currentTypeId = parseInt($parentTaskTypeID.text(), 10);
-            if (currentTypeId === 3 && statusValue === 3) {
+            // If parent's type=3 and new status=3, then MAC is required for updating status
+            if (parentTaskTypeId === 3 && statusValue === 3) {
                 if (!isValidMacAddress(macAddressValue)) {
                     alert('MAC-მისამართი აუცილებელია და უნდა იყოს სწორი ფორმატის (ტიპ=3, სტატუს=3)!');
                     return;
@@ -282,9 +280,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
                 .then(response => {
                     if (!response.ok) {
-                        return response.json().then(data => {
-                            throw data;
-                        });
+                        return response.json().then(data => { throw data; });
                     }
                     return response.json();
                 })
@@ -336,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#tasksTableBody').append(newRow);
     }
 
-    // -- Update a task row to reflect new status
+    // -- Update a task row to reflect new status (English comment)
     function updateTaskRow(taskId, newStatus) {
         const $statusCell = $(`#task-status-${taskId}`);
         if ($statusCell.length) {
@@ -345,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // -- Show task details in modal window
+    // -- Show task details in modal window (English comment)
     window.showTaskDetails = function (taskId) {
         resetModalState();
         $('#taskDetailsContent').hide();
@@ -363,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 $parentTaskTypeID.text(data.task_type.id || '');
                 $parentTaskStatusID.text(data.current_status.id || '');
 
-                // 2) Fill name fields
+                // 2) Fill name fields for division, task type, and status
                 const divisionName = data.task_type && data.task_type.division
                     ? data.task_type.division.name
                     : '';
@@ -392,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     $parentTaskStatusChangeID.append($option);
                 });
 
-                // 5) Show MAC field if type=3 and status=3
+                // 5) Show MAC field if current task type=3 and status=3
                 if (initialTypeId === 3 && initialStatusId === 3) {
                     $macAddressContainer.slideDown();
                     if (data.mac_address) {
@@ -446,7 +442,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.removeChild(tempInput);
     };
 
-    // -- Initialize Bootstrap tooltips
+    // -- Initialize Bootstrap tooltips (English comment)
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
