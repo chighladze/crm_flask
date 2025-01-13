@@ -66,13 +66,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ url_for('orders.orders_list_page') }}" class="nav-link {% if request.path.split('/')[2] == 'წქწ' %}active{% endif %}">
+                    <a href="{{ url_for('orders.orders_list_page') }}" class="nav-link {% if active_menu == 'orders' and request.path.split('/')[2] == 'orders_list' %}active{% endif %}">
                         <i class="fas fa-window-restore nav-icon"></i>
                         <p>ყველა განაცხადი</p>
                     </a>
                 </li>
-                <li class="nav-item {% if active_menu == 'customers' %}menu-open{% endif %}">
-                    <a href="#" class="nav-link {% if active_menu == 'customers' %}active{% endif %}">
+                <li class="nav-item {% if active_menu == 'customers' and request.path.split('/')[2] != 'create' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if active_menu == 'customers' and request.path.split('/')[2] != 'create' %}active{% endif %}">
                         <i class="nav-icon far fa-address-card"></i>
                         <p>
                             კლიენტები
@@ -81,7 +81,7 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('customers.customers_list') }}" class="nav-link {% if request.path.split('/')[2] == 'list' %}active{% endif %}">
+                            <a href="{{ url_for('customers.customers_list') }}" class="nav-link {% if active_menu == 'customers' and request.path.split('/')[2] == 'list' %}active{% endif %}">
                                 <i class="fas fa-users nav-icon"></i>
                                 <p>ყველა კლიენტები</p>
                             </a>

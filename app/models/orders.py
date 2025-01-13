@@ -17,6 +17,8 @@ class Orders(db.Model):
     legal_address = db.Column(db.String, nullable=False)
     actual_address = db.Column(db.String, nullable=False)
     status_id = db.Column(db.Integer, db.ForeignKey('order_statuses.id'), nullable=False)
+    contact_person_name = db.Column(db.String(256), nullable=True)
+    contact_person_mobile = db.Column(db.String(20), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

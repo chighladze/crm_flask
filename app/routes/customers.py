@@ -117,7 +117,9 @@ def create():
                 legal_address=customer_form.legal_address.data,
                 actual_address=customer_form.actual_address.data,
                 task_id=task.id,
-                status_id=1
+                status_id=1,
+                contact_person_name=customer_form.contact_person_name.data,
+                contact_person_mobile=customer_form.contact_person_mobile.data
             )
             db.session.add(order)  # Ensure the order is added to the session
 
