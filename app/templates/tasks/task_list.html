@@ -2,297 +2,347 @@
 
 {% block title %}დავალებების სია{% endblock %}
 
-{% block breadcrumb %}
-    <li class="breadcrumb-item active">დავალებების სია</li>
+{% block head_extra %}
+  <!-- Мета-тег для адаптивности -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <!-- Кнопка создания задачи -->
+      <a href="{{ url_for('tasks.create_task') }}" class="btn btn-success btn-sm" title="დავალების დამატება">
+        <i class="fas fa-plus"></i>
+      </a>
+      <h5 class="mb-0">დავალებების სია</h5>
+      <!-- Кнопка экспорта -->
+      <a href="{{ url_for('tasks.export', **request.args) }}" class="btn btn-outline-success btn-sm" title="ექსპორტი">
+        <i class="fas fa-file-excel"></i>
+      </a>
+    </div>
+  </div>
+  <div class="card-body">
+    <!-- Форма расширенной фильтрации -->
+    <form id="filter-form" class="mb-3">
+      <div class="row g-2">
+        <!-- Строка 1 -->
+        <div class="col-12 col-md-3">
+          <label for="search">ძებნა</label>
+          <input type="text" name="search" id="search" class="form-control" placeholder="აღწერა ან ID" value="{{ request.args.get('search', '') }}">
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="status_id">სტატუსი</label>
+          <select name="status_id" id="status_id" class="form-control">
+            <option value="">ყველა</option>
+            {% for status in statuses %}
+              <option value="{{ status.id }}" {% if status.id|string == request.args.get('status_id', '') %}selected{% endif %}>{{ status.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="priority_id">პრიორიტეტი</label>
+          <select name="priority_id" id="priority_id" class="form-control">
+            <option value="">ყველა</option>
+            {% for priority in priorities %}
+              <option value="{{ priority.id }}" {% if priority.id|string == request.args.get('priority_id', '') %}selected{% endif %}>{{ priority.level }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="division_id">განყოფილება</label>
+          <select name="division_id" id="division_id" class="form-control">
+            <option value="">ყველა</option>
+            {% for division in divisions %}
+              <option value="{{ division.id }}" {% if division.id|string == request.args.get('division_id', '') %}selected{% endif %}>{{ division.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 mt-2">
+        <!-- Строка 2 -->
+        <div class="col-12 col-md-3">
+          <label for="task_category_id">დავალების ტიპი</label>
+          <select name="task_category_id" id="task_category_id" class="form-control">
+            <option value="">ყველა</option>
+            {# Список типов (категория) будет обновляться динамически при выборе divisii #}
+            {% if categories %}
+              {% for category in categories %}
+                <option value="{{ category.id }}" {% if category.id|string == request.args.get('task_category_id', '') %}selected{% endif %}>{{ category.name }}</option>
+              {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="created_by">შექმნა (ავტორი)</label>
+          <select name="created_by" id="created_by" class="form-control">
+            <option value="">ყველა</option>
+            {% for user in users %}
+              <option value="{{ user.id }}" {% if user.id|string == request.args.get('created_by', '') %}selected{% endif %}>{{ user.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="assigned_to">შემსრულებელი</label>
+          <select name="assigned_to" id="assigned_to" class="form-control">
+            <option value="">ყველა</option>
+            {% for user in users %}
+              <option value="{{ user.id }}" {% if user.id|string == request.args.get('assigned_to', '') %}selected{% endif %}>{{ user.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="per_page">ერთეული გვერდზე</label>
+          <select name="per_page" id="per_page" class="form-control">
+            <option value="10" {% if request.args.get('per_page') == '10' %}selected{% endif %}>10</option>
+            <option value="50" {% if request.args.get('per_page') == '50' %}selected{% endif %}>50</option>
+            <option value="100" {% if request.args.get('per_page') == '100' %}selected{% endif %}>100</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 mt-2">
+        <!-- Строка 3: Дата создания -->
+        <div class="col-12 col-md-3">
+          <label for="start_date">შექმნის თარიღი (დან)</label>
+          <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.args.get('start_date', '') }}">
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="end_date">შექმნის თარიღი (მდე)</label>
+          <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.args.get('end_date', '') }}">
+        </div>
+      </div>
+      <div class="row g-2 mt-2">
+        <!-- Строка 4: Фильтры по due_date и подразделению задачи -->
+        <div class="col-12 col-md-3">
+          <label for="due_date_start">დასრულების თარიღი (დან)</label>
+          <input type="date" name="due_date_start" id="due_date_start" class="form-control" value="{{ request.args.get('due_date_start', '') }}">
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="due_date_end">დასრულების თარიღი (მდე)</label>
+          <input type="date" name="due_date_end" id="due_date_end" class="form-control" value="{{ request.args.get('due_date_end', '') }}">
+        </div>
+        <div class="col-12 col-md-3">
+          <label for="created_division_id">შექმნის განყოფილება</label>
+          <select name="created_division_id" id="created_division_id" class="form-control">
+            <option value="">ყველა</option>
+            {% for division in divisions %}
+              <option value="{{ division.id }}" {% if division.id|string == request.args.get('created_division_id', '') %}selected{% endif %}>
+                {{ division.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="d-flex justify-content-center mt-3">
+        <button type="submit" class="btn btn-primary btn-sm mx-1">ფილტრაცია</button>
+        <button type="button" id="clearFilters" class="btn btn-secondary btn-sm mx-1">გასუფთავება</button>
+      </div>
+    </form>
+
+    <!-- Таблица задач -->
+    <div class="table-responsive">
+      <table class="table table-bordered" id="tasks-table">
+        <thead>
+          <tr>
+            <th class="text-center">ID</th>
+            <th class="text-center">დავალების ტიპი</th>
+            <th class="text-center">ტიპი</th>
+            <th class="text-center">სტატუსი</th>
+            <th class="text-center">პრიორიტეტი</th>
+            <th class="text-center">შემსრულებელი</th>
+            <th class="text-center">შექმნის თარიღი</th>
+            <th class="text-center">დასრულების თარიღი</th>
+            <th class="text-center">მოქმედება</th>
+          </tr>
+        </thead>
+        <tbody id="tasks-table-body">
+          {# JS-ის საშუალებით ჩაიტვირთება ცხრილი #}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Панელი პარაგინაციისთვის -->
+    <nav>
+      <ul class="pagination justify-content-center" id="pagination">
+        {# პაგინაციის ღილაკები შეიქმნება JavaScript-ის მეშვეობით #}
+      </ul>
+    </nav>
+  </div>
+</div>
 {% endblock %}
 
 {% block script %}
 <script>
-document.getElementById("resetFilters").addEventListener("click", function () {
-    const form = document.querySelector("form");
-    form.reset();
-    const url = new URL(window.location.href);
-    url.search = '';
-    window.location.href = url.toString();
+document.addEventListener('DOMContentLoaded', function () {
+  const filterForm = document.getElementById('filter-form');
+  const tasksTableBody = document.getElementById('tasks-table-body');
+  const paginationContainer = document.getElementById('pagination');
+  const clearFiltersBtn = document.getElementById('clearFilters');
+  const divisionSelect = document.getElementById('division_id');
+  const taskCategorySelect = document.getElementById('task_category_id');
+
+  // Загружаем сохранённые фильтры из localStorage (если нужно, для дебага можно временно отключить)
+  const savedFilters = JSON.parse(localStorage.getItem('tasks_filters')) || {};
+  console.log('Сохранённые фильтры:', savedFilters);
+  for (const key in savedFilters) {
+    const field = document.querySelector(`[name="${key}"]`);
+    if (field) {
+      field.value = savedFilters[key];
+    }
+  }
+
+  // Функция для динамической подгрузки типов задач в зависимости от выбранной дивизии
+  function updateTaskCategories(division_id) {
+    if (!division_id) {
+      taskCategorySelect.innerHTML = '<option value="">ყველა</option>';
+      return;
+    }
+    fetch(`/tasks/task_types/get_task_types/${division_id}`, {
+      method: 'GET',
+      headers: {'X-Requested-With': 'XMLHttpRequest'}
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Получены типы задач:', data);
+        taskCategorySelect.innerHTML = '<option value="">ყველა</option>';
+        data.task_types.forEach(function(type) {
+          const option = document.createElement('option');
+          option.value = type.id;
+          option.textContent = type.name;
+          taskCategorySelect.appendChild(option);
+        });
+      })
+      .catch(error => console.error('Error fetching task types:', error));
+  }
+
+  // Если дивизия уже выбрана при загрузке страницы, обновляем список категорий
+  if (divisionSelect.value) {
+    updateTaskCategories(divisionSelect.value);
+  }
+  divisionSelect.addEventListener('change', function () {
+    updateTaskCategories(this.value);
+  });
+
+  // Функция для AJAX-запроса списка задач
+  function fetchTasks(page = 1) {
+    const formData = new FormData(filterForm);
+    const params = new URLSearchParams();
+    formData.forEach((value, key) => {
+      if (value) params.append(key, value);
+    });
+    params.append('page', page);
+
+    console.log('Запрос с параметрами:', params.toString());
+
+    fetch(`/api/tasks_list?${params.toString()}`, {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Ответ сервера:', data);
+        tasksTableBody.innerHTML = '';
+        data.tasks.forEach(task => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="text-center">${task.id}</td>
+            <td class="text-center">${task.task_category}</td>
+            <td class="text-center">${task.task_type}</td>
+            <td class="text-center">${task.status}</td>
+            <td class="text-center">${task.priority}</td>
+            <td class="text-center">${task.assigned_to}</td>
+            <td class="text-center">${task.created_at}</td>
+            <td class="text-center">${task.due_date || ''}</td>
+            <td class="text-center">
+              <a href="/tasks/view/${task.id}" class="btn btn-info btn-sm" title="ნახვა">
+                <i class="fas fa-eye"></i>
+              </a>
+            </td>
+          `;
+          tasksTableBody.appendChild(row);
+        });
+
+        // Формирование кнопок пагинации
+        paginationContainer.innerHTML = '';
+        const pagination = data.pagination;
+        // Кнопка "უკან" (предыдущая)
+        const prevLi = document.createElement('li');
+        prevLi.classList.add('page-item');
+        if (!pagination.has_prev) {
+          prevLi.classList.add('disabled');
+        }
+        prevLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page - 1}">&laquo;</a>`;
+        paginationContainer.appendChild(prevLi);
+
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, pagination.current_page - Math.floor(maxPagesToShow / 2));
+        let endPage = startPage + maxPagesToShow - 1;
+        if (endPage > pagination.pages) {
+          endPage = pagination.pages;
+          startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+          const li = document.createElement('li');
+          li.classList.add('page-item');
+          if (i === pagination.current_page) {
+            li.classList.add('active');
+          }
+          li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+          paginationContainer.appendChild(li);
+        }
+
+        // Кнопка "წინ" (следующая)
+        const nextLi = document.createElement('li');
+        nextLi.classList.add('page-item');
+        if (!pagination.has_next) {
+          nextLi.classList.add('disabled');
+        }
+        nextLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page + 1}">&raquo;</a>`;
+        paginationContainer.appendChild(nextLi);
+      })
+      .catch(error => console.error('Error fetching tasks:', error));
+  }
+
+  // Первоначальный запрос
+  fetchTasks(savedFilters.page || 1);
+
+  // Обработчик отправки формы фильтрации
+  filterForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+    const formData = new FormData(filterForm);
+    let filters = {};
+    formData.forEach((value, key) => { filters[key] = value; });
+    filters.page = 1;
+    console.log('Отправляем фильтры:', filters);
+    localStorage.setItem('tasks_filters', JSON.stringify(filters));
+    fetchTasks(1);
+  });
+
+  // Обработчик клика по кнопкам пагинации
+  paginationContainer.addEventListener('click', function (event) {
+    event.preventDefault();
+    const target = event.target;
+    if (target.tagName === 'A' &&
+        !target.parentElement.classList.contains('disabled') &&
+        !target.parentElement.classList.contains('active')) {
+      const page = parseInt(target.getAttribute('data-page'));
+      if (!isNaN(page) && page > 0) {
+        let filters = JSON.parse(localStorage.getItem('tasks_filters')) || {};
+        filters.page = page;
+        localStorage.setItem('tasks_filters', JSON.stringify(filters));
+        fetchTasks(page);
+      }
+    }
+  });
+
+  // Обработчик кнопки очистки фильтров
+  clearFiltersBtn.addEventListener('click', function () {
+    localStorage.removeItem('tasks_filters');
+    filterForm.reset();
+    fetchTasks(1);
+  });
 });
 </script>
 {% endblock %}
 
-{% block styles %}
-<style>
-    .btn:hover {
-        transition: transform 0.2s;
-        transform: scale(1.1);
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="card mb-2">
-    <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
-        <div>
-            <a href="{{ url_for('tasks.create_task') }}" class="btn btn-success" title="დავალების დამატება">
-                <i class="fas fa-plus"></i>
-            </a>
-        </div>
-
-        <div class="mx-auto">
-            <a href="#" class="btn btn-info" title="ფილტრი" data-toggle="modal" data-target="#filterModal">
-                <i class="fas fa-filter"></i>
-            </a>
-        </div>
-
-        <div>
-            <a href="{{ url_for('tasks.export', search=search_query, start_date=start_date, end_date=end_date, status=status_id, priority=priority_id) }}"
-               class="btn btn-block btn-outline-success"><i class="fas fa-file-excel"></i></a>
-        </div>
-    </div>
-</div>
-<!-- Filter Modal -->
-<div class="modal fade animate__animated animate__fadeInDown" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <!-- Modal header -->
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title" id="filterModalLabel">
-                    <i class="fas fa-filter"></i> ფილტრის პარამეტრები
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-
-            <!-- Modal body -->
-            <div class="modal-body">
-                <!-- Filter form -->
-                <form method="GET" action="{{ url_for('tasks.tasks_list') }}">
-
-                    <!-- Search block -->
-                    <div class="form-group">
-                        <label for="search"><i class="fas fa-search"></i> ძებნა:</label>
-                        <input type="text" name="search" class="form-control" placeholder="ძებნა ან აღწერა" value="{{ search_query }}">
-                    </div>
-
-                    <!-- General filters -->
-                    <h6 class="border-bottom pb-2 mb-3 text-muted">საერთო პარამეტრები</h6>
-                    <div class="row">
-                        <!-- Filter by status -->
-                        <div class="col-md-6 form-group">
-                            <label for="status_id"><i class="fas fa-info-circle"></i> სტატუსი:</label>
-                            <select name="status_id" class="form-control">
-                                <option value="">ყველა სტატუსი</option>
-                                {% for status in statuses %}
-                                    <option value="{{ status.id }}" {% if status.id == status_id %}selected{% endif %}>{{ status.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Filter by priority -->
-                        <div class="col-md-6 form-group">
-                            <label for="priority_id"><i class="fas fa-flag"></i> პრიორიტეტი:</label>
-                            <select name="priority_id" class="form-control">
-                                <option value="">ყველა პრიორიტეტი</option>
-                                {% for priority in priorities %}
-                                    <option value="{{ priority.id }}" {% if priority.id == task_priority_id %}selected{% endif %}>{{ priority.level }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Additional filters -->
-                    <h6 class="border-bottom pb-2 mb-3 text-muted">დამატებითი პარამეტრები</h6>
-                    <div class="row">
-                        <!-- Filter by category -->
-                        <div class="col-md-6 form-group">
-                            <label for="task_category_id"><i class="fas fa-list-alt"></i> კატეგორია:</label>
-                            <select name="task_category_id" class="form-control">
-                                <option value="">ყველა კატეგორია</option>
-                                {% for category in categories %}
-                                    <option value="{{ category.id }}" {% if category.id == task_category_id %}selected{% endif %}>{{ category.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Filter by type -->
-                        <div class="col-md-6 form-group">
-                            <label for="task_type_id"><i class="fas fa-tasks"></i> ტიპი:</label>
-                            <select name="task_type_id" class="form-control">
-                                <option value="">ყველა ტიპი</option>
-                                {% for task_type in task_category_types %}
-                                    <option value="{{ task_type.id }}" {% if task_type.id == task_type_id %}selected{% endif %}>{{ task_type.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <!-- Filter by creator -->
-                        <div class="col-md-6 form-group">
-                            <label for="created_by"><i class="fas fa-user"></i> ავტორი:</label>
-                            <select name="created_by" class="form-control">
-                                <option value="">ყველა ავტორი</option>
-                                {% for user in users %}
-                                    <option value="{{ user.id }}" {% if user.id == created_by %}selected{% endif %}>{{ user.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Filter by assignee -->
-                        <div class="col-md-6 form-group">
-                            <label for="assigned_to"><i class="fas fa-user-check"></i> შემსრულებელი:</label>
-                            <select name="assigned_to" class="form-control">
-                                <option value="">ყველა შემსრულებელი</option>
-                                {% for user in users %}
-                                    <option value="{{ user.id }}" {% if user.id == assigned_to %}selected{% endif %}>{{ user.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <!-- Filter by creator's department -->
-                        <div class="col-md-6 form-group">
-                            <label for="created_division_id"><i class="fas fa-building"></i> ავტორის დეპარტამენტი:</label>
-                            <select name="created_division_id" class="form-control">
-                                <option value="">ყველა დეპარტამენტი</option>
-                                {% for division in divisions %}
-                                    <option value="{{ division.id }}" {% if division.id == created_division_id %}selected{% endif %}>{{ division.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Filter by assignee's department -->
-                        <div class="col-md-6 form-group">
-                            <label for="completed_division_id"><i class="fas fa-building"></i> შემსრულებლის დეპარტამენტი:</label>
-                            <select name="completed_division_id" class="form-control">
-                                <option value="">ყველა დეპარტამენტი</option>
-                                {% for division in divisions %}
-                                    <option value="{{ division.id }}" {% if division.id == completed_division_id %}selected{% endif %}>{{ division.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Date filters -->
-                    <h6 class="border-bottom pb-2 mb-3 text-muted">დროის პარამეტრები</h6>
-                    <div class="row">
-                        <div class="col-md-4 form-group">
-                            <label for="start_date"><i class="fas fa-calendar-day"></i> დაწყების თარიღი:</label>
-                            <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
-                        </div>
-                        <div class="col-md-4 form-group">
-                            <label for="due_date"><i class="fas fa-calendar"></i> დასრულების თარიღი:</label>
-                            <input type="date" name="due_date" class="form-control" value="{{ due_date }}">
-                        </div>
-                        <div class="col-md-4 form-group">
-                            <label for="completed_at"><i class="fas fa-check-circle"></i> დასრულების დრო:</label>
-                            <input type="date" name="completed_at" class="form-control" value="{{ completed_at }}">
-                        </div>
-                    </div>
-
-                    <!-- Action buttons -->
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary" title="Apply Filter">
-                            <i class="fas fa-check"></i>
-                        </button>
-                        <button type="reset" class="btn btn-danger" id="resetFilters" title="Clear Filter">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="card">
-    <div class="card-header">
-        <div class="card-tools">
-            <form method="GET" action="{{ url_for('tasks.tasks_list') }}"
-                  style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="input-group input-group-sm">
-                    <input type="text" name="search" class="form-control" placeholder="ძებნა"
-                           value="{{ request.args.get('search', '') }}">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-default">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="input-group input-group-sm mr-2 ml-2" style="width: 100px;">
-                    <select name="per_page" id="per_page" class="form-control form-control-sm"
-                            onchange="this.form.submit()">
-                        <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
-                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-                        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-                    </select>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card-body table-responsive p-0">
-        <table class="table table-hover text-nowrap">
-            <thead>
-                <tr>
-                    <th class="text-center">ID</th>
-                    <th class="text-center">კატეგორია</th>
-                    <th class="text-center">ტიპი</th>
-                    <th class="text-center">სტატუსი</th>
-                    <th class="text-center">პრიორიტეტი</th>
-                    <th class="text-center">შემსრულებელი</th>
-                    <th class="text-center">შექმნის თარიღი</th>
-                    <th class="text-center">მოქმედება</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for task in tasks %}
-                    <tr>
-                        <!-- Task ID -->
-                        <td class="text-center">{{ task.id }}</td>
-                        <td class="text-center">{{ task.task_category.name }}</td>
-                        <td class="text-center">{{ task.task_type.name }}</td>
-                        <!-- Task status -->
-                        <td class="text-center">{{ task.status.name if task.status else 'არ არის მითითებული' }}</td>
-                        <!-- Task priority -->
-                        <td class="text-center">{{ task.priority.level if task.priority else 'არ არის მითითებული' }}</td>
-                        <!-- Task assignee -->
-                        <td class="text-center">{{ task.assigned_user.name if task.assigned_user else 'არ არის მითითებული' }}</td>
-                        <!-- Task start date -->
-                        <td class="text-center">{{ task.created_at.strftime('%Y-%m-%d') if task.created_at else '-' }}</td>
-                        <!-- Actions -->
-                        <td class="text-center">
-                            <div class="btn-group" role="group">
-                                <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" class="btn btn-info btn-sm" title="ნახვა">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="card-footer">
-        <ul class="pagination">
-            {% if pagination.pages > 1 %}
-                {% if pagination.has_prev %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('tasks.tasks_list', page=pagination.prev_num) }}">&laquo;</a>
-                    </li>
-                {% endif %}
-                {% for page_num in range(1, pagination.pages + 1) %}
-                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                        <a class="page-link" href="{{ url_for('tasks.tasks_list', page=page_num) }}">{{ page_num }}</a>
-                    </li>
-                {% endfor %}
-                {% if pagination.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('tasks.tasks_list', page=pagination.next_num) }}">&raquo;</a>
-                    </li>
-                {% endif %}
-            {% endif %}
-        </ul>
-    </div>
-</div>
-{% endblock %}

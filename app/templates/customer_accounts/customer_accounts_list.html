@@ -1,0 +1,284 @@
+{# file_path: crm_flask/app/templates/customer_accounts/customer_accounts_list.html #}
+{% extends 'main/base.html' %}
+
+{% block title %}ანგარიშების სია{% endblock %}
+
+{% block head_extra %}
+    <!-- Мета-тег для адаптивности -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <!-- Compact Filter Form -->
+            <form id="filter-form" class="mb-3">
+                <div class="row g-2 align-items-end">
+                    <!-- Фильтры для customer_accounts -->
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label for="account_pay_number">ანგარიშის ნომერი</label>
+                        <input type="text" id="account_pay_number" name="account_pay_number" class="form-control"
+                               placeholder="ანგარიშის ნომერი">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label for="customer_name">კლიენტის სახელი</label>
+                        <input type="text" id="customer_name" name="customer_name" class="form-control"
+                               placeholder="კლიენტის სახელი">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label for="mac_address">MAC მისამართი</label>
+                        <input type="text" id="mac_address" name="mac_address" class="form-control"
+                               placeholder="MAC მისამართი">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label for="status">სტატუსი</label>
+                        <select id="status" name="status" class="form-control">
+                            <option value="">ყველა</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Suspended">Suspended</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-2 mt-2">
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label for="tariff_plan_id">სატარიფო გეგმა</label>
+                        <select id="tariff_plan_id" name="tariff_plan_id" class="form-control">
+                            <option value="">ყველა</option>
+                            {% for plan in tariff_plans %}
+                                <option value="{{ plan.id }}">{{ plan.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label for="device_type">მოწყობის ტიპი</label>
+                        <select id="device_type" name="device_type" class="form-control">
+                            <option value="">ყველა</option>
+                            <option value="Router">Router</option>
+                            <option value="Modem">Modem</option>
+                            <option value="ONU">ONU</option>
+                            <option value="STB">STB</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label for="start_date">შექმნის თარიღი (დან)</label>
+                        <input type="date" id="start_date" name="start_date" class="form-control">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-3">
+                        <label for="end_date">შექმნის თარიღი (მდე)</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control">
+                    </div>
+                </div>
+                <!-- Compact Action Buttons -->
+                <div class="row g-2 mt-3">
+                    <div class="col-12 d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary btn-sm mx-1">ფილტრაცია</button>
+                        <button type="button" id="export-btn" class="btn btn-success btn-sm mx-1">ექსპორტი</button>
+                        <button type="button" id="clear-filters" class="btn btn-secondary btn-sm mx-1">გასუფთავება
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Customer Accounts Table -->
+            <div id="accounts-table-container" class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ანგარიშის ნომერი</th>
+                        <th>კლიენტი</th>
+                        <th>MAC მისამართი</th>
+                        <th>IP მისამართი</th>
+                        <th>სატარიფო გეგმა</th>
+                        <th>მოწყობის სახელი</th>
+                        <th>მოწყობის ტიპი</th>
+                        <th>სტატუსი</th>
+                        <th>შექმნა</th>
+                        <th>განახლება</th>
+                        <th>მოქმედება</th>
+                    </tr>
+                    </thead>
+                    <tbody id="accounts-table-body">
+                    <!-- Account rows injected via JavaScript -->
+                    </tbody>
+                </table>
+                <!-- Pagination Controls -->
+                <nav>
+                    <ul class="pagination" id="pagination">
+                        <!-- Pagination buttons injected via JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Cache DOM elements
+            const filterForm = document.getElementById('filter-form');
+            const accountsTableBody = document.getElementById('accounts-table-body');
+            const paginationContainer = document.getElementById('pagination');
+            const exportBtn = document.getElementById('export-btn');
+            const clearFiltersBtn = document.getElementById('clear-filters');
+            const perPageSelect = document.getElementById('per_page');
+
+            // Load saved filters from localStorage
+            const savedFilters = JSON.parse(localStorage.getItem('customer_accounts_filters')) || {};
+
+            // Populate form fields with saved filters
+            for (const key in savedFilters) {
+                const field = document.querySelector(`[name="${key}"]`);
+                if (field) {
+                    field.value = savedFilters[key];
+                }
+            }
+
+            // Function to fetch customer accounts using AJAX and update table and pagination
+            function fetchAccounts(page = 1) {
+                const formData = new FormData(filterForm);
+                const params = new URLSearchParams();
+                formData.forEach((value, key) => {
+                    if (value) params.append(key, value);
+                });
+                params.append('page', page);
+                // Если в форме есть параметр для per_page, его можно добавить. Пример:
+                // params.append('per_page', perPageSelect.value);
+
+                // Выполняем запрос к API. Предполагается, что вы реализовали соответствующий endpoint
+                fetch(`/api/customer_accounts_list?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Очистка существующих записей
+                        accountsTableBody.innerHTML = '';
+                        data.accounts.forEach(account => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+          <td>${account.id}</td>
+          <td>${account.account_pay_number}</td>
+          <td>${account.customer_name}</td>
+          <td>${account.mac_address}</td>
+          <td>${account.ip_address || 'N/A'}</td>
+          <td>${account.tariff_plan}</td>
+          <td>${account.device_name}</td>
+          <td>${account.device_type}</td>
+          <td>${account.status}</td>
+          <td>${account.created_at}</td>
+          <td>${account.updated_at}</td>
+          <td>
+            <a href="/customer_accounts/${account.id}/view" class="btn btn-sm btn-info" title="ნახვა">
+              <i class="fas fa-eye"></i>
+            </a>
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <a href="/customer_accounts/${account.id}/edit" class="btn btn-sm btn-warning" title="რედაქტირება">
+              <i class="fas fa-edit"></i>
+            </a>
+            {% endif %}
+          </td>
+        `;
+                            accountsTableBody.appendChild(row);
+                        });
+
+                        // Построение кнопок пагинации
+                        const pagination = data.pagination;
+                        paginationContainer.innerHTML = '';
+
+                        // Previous button
+                        const prevLi = document.createElement('li');
+                        prevLi.classList.add('page-item');
+                        if (!pagination.has_prev) {
+                            prevLi.classList.add('disabled');
+                        }
+                        prevLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page - 1}">უკან</a>`;
+                        paginationContainer.appendChild(prevLi);
+
+                        const maxPagesToShow = 5;
+                        let startPage = Math.max(1, pagination.current_page - Math.floor(maxPagesToShow / 2));
+                        let endPage = startPage + maxPagesToShow - 1;
+                        if (endPage > pagination.pages) {
+                            endPage = pagination.pages;
+                            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                        }
+
+                        for (let i = startPage; i <= endPage; i++) {
+                            const li = document.createElement('li');
+                            li.classList.add('page-item');
+                            if (i === pagination.current_page) {
+                                li.classList.add('active');
+                            }
+                            li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                            paginationContainer.appendChild(li);
+                        }
+
+                        // Next button
+                        const nextLi = document.createElement('li');
+                        nextLi.classList.add('page-item');
+                        if (!pagination.has_next) {
+                            nextLi.classList.add('disabled');
+                        }
+                        nextLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page + 1}">წინ</a>`;
+                        paginationContainer.appendChild(nextLi);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching customer accounts:', error);
+                    });
+            }
+
+            // Initial fetch using saved page or page 1
+            fetchAccounts(savedFilters.page || 1);
+
+            // Save filters and fetch accounts on filter form submission
+            filterForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const formData = new FormData(filterForm);
+                const filters = {};
+                formData.forEach((value, key) => {
+                    filters[key] = value;
+                });
+                filters.page = 1;
+                localStorage.setItem('customer_accounts_filters', JSON.stringify(filters));
+                fetchAccounts(1);
+            });
+
+            // Pagination click handler
+            paginationContainer.addEventListener('click', function (event) {
+                event.preventDefault();
+                const target = event.target;
+                if (target.tagName === 'A' &&
+                    !target.parentElement.classList.contains('disabled') &&
+                    !target.parentElement.classList.contains('active')) {
+                    const page = parseInt(target.getAttribute('data-page'));
+                    if (!isNaN(page) && page > 0) {
+                        const filters = JSON.parse(localStorage.getItem('customer_accounts_filters')) || {};
+                        filters.page = page;
+                        localStorage.setItem('customer_accounts_filters', JSON.stringify(filters));
+                        fetchAccounts(page);
+                    }
+                }
+            });
+
+            // Export button handler
+            exportBtn.addEventListener('click', function () {
+                const formData = new FormData(filterForm);
+                const params = new URLSearchParams();
+                formData.forEach((value, key) => {
+                    if (value) params.append(key, value);
+                });
+                window.location.href = `/customer_accounts/export?${params.toString()}`;
+            });
+
+            // Clear filters handler
+            clearFiltersBtn.addEventListener('click', function () {
+                localStorage.removeItem('customer_accounts_filters');
+                filterForm.reset();
+                fetchAccounts(1);
+            });
+        });
+    </script>
+{% endblock %}

@@ -1,15 +1,21 @@
 import uuid
+import sqlalchemy as sa
+from io import BytesIO
+import pandas as pd
 
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, send_file
 from flask_login import login_required, current_user
-import sqlalchemy as sa
+
 from ..extensions import db
-from ..models import Tasks, TaskStatuses, TaskPriorities, Users, TaskTypes, Divisions, CustomerAccount
+from ..models import Tasks, TaskStatuses, TaskPriorities, TaskTypes, Divisions
+from ..models.users import Users
+from ..models import CustomerAccount
 from ..forms import TaskForm
-import pandas as pd
-from io import BytesIO
 
 tasks = Blueprint('tasks', __name__)
+
+
+# ------------- AJAX эндпоинты для раздела задач ---------------
 
 @tasks.route('/tasks/get_divisions', methods=['GET'])
 @login_required
@@ -42,19 +48,16 @@ def task_details(task_id):
     task = Tasks.query.get_or_404(task_id)
     statuses = TaskStatuses.query.all()
 
-    # Retrieve task types for the current division if available
-    if task.task_type and task.task_type.division:
+    if task.task_type and getattr(task.task_type, 'division', None):
         task_types = TaskTypes.query.filter_by(division_id=task.task_type.division_id).all()
     else:
         task_types = TaskTypes.query.all()
 
-    # Get MAC address if a related customer account exists
     mac_address = ''
-    if task.order and task.order.customer_account:
+    if task.order and getattr(task.order, 'customer_account', None):
         account = task.order.customer_account
         mac_address = account.mac_address if account.mac_address else ''
 
-    # Return JSON response (user sees Georgian messages for text)
     return jsonify({
         'id': task.id,
         'description': task.description,
@@ -72,7 +75,7 @@ def task_details(task_id):
             'division': {
                 'id': task.task_type.division.id,
                 'name': task.task_type.division.name
-            } if task.task_type and task.task_type.division else {}
+            } if task.task_type and getattr(task.task_type, 'division', None) else {}
         },
         'customer_id': task.order.customer_id if task.order else None,
         'statuses': [{'id': status.id, 'name': status.name} for status in statuses],
@@ -86,35 +89,28 @@ def task_details(task_id):
 def update_task(task_id):
     """
     Updates the task status and checks MAC address logic if required.
-    Additionally checks if parent_task_type_id=3 and parent_status_change_id=3 => need MAC.
-    User messages are in Georgian.
     """
     task = Tasks.query.get_or_404(task_id)
     data = request.get_json()
 
-    # Get parent's type and parent's status change IDs from JSON payload
     try:
         parent_task_type_id = int(data.get('parent_task_type_id'))
         parent_status_change_id = int(data.get('parent_status_change_id'))
     except (ValueError, TypeError):
         return jsonify({'message': 'მიღებული მონაცემები არ არის სწორად ფორმატირებული.'}), 400
 
-    # Get common fields from JSON payload
     status_id = data.get('status_id')
     mac_address = data.get('macAddress')
 
     if status_id:
         try:
-            # If parent's type and parent's status are both 3, MAC address must be provided
             if parent_task_type_id == 3 and parent_status_change_id == 3 and not mac_address:
                 return jsonify({
                     'message': 'MAC-მისამართი აუცილებელია ამ STATუსისა და TIPის დავალებისთვის (Parent).'
                 }), 400
 
-            # Update the current task's status using the parent's status change value
             task.status_id = parent_status_change_id
 
-            # If the current task is also of type 3 and status 3, then check MAC address
             if task.task_type_id == 3 and task.status_id == 3:
                 if not mac_address:
                     return jsonify({
@@ -124,10 +120,9 @@ def update_task(task_id):
                 duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
                 if duplicate_mac:
                     return jsonify({
-                        'message': f'MAC-მისამართი უკვე გამოყენებულია payID: ( {duplicate_mac.account_pay_number} ).'
+                        'message': f'MAC-მისამართი უკვე გამოყენებულია payID: ({duplicate_mac.account_pay_number}).'
                     }), 400
 
-                # Create a new CustomerAccount
                 new_account = CustomerAccount(
                     customer_id=task.order.customer_id,
                     mac_address=mac_address,
@@ -137,9 +132,7 @@ def update_task(task_id):
                     device_type='Router'
                 )
                 db.session.add(new_account)
-                db.session.flush()  # new_account получает id до commit()
-                # Если необходимо, можно сгенерировать account_pay_number здесь:
-                # new_account.account_pay_number = str(new_account.id)
+                db.session.flush()  # присваиваем id до commit()
             else:
                 new_account = None
 
@@ -167,21 +160,18 @@ def update_task(task_id):
         return jsonify({'message': 'სტატუსი არ არის მითითებული.'}), 400
 
 
-
 @tasks.route('/tasks/view/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def view_task(task_id):
     task = Tasks.query.get_or_404(task_id)
     form = TaskForm(obj=task)
 
-    # Populate select options for task type, status, priority, etc.
-    form.task_type_id.choices = [(type.id, type.name) for type in TaskTypes.query.all()]
-    form.status_id.choices = [(status.id, status.name) for status in TaskStatuses.query.all()]
-    form.task_priority_id.choices = [(priority.id, priority.level) for priority in TaskPriorities.query.all()]
-    form.assigned_to.choices = [(user.id, user.name) for user in Users.query.all()]
-    form.completed_by.choices = [(user.id, user.name) for user in Users.query.all()]
+    form.task_type_id.choices = [(t.id, t.name) for t in TaskTypes.query.all()]
+    form.status_id.choices = [(s.id, s.name) for s in TaskStatuses.query.all()]
+    form.task_priority_id.choices = [(p.id, p.level) for p in TaskPriorities.query.all()]
+    form.assigned_to.choices = [(u.id, u.name) for u in Users.query.all()]
+    form.completed_by.choices = [(u.id, u.name) for u in Users.query.all()]
 
-    # Make certain fields read-only
     form.task_category_id.render_kw = {'readonly': True, 'disabled': True}
     form.task_type_id.render_kw = {'readonly': True, 'disabled': True}
     form.description.render_kw = {'readonly': True, 'disabled': True}
@@ -203,11 +193,7 @@ def view_task(task_id):
             db.session.rollback()
             flash(f"შეცდომა დავალების განახლებაში: {str(e)}", "danger")
 
-    return render_template(
-        'tasks/view_task.html',
-        form=form,
-        task=task
-    )
+    return render_template('tasks/view_task.html', form=form, task=task)
 
 
 @tasks.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
@@ -216,8 +202,8 @@ def edit_task(task_id):
     task = Tasks.query.get_or_404(task_id)
     form = TaskForm(obj=task)
 
-    form.status_id.choices = [(status.id, status.name) for status in TaskStatuses.query.all()]
-    form.task_priority_id.choices = [(priority.id, priority.level) for priority in TaskPriorities.query.all()]
+    form.status_id.choices = [(s.id, s.name) for s in TaskStatuses.query.all()]
+    form.task_priority_id.choices = [(p.id, p.level) for p in TaskPriorities.query.all()]
 
     if form.validate_on_submit():
         try:
@@ -237,11 +223,13 @@ def edit_task(task_id):
     return render_template('tasks/edit_task.html', form=form, task=task)
 
 
+# ------------- Страница и API для списка задач ---------------
+
 @tasks.route('/tasks/list', methods=['GET'])
 @login_required
 def tasks_list():
     """
-    Implements filtering and pagination for the tasks list.
+    Отображает страницу со списком задач с фильтрацией и пагинацией.
     """
     search_query = request.args.get('search', '')
     status_id = request.args.get('status_id', type=int)
@@ -249,8 +237,11 @@ def tasks_list():
     priority_id = request.args.get('priority_id', type=int)
     created_by = request.args.get('created_by', type=int)
     assigned_to = request.args.get('assigned_to', type=int)
-    start_date = request.args.get('start_date', None)
-    end_date = request.args.get('end_date', None)
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    due_date_start = request.args.get('due_date_start')
+    due_date_end = request.args.get('due_date_end')
+    created_division_id = request.args.get('created_division_id', type=int)
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
@@ -272,19 +263,29 @@ def tasks_list():
         query = query.filter(Tasks.created_at >= start_date)
     if end_date:
         query = query.filter(Tasks.created_at <= end_date)
+    if due_date_start:
+        query = query.filter(Tasks.due_date >= due_date_start)
+    if due_date_end:
+        query = query.filter(Tasks.due_date <= due_date_end)
+    if created_division_id:
+        query = query.filter(Tasks.created_division_id == created_division_id)
 
-    tasks_list_paginated = query.paginate(page=page, per_page=per_page)
+    tasks_paginated = query.paginate(page=page, per_page=per_page, error_out=False)
     statuses = TaskStatuses.query.all()
     priorities = TaskPriorities.query.all()
     users = Users.query.all()
+    categories = TaskTypes.query.all()  # Используем TaskTypes как категории
+    divisions = Divisions.query.all()
 
     return render_template(
         'tasks/task_list.html',
-        tasks=tasks_list_paginated.items,
-        pagination=tasks_list_paginated,
+        tasks=tasks_paginated.items,
+        pagination=tasks_paginated,
         statuses=statuses,
         priorities=priorities,
         users=users,
+        categories=categories,
+        divisions=divisions,
         search_query=search_query,
         status_id=status_id,
         task_category_id=task_category_id,
@@ -293,32 +294,150 @@ def tasks_list():
         assigned_to=assigned_to,
         start_date=start_date,
         end_date=end_date,
+        due_date_start=due_date_start,
+        due_date_end=due_date_end,
+        created_division_id=created_division_id,
         per_page=per_page
     )
+
+
+@tasks.route('/api/tasks_list', methods=['GET'])
+@login_required
+def api_tasks_list():
+    search_query = request.args.get('search', '')
+    status_id = request.args.get('status_id', type=int)
+    task_category_id = request.args.get('task_category_id', type=int)
+    priority_id = request.args.get('priority_id', type=int)
+    created_by = request.args.get('created_by', type=int)
+    assigned_to = request.args.get('assigned_to', type=int)
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    due_date_start = request.args.get('due_date_start')
+    due_date_end = request.args.get('due_date_end')
+    created_division_id = request.args.get('created_division_id', type=int)
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+    query = Tasks.query
+
+    if search_query:
+        query = query.filter(Tasks.description.ilike(f'%{search_query}%'))
+    if status_id:
+        query = query.filter(Tasks.status_id == status_id)
+    if task_category_id:
+        query = query.filter(Tasks.task_category_id == task_category_id)
+    if priority_id:
+        query = query.filter(Tasks.task_priority_id == priority_id)
+    if created_by:
+        query = query.filter(Tasks.created_by == created_by)
+    if assigned_to:
+        query = query.filter(Tasks.assigned_to == assigned_to)
+    if start_date:
+        query = query.filter(Tasks.created_at >= start_date)
+    if end_date:
+        query = query.filter(Tasks.created_at <= end_date)
+    if due_date_start:
+        query = query.filter(Tasks.due_date >= due_date_start)
+    if due_date_end:
+        query = query.filter(Tasks.due_date <= due_date_end)
+    if created_division_id:
+        query = query.filter(Tasks.created_division_id == created_division_id)
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    tasks_items = pagination.items
+
+    tasks_data = [{
+        "id": task.id,
+        "task_category": task.task_type.name if task.task_type else '',
+        "task_type": task.task_type.name if task.task_type else '',
+        "status": task.status.name if task.status else 'არ არის მითითებული',
+        "priority": task.priority.level if task.priority else 'არ არის მითითებული',
+        "assigned_to": task.assigned_user.name if hasattr(task, 'assigned_user') and task.assigned_user else 'არ არის მითითებული',
+        "created_at": task.created_at.strftime('%Y-%m-%d') if task.created_at else '',
+        "due_date": task.due_date.strftime('%Y-%m-%d') if task.due_date else ''
+    } for task in tasks_items]
+
+    response = {
+        "tasks": tasks_data,
+        "pagination": {
+            "total": pagination.total,
+            "pages": pagination.pages,
+            "current_page": pagination.page,
+            "per_page": pagination.per_page,
+            "has_prev": pagination.has_prev,
+            "has_next": pagination.has_next,
+        }
+    }
+    return jsonify(response)
 
 
 @tasks.route('/tasks/export', methods=['GET'])
 @login_required
 def export():
     """
-    Exports task data to an Excel file.
+    Exports filtered task data to an Excel file.
+    Фильтры берутся из GET-параметров, как и в маршруте для списка задач.
     """
-    tasks_query = Tasks.query.all()
+    # Получаем параметры фильтрации из GET-запроса
+    search_query = request.args.get('search', '')
+    status_id = request.args.get('status_id', type=int)
+    task_category_id = request.args.get('task_category_id', type=int)
+    priority_id = request.args.get('priority_id', type=int)
+    created_by = request.args.get('created_by', type=int)
+    assigned_to = request.args.get('assigned_to', type=int)
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    due_date_start = request.args.get('due_date_start')
+    due_date_end = request.args.get('due_date_end')
+    created_division_id = request.args.get('created_division_id', type=int)
+
+    query = Tasks.query
+    if search_query:
+        query = query.filter(Tasks.description.ilike(f'%{search_query}%'))
+    if status_id:
+        query = query.filter(Tasks.status_id == status_id)
+    if task_category_id:
+        query = query.filter(Tasks.task_category_id == task_category_id)
+    if priority_id:
+        query = query.filter(Tasks.task_priority_id == priority_id)
+    if created_by:
+        query = query.filter(Tasks.created_by == created_by)
+    if assigned_to:
+        query = query.filter(Tasks.assigned_to == assigned_to)
+    if start_date:
+        query = query.filter(Tasks.created_at >= start_date)
+    if end_date:
+        query = query.filter(Tasks.created_at <= end_date)
+    if due_date_start:
+        query = query.filter(Tasks.due_date >= due_date_start)
+    if due_date_end:
+        query = query.filter(Tasks.due_date <= due_date_end)
+    if created_division_id:
+        query = query.filter(Tasks.created_division_id == created_division_id)
+
+    tasks_query = query.all()
+
     task_data = [{
         'ID': task.id,
-        'Описание': task.description,
-        'Статус': task.status.name if task.status else '',
-        'Приоритет': task.priority.name if task.priority else '',
-        'Дата создания': task.created_at.strftime('%Y-%m-%d %H:%M:%S')
+        'აღწერა': task.description,
+        'სტატუსი': task.status.name if task.status else '',
+        'პრიორიტეტი': task.priority.level if task.priority else '',
+        'შექმნის თარიღი': task.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        'დასრულების თარიღი': task.due_date.strftime('%Y-%m-%d') if task.due_date else '',
+        'დივიზია': task.created_division.name if getattr(task, 'created_division', None) else ''
     } for task in tasks_query]
 
     df = pd.DataFrame(task_data)
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Tasks')
-
     output.seek(0)
-    return send_file(output, as_attachment=True, download_name='tasks_list.xlsx')
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name='tasks_list.xlsx',
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
 
 
 @tasks.route('/tasks/create', methods=['GET', 'POST'])
@@ -327,13 +446,15 @@ def create_task():
     """
     Renders a page to create a new task using WTForms.
     """
-    from ..forms.tasks import TaskForm
+    from ..forms.tasks import TaskForm  # Импорт формы
     form = TaskForm()
 
-    # Assume an empty categories list as an example
+    # Если категорий пока нет, передадим пустой список
     categories = []
-
     form.task_category_id.choices = [(category.id, category.name) for category in categories]
+    form.status_id.choices = [(s.id, s.name) for s in TaskStatuses.query.all()]
+    form.task_priority_id.choices = [(p.id, p.level) for p in TaskPriorities.query.all()]
+    form.assigned_to.choices = [(u.id, u.name) for u in Users.query.all()]
 
     if form.validate_on_submit():
         try:
@@ -360,18 +481,14 @@ def create_task():
 def create_subtask():
     """
     Creates a subtask if the parent's status and task type are both 3.
-    Checks that a MAC address is provided and is unique if required.
-    The parent's task type and parent's status change values must be supplied.
     """
     data = request.get_json()
     parent_task_id = data.get('parent_task_id')
     description = data.get('description')
-    # Note: status_id is not used directly because parent's status change is applied.
     task_type_id = data.get('task_type_id')
     order_id = data.get('order_id')
     mac_address = data.get('mac_address')
 
-    # Parse parent's type and status change from input (ensure integer conversion)
     try:
         parent_task_type_id = int(data.get('parent_task_type_id'))
         parent_status_change_id = int(data.get('parent_status_change_id'))
@@ -383,7 +500,6 @@ def create_subtask():
         return jsonify({'message': 'მთავარი დავალება ვერ მოიძებნა.'}), 404
 
     try:
-        # If parent's type and status are both 3, a MAC address is required.
         if parent_task_type_id == 3 and parent_status_change_id == 3:
             if not mac_address:
                 return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ STATუსისა და TIPის დავალებისთვის.'}), 400
@@ -391,7 +507,6 @@ def create_subtask():
             if duplicate_mac:
                 return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.', 'field': 'mac_address'}), 400
 
-        # Create the subtask.
         subtask = Tasks(
             parent_task_id=parent_task_id,
             description=description,
@@ -402,7 +517,6 @@ def create_subtask():
         db.session.add(subtask)
         db.session.commit()
 
-        # Update the parent's status to the new status (provided in parent's status change).
         parent_task.status_id = parent_status_change_id
         db.session.add(parent_task)
         db.session.commit()
@@ -422,14 +536,13 @@ def create_subtask():
                     'division': {
                         'id': subtask.task_type.division.id,
                         'name': subtask.task_type.division.name
-                    } if subtask.task_type.division else {}
+                    } if subtask.task_type and getattr(subtask.task_type, 'division', None) else {}
                 },
                 'created_user': {
                     'name': subtask.created_user.name if subtask.created_user else 'Unknown'
                 },
                 'created_at': subtask.created_at.strftime('%Y-%m-%d %H:%M:%S')
             },
-            # Return the updated parent's status and account info if applicable.
             'new_status': {
                 'id': parent_task.status_id,
                 'name': parent_task.status.name,
