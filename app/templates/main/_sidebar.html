@@ -24,6 +24,11 @@
 
         <!-- Sidebar Menu -->
         <nav class="mt-2">
+            <style>
+              .nav-treeview a {
+                  font-size: 0.80rem;
+              }
+            </style>
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-item {% if active_menu == 'administration' or menu_open == 'administration' %}menu-open{% endif %}">
                     <a href="#" class="nav-link {% if active_menu == 'administration' or menu_open == 'administration' %}active{% endif %}">
@@ -62,7 +67,7 @@
                 <li class="nav-item">
                     <a href="{{ url_for('customers.create') }}" class="nav-link {% if request.path.split('/')[2] == 'create' %}active{% endif %}">
                         <i class="fas fa-user-plus nav-icon"></i>
-                        <p>ახალი განაცხადი</p>
+                        <p>განაცხადის მიღება</p>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -71,6 +76,33 @@
                         <p>ყველა განაცხადი</p>
                     </a>
                 </li>
+
+                <li class="nav-item {% if active_menu == 'project_design' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if active_menu == 'project_design' %}active{% endif %}">
+                        <i class="nav-icon fas fa-briefcase"></i>
+                        <p>
+                            საპროექტო
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ url_for('orders.new_orders_page') }}" class="nav-link {% if active_menu == 'project_design' and request.path.split('/')[1] != 'new'  %}active{% endif %}">
+                                <i class="fas fa-users nav-icon"></i>
+                                <p>ახალი განაცხადები</p>
+                            </a>
+                        </li>
+                    </ul>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ url_for('customer_types.types_list') }}" class="nav-link {% if request.path.split('/')[2] == 'customer_types' %}active{% endif %}">
+                                <i class="far fa-address-card nav-icon"></i>
+                                <p>კლიენტის ტიპები</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <li class="nav-item {% if active_menu == 'customers' and request.path.split('/')[2] != 'create' %}menu-open{% endif %}">
                     <a href="#" class="nav-link {% if active_menu == 'customers' and request.path.split('/')[2] != 'create' %}active{% endif %}">
                         <i class="nav-icon far fa-address-card"></i>

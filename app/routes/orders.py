@@ -222,6 +222,7 @@ def api_orders_list():
         "Alt Mobile": order.alt_mobile,
         "Tariff Plan": order.tariff_plan.name if order.tariff_plan else "N/A",
         "Status": order.status.name_geo if order.status else "N/A",
+        "Status Class": order.status.bootstrap_class if order.status else "secondary",  # Дополнительное поле
         "District": order.address.settlement.district.name if order.address.settlement.district else "N/A",
         "Building Type": order.address.building_type.name if order.address.building_type else "N/A",
         "Created At": order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
@@ -460,3 +461,34 @@ def update_order_status(order_id):
         flash('ვალიდაციის შეცდომა.', 'danger')
 
     return redirect(url_for('orders.order_view', order_id=order_id))
+
+
+@orders.route('/orders/new', methods=['GET'])
+@login_required
+def new_orders_page():
+    """
+    Рендер страницы с фильтрами для заказов, по умолчанию фильтруется по статусу 1.
+    """
+    # Проверка прав доступа (пример, адаптируйте под свои требования)
+    if 'orders_list' not in [permission['name'] for permission in current_user.get_permissions(current_user.id)]:
+        flash("У вас нет доступа к этой странице.", 'danger')
+        return redirect(url_for('dashboard.index'))
+
+    # Получаем списки для фильтров
+    tariff_plans = TariffPlan.query.all()
+    order_statuses = OrderStatus.query.filter_by(hided=False).all()
+    districts = District.query.all()
+    building_types = BuildingType.query.all()
+
+    # По умолчанию статус фильтра равен 1 (активные заказы)
+    default_status_new = 1
+    return render_template(
+        'orders/new_orders_list.html',
+        tariff_plans=tariff_plans,
+        order_statuses=order_statuses,
+        districts=districts,
+        building_types=building_types,
+        default_status_new=default_status_new,
+        active_menu='project_design'
+    )
+
