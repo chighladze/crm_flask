@@ -247,41 +247,6 @@
 
                 <div class="form-row">
                     <div class="col-md-6 form-group">
-                        <label>მობილური ტელეფონი <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-mobile-alt"></i></span>
-                            </div>
-                            {{ order_form.mobile(class="form-control", required=True, placeholder="მაგ: 599112233") }}
-                        </div>
-                        {% if order_form.mobile.errors %}
-                            <div class="text-danger">
-                                {% for error in order_form.mobile.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-6 form-group">
-                        <label>ალტერნატიული მობილური</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fas fa-phone-square-alt"></i></span>
-                            </div>
-                            {{ order_form.alt_mobile(class="form-control", placeholder="მაგ: 597334455") }}
-                        </div>
-                        {% if order_form.alt_mobile.errors %}
-                            <div class="text-danger">
-                                {% for error in order_form.alt_mobile.errors %}
-                                    <p>{{ error }}</p>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="col-md-6 form-group">
                         <label>გრძედი</label>
                         <div class="input-group">
                             <div class="input-group-prepend">

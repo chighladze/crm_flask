@@ -16,8 +16,6 @@ def coerce_to_int(value):
 class OrderForm(FlaskForm):
     customer_id = IntegerField('კლიენტის ID', validators=[Optional()])
     address = FormField(AddressForm)
-    mobile = TelField('მობილური', validators=[DataRequired(), Length(max=20)])
-    alt_mobile = TelField('ალტერნატიული მობილური', validators=[Optional()])
     tariff_plan_id = SelectField('სატარიფო გეგმა', validators=[DataRequired()], coerce=coerce_to_int)
     comment = TextAreaField('კომენტარი')
     task_id = IntegerField('დავალების ID', validators=[Optional()])

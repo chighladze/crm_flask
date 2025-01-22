@@ -111,8 +111,8 @@ def create():
                 customer_id=customer.id,
                 address_id=address.id,  # Now we can safely assign the address_id
                 tariff_plan_id=order_form.tariff_plan_id.data,
-                mobile=order_form.mobile.data,
-                alt_mobile=order_form.alt_mobile.data,
+                mobile=customer_form.mobile.data,
+                alt_mobile=customer_form.mobile_second.data,
                 comment=order_form.comment.data,
                 legal_address=customer_form.legal_address.data,
                 actual_address=customer_form.actual_address.data,
