@@ -23,6 +23,20 @@
                 margin-bottom: 1rem;
             }
         }
+
+        /* Индикатор загрузки */
+        #loading-indicator {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Стиль для общего количества записей */
+        #total-records {
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
     </style>
     <!-- Ensure jQuery is loaded -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
@@ -39,10 +53,22 @@
         <div class="card-body">
             <!-- Toggle link for filter form using icons -->
             <div id="filter-toggle-container">
-                <a id="toggle-filters" class="filter-toggle-link" href="javascript:void(0);"></a>
+                <a id="toggle-filters" class="filter-toggle-link" href="javascript:void(0);">
+                    <i class="far fa-arrow-alt-circle-down" title="ფილტრის დამალვა"></i>
+                </a>
             </div>
 
-            <!-- Compact Filter Form -->
+            <!-- Loading Indicator -->
+            <div id="loading-indicator">
+                <i class="fas fa-spinner fa-spin"></i> დამუშავება...
+            </div>
+
+            <!-- Total Records Display -->
+            <div id="total-records" class="mb-2">
+                <!-- Будет заполнено через JavaScript -->
+            </div>
+
+            <!-- Filter Form -->
             <form id="filter-form" class="mb-3">
                 <div class="row g-2 align-items-end filter-form-row">
                     <!-- Developer Note: Fields are arranged compactly -->
@@ -61,7 +87,7 @@
                                placeholder="ტელეფონის ნომერი">
                     </div>
                     <div class="col-12 col-sm-6 col-md-2">
-                        <label for="tariff_plan_id">სატარიფო გეგმა</label>
+                        <label for="tariff_plan_id">ტარიფო გეგმა</label>
                         <select id="tariff_plan_id" name="tariff_plan_id" class="form-control">
                             <option value="">ყველა</option>
                             {% for plan in tariff_plans %}
@@ -115,7 +141,7 @@
                         <input type="date" id="end_date" name="end_date" class="form-control">
                     </div>
                 </div>
-                <!-- Compact Action Buttons -->
+                <!-- Action Buttons -->
                 <div class="row g-2 mt-3">
                     <div class="col-12 d-flex justify-content-center">
                         <button type="submit" class="btn btn-primary btn-sm mx-1">ფილტრაცია</button>
@@ -152,7 +178,7 @@
                 </table>
                 <!-- Pagination Controls -->
                 <nav>
-                    <ul class="pagination" id="pagination">
+                    <ul class="pagination justify-content-center" id="pagination">
                         <!-- Pagination buttons will be injected here via JavaScript -->
                     </ul>
                 </nav>
@@ -164,7 +190,7 @@
 {% block script %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Cache DOM elements
+            // Кэшируем элементы DOM
             const filterForm = document.getElementById('filter-form');
             const ordersTableBody = document.getElementById('orders-table-body');
             const paginationContainer = document.getElementById('pagination');
@@ -172,23 +198,23 @@
             const clearFiltersBtn = document.getElementById('clear-filters');
             const perPageSelect = document.getElementById('per_page');
             const toggleFiltersBtn = document.getElementById('toggle-filters');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const totalRecordsDiv = document.getElementById('total-records');
 
-            // Determine if this is the initial load
-            let initialLoad = true;
-            // Load filter state from localStorage (default: expanded)
+            // Определяем состояние фильтров
             let filterState = localStorage.getItem('filterState') || 'expanded';
 
-            // Function to update filter form visibility and toggle icon
+            // Функция обновления видимости фильтра и иконки
             function updateFilterVisibility(animate = true) {
                 if (filterState === 'collapsed') {
-                    if (animate && !initialLoad) {
+                    if (animate) {
                         $(filterForm).slideUp(300);
                     } else {
                         filterForm.style.display = 'none';
                     }
                     toggleFiltersBtn.innerHTML = '<i class="far fa-arrow-alt-circle-right" title="ფილტრის გამოჩენა"></i>';
                 } else {
-                    if (animate && !initialLoad) {
+                    if (animate) {
                         $(filterForm).slideDown(300);
                     } else {
                         filterForm.style.display = 'block';
@@ -197,22 +223,20 @@
                 }
             }
 
-            // Initial update without animation
+            // Инициализация видимости фильтров
             updateFilterVisibility(false);
-            // Now that initial load is done, set flag to false
-            initialLoad = false;
 
-            // Toggle link click event handler
+            // Обработчик клика по кнопке переключения фильтров
             toggleFiltersBtn.addEventListener('click', function () {
                 filterState = (filterState === 'expanded') ? 'collapsed' : 'expanded';
                 localStorage.setItem('filterState', filterState);
                 updateFilterVisibility();
             });
 
-            // Load saved filters from localStorage
+            // Загрузка сохраненных фильтров из localStorage
             const savedFilters = JSON.parse(localStorage.getItem('orders_filters')) || {};
 
-            // Populate form fields with saved filters
+            // Заполнение полей формы сохраненными фильтрами
             for (const key in savedFilters) {
                 const field = document.querySelector(`[name="${key}"]`);
                 if (field) {
@@ -220,8 +244,11 @@
                 }
             }
 
-            // Function to fetch orders using AJAX and update table and pagination
+            // Функция для получения и отображения заказов
             function fetchOrders(page = 1) {
+                loadingIndicator.style.display = 'block'; // Показываем индикатор загрузки
+                totalRecordsDiv.innerHTML = ''; // Очищаем предыдущие данные
+
                 const formData = new FormData(filterForm);
                 const params = new URLSearchParams();
                 formData.forEach((value, key) => {
@@ -236,43 +263,62 @@
                 })
                     .then(response => response.json())
                     .then(data => {
-                        // Clear existing orders
+                        // Очистка существующих заказов
                         ordersTableBody.innerHTML = '';
-                        data.orders.forEach(order => {
-                            let commentDisplay = 'N/A';
-                            let titleAttr = '';
-                            if (order.Comment) {
-                                titleAttr = order.Comment;
-                                commentDisplay = order.Comment.length > 20 ? order.Comment.substring(0, 20) + '...' : order.Comment;
-                            }
-                            const statusClass = order["Status Class"] || "secondary";
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                              <td>${order.ID}</td>
-                              <td>${order.Customer}</td>
-                              <td>${order["Identification Number"]}</td>
-                              <td>${order.Mobile}</td>
-                              <td>${order["Alt Mobile"] || 'N/A'}</td>
-                              <td>${order["Tariff Plan"]}</td>
-                              <td><span class="badge bg-${statusClass}">${order["Status"]}</span></td>
-                              <td>${order["District"]}</td>
-                              <td>${order["Building Type"]}</td>
-                              <td>${order["Created At"]}</td>
-                              <td title="${titleAttr}">${commentDisplay}</td>
-                              <td class="text-center">
-                                <a href="/orders/${order.ID}/view" class="btn btn-sm btn-info" title="ნახვა">
-                                  <i class="fa fa-eye"></i>
-                                </a>
-                              </td>
-                            `;
-                            ordersTableBody.appendChild(row);
-                        });
 
-                        // Build pagination buttons
+                        // Обновление общего количества записей
                         const pagination = data.pagination;
+                        const total = pagination.total;
+                        const perPage = pagination.per_page;
+                        const currentPage = pagination.current_page;
+                        const from = (currentPage - 1) * perPage + 1;
+                        let to = currentPage * perPage;
+                        if (to > total) to = total;
+
+                        if (total === 0) {
+                            totalRecordsDiv.innerHTML = 'განაცხადები არ არის ხელმისაწვდომი.';
+                        } else {
+                            totalRecordsDiv.innerHTML = `ჩანაწერების რაოდენობა ${total}.`;
+                        }
+
+                        if (data.orders.length === 0) {
+                            ordersTableBody.innerHTML = '<tr><td colspan="12" class="text-center">განაცხადები არ არის ხელმისაწვდომი.</td></tr>';
+                        } else {
+                            data.orders.forEach(order => {
+                                let commentDisplay = 'N/A';
+                                let titleAttr = '';
+                                if (order.Comment) {
+                                    titleAttr = order.Comment;
+                                    commentDisplay = order.Comment.length > 20 ? order.Comment.substring(0, 20) + '...' : order.Comment;
+                                }
+                                const statusClass = order["Status Class"] || "secondary";
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                  <td>${order.ID}</td>
+                                  <td>${order.Customer}</td>
+                                  <td>${order["Identification Number"]}</td>
+                                  <td>${order.Mobile}</td>
+                                  <td>${order["Alt Mobile"] || 'N/A'}</td>
+                                  <td>${order["Tariff Plan"]}</td>
+                                  <td><span class="badge bg-${statusClass}">${order["Status"]}</span></td>
+                                  <td>${order["District"]}</td>
+                                  <td>${order["Building Type"]}</td>
+                                  <td>${order["Created At"]}</td>
+                                  <td title="${titleAttr}">${commentDisplay}</td>
+                                  <td class="text-center">
+                                    <a href="/orders/${order.ID}/view" class="btn btn-sm btn-info" title="ნახვა">
+                                      <i class="fa fa-eye"></i>
+                                    </a>
+                                  </td>
+                                `;
+                                ordersTableBody.appendChild(row);
+                            });
+                        }
+
+                        // Создание пагинационных кнопок
                         paginationContainer.innerHTML = '';
 
-                        // Previous button
+                        // Кнопка "უკან" (Назад)
                         const prevLi = document.createElement('li');
                         prevLi.classList.add('page-item');
                         if (!pagination.has_prev) {
@@ -281,7 +327,7 @@
                         prevLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page - 1}">უკან</a>`;
                         paginationContainer.appendChild(prevLi);
 
-                        // Limit visible pages (maximum 5 pages)
+                        // Ограничение видимых страниц (максимум 5)
                         const maxPagesToShow = 5;
                         let startPage = Math.max(1, pagination.current_page - Math.floor(maxPagesToShow / 2));
                         let endPage = startPage + maxPagesToShow - 1;
@@ -299,7 +345,7 @@
                             paginationContainer.appendChild(li);
                         }
 
-                        // Next button
+                        // Кнопка "წინ" (Вперед)
                         const nextLi = document.createElement('li');
                         nextLi.classList.add('page-item');
                         if (!pagination.has_next) {
@@ -307,16 +353,20 @@
                         }
                         nextLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page + 1}">წინ</a>`;
                         paginationContainer.appendChild(nextLi);
+
+                        loadingIndicator.style.display = 'none'; // Скрываем индикатор загрузки
                     })
                     .catch(error => {
                         console.error('Error fetching orders:', error);
+                        alert('შეცდომა მონაცემების გადმოტანაზე. გთხოვთ, სცადოთ მოგვიანებით.');
+                        loadingIndicator.style.display = 'none'; // Скрываем индикатор загрузки
                     });
             }
 
-            // Initial fetch using saved page or default to 1
+            // Первоначальная загрузка заказов
             fetchOrders(savedFilters.page || 1);
 
-            // Form submit event handler for filters
+            // Обработчик отправки формы фильтрации
             filterForm.addEventListener('submit', function (event) {
                 event.preventDefault();
                 const formData = new FormData(filterForm);
@@ -324,12 +374,12 @@
                 formData.forEach((value, key) => {
                     filters[key] = value;
                 });
-                filters.page = 1; // Reset to first page
+                filters.page = 1; // Сбрасываем на первую страницу
                 localStorage.setItem('orders_filters', JSON.stringify(filters));
                 fetchOrders(1);
             });
 
-            // Handle pagination click events
+            // Обработчик кликов по пагинации
             paginationContainer.addEventListener('click', function (event) {
                 event.preventDefault();
                 const target = event.target;
@@ -346,7 +396,7 @@
                 }
             });
 
-            // Export orders event handler
+            // Обработчик экспорта заказов
             exportBtn.addEventListener('click', function () {
                 const formData = new FormData(filterForm);
                 const params = new URLSearchParams();
@@ -356,7 +406,7 @@
                 window.location.href = `/orders/export?${params.toString()}`;
             });
 
-            // Clear filters event handler
+            // Обработчик очистки фильтров
             clearFiltersBtn.addEventListener('click', function () {
                 localStorage.removeItem('orders_filters');
                 filterForm.reset();
