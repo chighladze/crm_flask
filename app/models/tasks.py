@@ -1,5 +1,7 @@
+# crm_flask/app/models/tasks.py
 from ..extensions import db
 from datetime import datetime
+
 
 class Tasks(db.Model):
     __tablename__ = 'tasks'
@@ -33,8 +35,8 @@ class Tasks(db.Model):
     task_type = db.relationship('TaskTypes', back_populates='related_tasks')
     created_user = db.relationship('Users', foreign_keys=[created_by], backref='created_tasks')
 
-    # Для доступа к связанному подразделению (создания задачи)
     created_division = db.relationship('Divisions', foreign_keys=[created_division_id])
+    comments = db.relationship('TaskComments', back_populates='task', lazy='dynamic')
 
     subtasks = db.relationship('Tasks', backref=db.backref('parent_task', remote_side=[id]), lazy='dynamic')
     order = db.relationship(

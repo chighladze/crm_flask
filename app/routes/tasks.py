@@ -1,13 +1,15 @@
+# crm_flask/app/routes/tasks.py
 import uuid
 import sqlalchemy as sa
 from io import BytesIO
 import pandas as pd
 
 from flask import Blueprint, request, render_template, redirect, url_for, flash, jsonify, send_file
+from flask_wtf import csrf
 from flask_login import login_required, current_user
 
 from ..extensions import db
-from ..models import Tasks, TaskStatuses, TaskPriorities, TaskTypes, Divisions
+from ..models import Tasks, TaskStatuses, TaskPriorities, TaskTypes, Divisions, TaskComments
 from ..models.users import Users
 from ..models import CustomerAccount
 from ..forms import TaskForm
@@ -16,6 +18,12 @@ tasks = Blueprint('tasks', __name__)
 
 
 # ------------- AJAX эндпоинты для раздела задач ---------------
+
+@tasks.route('/tasks/get_csrf_token', methods=['GET'])
+def get_csrf_token():
+    token = csrf.generate_csrf()
+    return jsonify({'csrf_token': token})
+
 
 @tasks.route('/tasks/get_divisions', methods=['GET'])
 @login_required
@@ -88,79 +96,92 @@ def task_details(task_id):
 @login_required
 def update_task(task_id):
     """
-    Updates the task status and checks MAC address logic if required.
+    განახლებს დავალების სტატუსს და ქმნის ასაინერი.
     """
     task = Tasks.query.get_or_404(task_id)
     data = request.get_json()
 
-    try:
-        parent_task_type_id = int(data.get('parent_task_type_id'))
-        parent_status_change_id = int(data.get('parent_status_change_id'))
-    except (ValueError, TypeError):
-        return jsonify({'message': 'მიღებული მონაცემები არ არის სწორად ფორმატირებული.'}), 400
-
     status_id = data.get('status_id')
-    mac_address = data.get('macAddress')
+    assigned_to = data.get('assigned_to')
 
-    if status_id:
-        try:
-            if parent_task_type_id == 3 and parent_status_change_id == 3 and not mac_address:
-                return jsonify({
-                    'message': 'MAC-მისამართი აუცილებელია ამ STATუსისა და TIPის დავალებისთვის (Parent).'
-                }), 400
+    if not status_id:
+        return jsonify({'message': 'სტატუსი აუცილებელია.'}), 400
 
-            task.status_id = parent_status_change_id
+    try:
+        # განახლება სტატუსი
+        status = TaskStatuses.query.get(status_id)
+        if not status:
+            return jsonify({'message': 'სათანაზღაურებული სტატუსის ID არასწორია.'}), 400
 
-            if task.task_type_id == 3 and task.status_id == 3:
-                if not mac_address:
-                    return jsonify({
-                        'message': 'MAC-მისამართი აუცილებელია ამ STATუსისა და TIPის დავალებისთვის.'
-                    }), 400
+        task.status_id = status_id
 
-                duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
-                if duplicate_mac:
-                    return jsonify({
-                        'message': f'MAC-მისამართი უკვე გამოყენებულია payID: ({duplicate_mac.account_pay_number}).'
-                    }), 400
+        # განახლება ასაინერი
+        if assigned_to:
+            user = Users.query.get(assigned_to)
+            if not user:
+                return jsonify({'message': 'ასაინერი ID არასწორია.'}), 400
+            task.assigned_to = assigned_to
+        else:
+            task.assigned_to = None  # ასაინერის ამოშლა
 
-                new_account = CustomerAccount(
-                    customer_id=task.order.customer_id,
-                    mac_address=mac_address,
-                    tariff_plan_id=task.order.tariff_plan_id,
-                    order_id=task.order.id,
-                    device_name='Wi-Fi Router',
-                    device_type='Router'
-                )
-                db.session.add(new_account)
-                db.session.flush()  # присваиваем id до commit()
-            else:
-                new_account = None
+        db.session.commit()
 
-            db.session.commit()
-            response = {
-                'message': 'სტატუსი წარმატებით განახლდა!',
-                'new_status': {
-                    'id': task.status_id,
-                    'name': task.status.name,
-                    'bootstrap_class': task.status.bootstrap_class
-                }
+        response = {
+            'message': 'დავალება წარმატებით განახლდა!',
+            'new_status': {
+                'id': task.status.id,
+                'name': task.status.name,
+                'bootstrap_class': task.status.bootstrap_class
+            },
+            'assigned_user': {
+                'id': task.assigned_user.id if task.assigned_user else None,
+                'name': task.assigned_user.name if task.assigned_user else 'გამიზენილი არაა'
             }
-            if new_account:
-                response['customer_account'] = {
-                    'id': new_account.id,
-                    'account_pay_number': new_account.account_pay_number,
-                    'mac_address': new_account.mac_address
-                }
-            return jsonify(response), 200
+        }
 
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({'message': f'შეცდომა: {str(e)}'}), 400
-    else:
-        return jsonify({'message': 'სტატუსი არ არის მითითებული.'}), 400
+        return jsonify(response), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'შეცდომა: {str(e)}'}), 500
 
 
-@tasks.route('/tasks/view/<int:task_id>', methods=['GET', 'POST'])
+@tasks.route('/tasks/<int:task_id>/add_comment', methods=['POST'])
+@login_required
+def add_comment(task_id):
+    """
+    დამატება კომენტარი დავალებას.
+    """
+    task = Tasks.query.get_or_404(task_id)
+    data = request.get_json()
+    content = data.get('content', '').strip()
+
+    if not content:
+        return jsonify({'message': 'კომენტარი არ უნდა იყოს ცარიელი.'}), 400
+
+    try:
+        comment = TaskComments(task_id=task_id, user_id=current_user.id, content=content)
+        db.session.add(comment)
+        db.session.commit()
+
+        response = {
+            'message': 'კომენტარი წარმატებით დამატებულია.',
+            'comment': {
+                'id': comment.id,
+                'user': current_user.name,  # დარწმუნდით, რომ Users მოდელს აქვს name ველი
+                'content': comment.content,
+                'timestamp': comment.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            }
+        }
+
+        return jsonify(response), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'შეცდომა: {str(e)}'}), 500
+
+
+@tasks.route('/tasks/view/<int:task_id>', methods=['GET'])
 @login_required
 def view_task(task_id):
     task = Tasks.query.get_or_404(task_id)
@@ -178,22 +199,10 @@ def view_task(task_id):
     form.created_by.render_kw = {'readonly': True, 'disabled': True}
     form.completed_by.render_kw = {'readonly': True, 'disabled': True}
 
-    if form.validate_on_submit():
-        try:
-            task.status_id = form.status_id.data
-            task.task_priority_id = form.task_priority_id.data
-            task.due_date = form.due_date.data
-            task.progress = form.progress.data
-            task.assigned_to = form.assigned_to.data
+    # Получаем комментарии, сортированные по дате
+    comments = task.comments.order_by(TaskComments.timestamp.asc()).all()
 
-            db.session.commit()
-            flash("დავალება წარმატებით განახლდა!", "success")
-            return redirect(url_for('tasks.tasks_list'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f"შეცდომა დავალების განახლებაში: {str(e)}", "danger")
-
-    return render_template('tasks/view_task.html', form=form, task=task)
+    return render_template('tasks/view_task.html', form=form, task=task, comments=comments)
 
 
 @tasks.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
@@ -352,7 +361,8 @@ def api_tasks_list():
         "task_type": task.task_type.name if task.task_type else '',
         "status": task.status.name if task.status else 'არ არის მითითებული',
         "priority": task.priority.level if task.priority else 'არ არის მითითებული',
-        "assigned_to": task.assigned_user.name if hasattr(task, 'assigned_user') and task.assigned_user else 'არ არის მითითებული',
+        "assigned_to": task.assigned_user.name if hasattr(task,
+                                                          'assigned_user') and task.assigned_user else 'არ არის მითითებული',
         "created_at": task.created_at.strftime('%Y-%m-%d') if task.created_at else '',
         "due_date": task.due_date.strftime('%Y-%m-%d') if task.due_date else ''
     } for task in tasks_items]

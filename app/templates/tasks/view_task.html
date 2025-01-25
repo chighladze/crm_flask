@@ -1,168 +1,623 @@
+{# crm_flask/app/templates/tasks/view_task.html #}
 {% extends 'main/base.html' %}
 
-{% block title %}დავალების მიმოხილვა{% endblock %}
+{% block title %}დავალების დეტალები{% endblock %}
 
-{% block breadcrumb %}
-    <li class="breadcrumb-item">
-        <a href="{{ url_for('tasks.tasks_list') }}">დავალებების სია</a>
-    </li>
-    <li class="breadcrumb-item active">დავალება №: {{ task.id }}</li>
+{% block head_extra %}
+    <!-- Meta tag for responsiveness -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Custom styles */
+        .badge-status {
+            font-size: 0.9rem;
+        }
+
+        /* Callout styles for comments */
+        .callout {
+            width: 100%;
+            border-left: 4px solid;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s;
+        }
+
+        .callout-danger {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+
+        .callout-info {
+            border-color: #0dcaf0;
+            background-color: #cff4fc;
+        }
+
+        .callout-warning {
+            border-color: #ffc107;
+            background-color: #fff3cd;
+        }
+
+        .callout-success {
+            border-color: #198754;
+            background-color: #d1e7dd;
+        }
+
+        .callout:hover {
+            background-color: #e2e6ea;
+        }
+
+        .callout-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: nowrap; /* Предотвращает перенос элементов */
+            justify-content: flex-start; /* Выравнивание элементов по левому краю */
+        }
+
+        .comment-user {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #343a40;
+        }
+
+        .separator {
+            margin: 0 10px; /* Отступы вокруг разделителя */
+            color: #6c757d; /* Цвет разделителя */
+        }
+
+        .comment-timestamp {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .comment-content {
+            padding-left: 10px;
+            font-size: 0.95rem;
+            color: #495057;
+            line-height: 1.5;
+            white-space: pre-wrap; /* Сохраняет переносы строк */
+        }
+
+        #comments-section {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 10px;
+        }
+
+        .task-detail-label {
+            font-weight: bold;
+        }
+
+        /* Scrollbar styling for comments */
+        #comments-section::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #comments-section::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        /* Style for the update form */
+        .update-form {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        /* Style for the comments section */
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .comments-header h5 {
+            margin: 0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 767.98px) {
+            .comments-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .comments-header button {
+                margin-top: 10px;
+            }
+        }
+
+        /* Toast positioning */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+    </style>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-3">
-    <form method="POST">
-        {{ form.hidden_tag() }}
-
-        <!-- Main Header -->
-        <div class="row text-center mb-3">
-            <div class="col-12">
-                <h4 class="mb-1">დავალება № {{ task.id }}</h4>
-                <p class="text-muted small">დეტალური ინფორმაცია დავალებაზე</p>
-            </div>
-        </div>
-
-        <!-- Compact Layout -->
+    <div class="container-fluid mt-4">
         <div class="row">
-            <!-- Column 1: Main Details -->
-            <div class="col-md-4">
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-primary text-white p-2 text-center">
-                        ძირითადი ინფორმაცია
+            <!-- Task Information Section -->
+            <div class="col-lg-8 col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-tasks"></i> დეტალები</h5>
                     </div>
-                    <div class="card-body p-2">
-                        <div class="mb-2">
-                            <label class="form-label">დავალების კატეგორია</label>
-                            {{ form.task_category_id(class="form-control form-control-sm", readonly="readonly") }}
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">დავალების ტიპი</label>
-                            {{ form.task_type_id(class="form-control form-control-sm", readonly="readonly") }}
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">აღწერა</label>
-                            {{ form.description(class="form-control form-control-sm", readonly="readonly") }}
-                        </div>
-                    </div>
-                </div>
-                <div class="card shadow-sm">
-                    <div class="card-header bg-secondary text-white p-2 text-center">
-                        დავალების ავტორი
-                    </div>
-                    <div class="card-body p-2">
-                        <div class="mb-2">
-                            <label class="form-label">ავტორი</label>
-                            <input type="text" class="form-control form-control-sm" value="{{ creator_name }}" readonly>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">შექმნის დეპარტამენტი</label>
-                            <input type="text" class="form-control form-control-sm" value="{{ created_division }}" readonly>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Column 2: Progress and Status -->
-            <div class="col-md-4">
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-success text-white p-2 text-center">
-                        პროგრესი
-                    </div>
-                    <div class="card-body p-2 text-center">
-                        <h5>{{ form.progress.data }}%</h5>
-                        <div class="progress mb-2" style="height: 20px;">
-                            <div class="progress-bar bg-info" role="progressbar"
-                                 style="width: {{ form.progress.data }}%;"
-                                 aria-valuenow="{{ form.progress.data }}" aria-valuemin="0" aria-valuemax="100">
-                                {{ form.progress.data }}%
+                    <div class="card-body">
+                        <!-- Task Description -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">აღწერა:</span>
+                            </div>
+                            <div class="col-md-8">
+                                <p>{{ task.description }}</p>
                             </div>
                         </div>
-                        {{ form.progress(class="form-control form-control-sm text-center") }}
-                    </div>
-                </div>
-                <div class="card shadow-sm">
-                    <div class="card-header bg-secondary text-white p-2 text-center">
-                        სტატუსი და პრიორიტეტი
-                    </div>
-                    <div class="card-body p-2">
-                        <div class="mb-2">
-                            <label class="form-label">სტატუსი</label>
-                            {{ form.status_id(class="form-control form-control-sm") }}
+                        <!-- Task Status -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">სტატუსი:</span>
+                            </div>
+                            <div class="col-md-8">
+                                <span class="badge bg-{{ task.status.bootstrap_class }} badge-status">
+                                    {{ task.status.name_geo }}
+                                </span>
+                            </div>
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label">პრიორიტეტი</label>
-                            {{ form.task_priority_id(class="form-control form-control-sm") }}
+                        <!-- Task Priority -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">პრიორიტეტი:</span>
+                            </div>
+                            <div class="col-md-8">
+                                <span class="badge bg-secondary">{{ task.priority.level_geo }}</span>
+                            </div>
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label">შესრულების ვადა</label>
-                            {{ form.due_date(class="form-control form-control-sm") }}
+{#                        <!-- Progress -->#}
+{#                        <div class="row mb-3">#}
+{#                            <div class="col-md-4">#}
+{#                                <span class="task-detail-label">პროდუქტიულობა:</span>#}
+{#                            </div>#}
+{#                            <div class="col-md-8">#}
+{#                                <div class="progress">#}
+{#                                    <div class="progress-bar" role="progressbar" style="width: {{ task.progress }}%;"#}
+{#                                         aria-valuenow="{{ task.progress }}" aria-valuemin="0"#}
+{#                                         aria-valuemax="100">{{ task.progress }}%#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <!-- Assigned User -->#}
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">შემსრულებელი:</span>
+                            </div>
+                            <div class="col-md-8">
+                                <span>{{ task.assigned_user.name if task.assigned_user else 'შემსრულებელი არაა მითთებული' }}</span>
+                            </div>
+                        </div>
+                        <!-- Created By -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">შექმნა:</span>
+                            </div>
+                            <div class="col-md-8">
+                                <span>{{ task.created_user.name if task.created_user else 'უცნობი' }}</span>
+                            </div>
+                        </div>
+                        <!-- Created At -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">შექმნილი:</span>
+                            </div>
+                            <div class="col-md-8">
+                                <span>{{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                            </div>
+                        </div>
+                        <!-- Ended At -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">დასრულების თარიღი:</span>
+                            </div>
+                            <div class="col-md-8">
+                                <span>{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else 'არ არის მითითებული' }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Column 3: Additional Details -->
-            <div class="col-md-4">
-                <div class="card shadow-sm mb-3">
-                    <div class="card-header bg-warning text-white p-2 text-center">
-                        დამატებითი ინფორმაცია
+            <!-- Update Task Section -->
+            <div class="col-lg-4 col-12 mb-4">
+                <div class="card update-form">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-edit"></i> განახლება</h5>
                     </div>
-                    <div class="card-body p-2">
-                        <div class="mb-2">
-                            <label class="form-label">დასახარჯი დრო (საათი)</label>
-                            <input type="text" class="form-control form-control-sm" value="{{ estimated_time }}" readonly>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">ფაქტობრივი დრო (საათი)</label>
-                            <input type="text" class="form-control form-control-sm" value="{{ actual_time }}" readonly>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">მშობელი დავალება</label>
-                            <input type="text" class="form-control form-control-sm" value="{{ parent_task }}" readonly>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">კომენტარების რაოდენობა</label>
-                            <input type="text" class="form-control form-control-sm" value="{{ comments_count }}" readonly>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">გამეორებადი დავალება</label>
-                            <input type="text" class="form-control form-control-sm"
-                                   value="{{ "დიახ" if is_recurring else "არა" }}" readonly>
-                        </div>
-                    </div>
-                </div>
-                <div class="card shadow-sm">
-                    <div class="card-header bg-secondary text-white p-2 text-center">
-                        შესრულების ინფორმაცია
-                    </div>
-                    <div class="card-body p-2">
-                        <div class="mb-2">
-                            <label class="form-label">შემსრულებელი</label>
-                            {{ form.assigned_to(class="form-control form-control-sm") }}
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">დასრულების დეპარტამენტი</label>
-                            <input type="text" class="form-control form-control-sm" value="{{ completed_division }}" readonly>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">დავალება შესრულდა</label>
-                            {{ form.completed_by(class="form-control form-control-sm", readonly="readonly") }}
-                        </div>
+                    <div class="card-body">
+                        <form id="update-task-form">
+                            <div class="mb-3">
+                                <label for="status_id" class="form-label">სტატუსის შეცვლა</label>
+                                <select id="status_id" name="status_id" class="form-select" required>
+                                    <option value="">აირჩიეთ სტატუსი</option>
+                                    {% for status in statuses %}
+                                        <option value="{{ status.id }}"
+                                                {% if status.id == task.status_id %}selected{% endif %}>
+                                            {{ status.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="assigned_to" class="form-label">შემსრულებლის მითითება</label>
+                                <select id="assigned_to" name="assigned_to" class="form-select">
+                                    <option value="">შემსრულებელი არაა მითთებული</option>
+                                    {% for user in users %}
+                                        <option value="{{ user.id }}"
+                                                {% if task.assigned_to == user.id %}selected{% endif %}>
+                                            {{ user.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-save me-2"></i> განახლება
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Control Buttons -->
-        <div class="row mt-3">
-            <div class="col-12 text-center">
-                <a href="{{ url_for('tasks.tasks_list') }}" class="btn btn-secondary btn-sm">
-                    <i class="fas fa-arrow-left"></i> დაბრუნება
-                </a>
-                <button type="submit" class="btn btn-primary btn-sm">
-                    <i class="fas fa-save"></i> შენახვა
-                </button>
+
+        <!-- Comments Section -->
+        <div class="row">
+            <!-- Adjusted Column Classes for Responsiveness -->
+            <div class="col-lg-8 col-12">
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white comments-header">
+                        <h5 class="mb-0"><i class="fas fa-comments"></i> კომენტარები</h5>
+                        <!-- Optional: Add Comment Button for Modal -->
+                        <!-- Uncomment the below lines if you want to use modal for adding comments -->
+                        <!--
+                        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addCommentModal">
+                            <i class="fas fa-plus"></i> დაამატეთ კომენტარი
+                        </button>
+                        -->
+                    </div>
+                    <div class="card-body">
+                        <div id="comments-section">
+                            {% for comment in comments %}
+                                <div class="callout callout-info">
+                                    <div class="callout-header">
+                                        <span class="comment-user">{{ comment.user.name }}</span>
+                                        <span class="separator">|</span>
+                                        <span class="comment-timestamp">{{ comment.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                                    </div>
+                                    <div class="comment-content">{{ comment.content }}</div>
+                                </div>
+                            {% else %}
+                                <p>კომენტარები არ არის.</p>
+                            {% endfor %}
+                        </div>
+                        <hr>
+                        <!-- Add Comment Form -->
+                        <form id="add-comment-form">
+                            <div class="mb-3">
+                                <label for="comment-content" class="form-label">კომენტარის დამატება</label>
+                                <textarea id="comment-content" name="content" class="form-control w-100" rows="3"
+                                          placeholder="დაწერეთ კომენტარი..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100"><i class="fas fa-plus"></i> დაამატეთ
+                                კომენტარი
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-    </form>
-</div>
+
+    </div>
+
+    <!-- Update Task Modal -->
+    <div class="modal fade" id="updateTaskModal" tabindex="-1" aria-labelledby="updateTaskModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="modal-update-task-form">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="updateTaskModalLabel">დავალების განახლება</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="დახურვა"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="modal-status_id" class="form-label">სტატუსის შეცვლა</label>
+                            <select id="modal-status_id" name="status_id" class="form-select" required>
+                                <option value="">აირჩიეთ სტატუსი</option>
+                                {% for status in statuses %}
+                                    <option value="{{ status.id }}"
+                                            {% if status.id == task.status_id %}selected{% endif %}>
+                                        {{ status.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modal-assigned_to" class="form-label">შემსრულებლის მითითება</label>
+                            <select id="modal-assigned_to" name="assigned_to" class="form-select">
+                                <option value="">გამიზენილი არაა</option>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}"
+                                            {% if task.assigned_to == user.id %}selected{% endif %}>
+                                        {{ user.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">გაუქმება</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i> შენახვა</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Comment Modal -->
+    <div class="modal fade" id="addCommentModal" tabindex="-1" aria-labelledby="addCommentModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="modal-add-comment-form">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addCommentModalLabel">კომენტარის დამატება</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="დახურვა"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="modal-comment-content" class="form-label">კომენტარი</label>
+                            <textarea id="modal-comment-content" name="content" class="form-control w-100" rows="3"
+                                      placeholder="დაწერეთ კომენტარი..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">გაუქმება</button>
+                        <button type="submit" class="btn btn-success w-100"><i class="fas fa-plus me-2"></i> დაამატეთ
+                            კომენტარი
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <!-- Include Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery already included in base.html, so no need to include it again -->
+
+    <script>
+        $(document).ready(function () {
+            let csrf_token = '';
+
+            // Fetch CSRF token
+            $.get('/tasks/get_csrf_token', function (data) {
+                csrf_token = data.csrf_token;
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRFToken': csrf_token
+                    }
+                });
+            });
+
+            // Function to display toast notifications
+            function showToast(message, type) {
+                const toastHtml = `
+                    <div class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="დახურვა"></button>
+                        </div>
+                    </div>
+                `;
+                $('.toast-container').append(toastHtml);
+                const toastElement = $('.toast-container .toast').last();
+                const toast = new bootstrap.Toast(toastElement[0], {delay: 3000});
+                toast.show();
+
+                // Remove the toast element after it hides
+                toastElement.on('hidden.bs.toast', function () {
+                    $(this).remove();
+                });
+            }
+
+            // Обработка существующих комментариев для замены переносов строк на <br>
+            $('.comment-content').each(function() {
+                var text = $(this).text();
+                var html = text.replace(/(?:\r\n|\r|\n)/g, '<br>');
+                $(this).html(html);
+            });
+
+            // Handle update task form submission (Inline form)
+            $('#update-task-form').on('submit', function (e) {
+                e.preventDefault();
+                const status_id = $('#status_id').val();
+                const assigned_to = $('#assigned_to').val();
+
+                $.ajax({
+                    url: `/tasks/update/{{ task.id }}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        status_id: status_id,
+                        assigned_to: assigned_to
+                    }),
+                    success: function (response) {
+                        // Update status badge
+                        $('.badge-status').removeClass(function (index, className) {
+                            return (className.match(/(^|\s)bg-\S+/g) || []).join(' ');
+                        }).addClass(`bg-${response.new_status.bootstrap_class}`);
+                        $('.badge-status').text(response.new_status.name);
+
+                        // Update assigned user text
+                        if (assigned_to) {
+                            const selectedUser = $('#assigned_to option:selected').text();
+                            $('span:contains("გამიზენილია:")').next().html(selectedUser);
+                        } else {
+                            $('span:contains("გამიზენილია:")').next().text('გამიზენილი არაა');
+                        }
+
+                        // Display success toast
+                        showToast(response.message, 'success');
+
+                        // Close the modal if it was opened via modal
+                        $('#updateTaskModal').modal('hide');
+                    },
+                    error: function (xhr) {
+                        const res = xhr.responseJSON;
+                        showToast(res.message || 'დავალების განახლებისას მოხდა შეცდომა.', 'danger');
+                    }
+                });
+            });
+
+            // Handle update task form submission (Modal form)
+            $('#modal-update-task-form').on('submit', function (e) {
+                e.preventDefault();
+                const status_id = $('#modal-status_id').val();
+                const assigned_to = $('#modal-assigned_to').val();
+
+                $.ajax({
+                    url: `/tasks/update/{{ task.id }}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        status_id: status_id,
+                        assigned_to: assigned_to
+                    }),
+                    success: function (response) {
+                        // Update status badge
+                        $('.badge-status').removeClass(function (index, className) {
+                            return (className.match(/(^|\s)bg-\S+/g) || []).join(' ');
+                        }).addClass(`bg-${response.new_status.bootstrap_class}`);
+                        $('.badge-status').text(response.new_status.name);
+
+                        // Update assigned user text
+                        if (assigned_to) {
+                            const selectedUser = $('#modal-assigned_to option:selected').text();
+                            $('span:contains("გამიზენილია:")').next().html(selectedUser);
+                        } else {
+                            $('span:contains("გამიზენილია:")').next().text('გამიზენილი არაა');
+                        }
+
+                        // Display success toast
+                        showToast(response.message, 'success');
+
+                        // Close the modal
+                        $('#updateTaskModal').modal('hide');
+                    },
+                    error: function (xhr) {
+                        const res = xhr.responseJSON;
+                        showToast(res.message || 'დავალების განახლებისას მოხდა შეცდომა.', 'danger');
+                    }
+                });
+            });
+
+            // Handle add comment form submission (Inline form)
+            $('#add-comment-form').on('submit', function (e) {
+                e.preventDefault();
+                const content = $('#comment-content').val().trim();
+
+                if (!content) {
+                    showToast('კომენტარი არ უნდა იყოს ცარიელი.', 'warning');
+                    return;
+                }
+
+                $.ajax({
+                    url: `/tasks/{{ task.id }}/add_comment`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({content: content}),
+                    success: function (response) {
+                        const comment = response.comment;
+                        const commentHtml = `
+                            <div class="callout callout-info">
+                                <div class="callout-header">
+                                    <span class="comment-user">${comment.user.name}</span>
+                                    <span class="separator">|</span>
+                                    <span class="comment-timestamp">${comment.timestamp}</span>
+                                </div>
+                                <div class="comment-content">${comment.content.replace(/\n/g, '<br>')}</div>
+                            </div>
+                        `;
+                        $('#comments-section').append(commentHtml);
+                        $('#comment-content').val(''); // Очистить textarea
+                        showToast(response.message, 'success');
+
+                        // Закрыть модальное окно, если оно было открыто через модальное окно
+                        $('#addCommentModal').modal('hide');
+                    },
+                    error: function (xhr) {
+                        const res = xhr.responseJSON;
+                        showToast(res.message || 'კომენტარის დამატებისას მოხდა შეცდომა.', 'danger');
+                    }
+                });
+            });
+
+            // Handle add comment form submission (Modal form)
+            $('#modal-add-comment-form').on('submit', function (e) {
+                e.preventDefault();
+                const content = $('#modal-comment-content').val().trim();
+
+                if (!content) {
+                    showToast('კომენტარი არ უნდა იყოს ცარიელი.', 'warning');
+                    return;
+                }
+
+                $.ajax({
+                    url: `/tasks/{{ task.id }}/add_comment`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({content: content}),
+                    success: function (response) {
+                        const comment = response.comment;
+                        const commentHtml = `
+                            <div class="callout callout-info">
+                                <div class="callout-header">
+                                    <span class="comment-user">${comment.user.name}</span>
+                                    <span class="separator">|</span>
+                                    <span class="comment-timestamp">${comment.timestamp}</span>
+                                </div>
+                                <div class="comment-content">${comment.content.replace(/\n/g, '<br>')}</div>
+                            </div>
+                        `;
+                        $('#comments-section').append(commentHtml);
+                        $('#modal-comment-content').val(''); // Очистить textarea
+                        showToast(response.message, 'success');
+
+                        // Закрыть модальное окно
+                        $('#addCommentModal').modal('hide');
+                    },
+                    error: function (xhr) {
+                        const res = xhr.responseJSON;
+                        showToast(res.message || 'კომენტარის დამატებისას მოხდა შეცდომა.', 'danger');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
 {% endblock %}

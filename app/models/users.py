@@ -24,6 +24,8 @@ class Users(UserMixin, db.Model):
     createdAt = db.Column(db.DateTime, default=datetime.utcnow)
     updatedAt = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    comments = db.relationship('TaskComments', back_populates='user', lazy='dynamic')
+
     def get_roles(self, user_id) -> list:
         roles = (
             db.session.query(Roles.id, Roles.name)

@@ -7,3 +7,4 @@ class TaskPriorities(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     level = db.Column(db.String(20), unique=True, nullable=False)
+    level_geo = db.Column(db.String(20), unique=True, nullable=False)
