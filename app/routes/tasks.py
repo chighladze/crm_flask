@@ -142,6 +142,16 @@ def update_task(task_id):
                 order_id=task.order_id
             )
             db.session.add(new_task)
+        if status_id == '3' and task.task_type_id == 2:
+            # Create a subtask with necessary fields
+            new_task = Tasks(
+                task_type_id=4,  # Ensure task_type_id=2 exists and is correct
+                description=f"ავტომატური შექმნილი დავალება {task.id}",
+                created_by=current_user.id,
+                parent_task_id=task.id,
+                order_id=task.order_id
+            )
+            db.session.add(new_task)
 
         db.session.commit()
 
@@ -228,7 +238,8 @@ def view_task(task_id):
     # Set form choices
     form.task_type_id.choices = [(t.id, t.name) for t in TaskTypes.query.all()]
     form.status_id.choices = [(s.id, s.name_geo) for s in TaskStatuses.query.all()]  # Use name_geo
-    form.task_priority_id.choices = [(p.id, p.level_geo) for p in TaskPriorities.query.all()]  # Assuming there is level_geo
+    form.task_priority_id.choices = [(p.id, p.level_geo) for p in
+                                     TaskPriorities.query.all()]  # Assuming there is level_geo
     form.assigned_to.choices = [(u.id, u.name) for u in Users.query.all()]
     form.completed_by.choices = [(u.id, u.name) for u in Users.query.all()]
 

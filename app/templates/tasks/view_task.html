@@ -177,6 +177,16 @@
                                 <p>{{ task.task_type.name }}</p>
                             </div>
                         </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">შექვეთის ID:</span>
+                            </div>
+                            <div class="col-md-8">
+                                {# Correct the hidden input to have the correct value #}
+                                <input name="order_id" id="order_id" value="{{ task.order_id }}" type="hidden">
+                                <a href="/orders/{{ task.order_id }}/view">{{ task.order_id }}</a>
+                            </div>
+                        </div>
                         <!-- Task Description -->
                         <div class="row mb-3">
                             <div class="col-md-4">
@@ -294,9 +304,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-save me-2"></i> განახლება
-                            </button>
+                            <button type="submit" class="btn btn-primary">განახლება</button>
                         </form>
                     </div>
                 </div>
