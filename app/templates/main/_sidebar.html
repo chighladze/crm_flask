@@ -87,17 +87,17 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('orders.new_orders_page') }}" class="nav-link {% if active_menu == 'project_design' and request.path.split('/')[1] != 'new'  %}active{% endif %}">
-                                <i class="fas fa-users nav-icon"></i>
-                                <p>ახალი განაცხადები</p>
+                            <a href="{{ url_for('orders.new_orders_page') }}" class="nav-link {% if active_menu == 'project_design' and request.path.split('/')[2] == 'new'  %}active{% endif %}">
+                                <i class="fas fa-window-restore nav-icon"></i>
+                                <p>ახალი განაცხადები შ</p>
                             </a>
                         </li>
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('customer_types.types_list') }}" class="nav-link {% if request.path.split('/')[2] == 'customer_types' %}active{% endif %}">
-                                <i class="far fa-address-card nav-icon"></i>
-                                <p>კლიენტის ტიპები</p>
+                            <a href="{{ url_for('tasks.design_tasks_orders') }}" class="nav-link {% if request.path.split('/')[2] == 'design_tasks_orders' %}active{% endif %}">
+                                <i class="fas fa-window-restore nav-icon"></i>
+                                <p>ახალი განაცხადები დ</p>
                             </a>
                         </li>
                     </ul>

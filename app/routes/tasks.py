@@ -629,3 +629,248 @@ def create_subtask():
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'შეცდომა: {str(e)}'}), 500
+
+
+@tasks.route('/tasks/design_tasks_orders', methods=['GET'])
+@login_required
+def design_tasks_orders():
+    """
+    Отображает страницу списка задач с использованием пользовательского SQL-запроса.
+    """
+    # Предполагается, что у вас есть модели TaskType и TaskStatus
+    task_types = TaskTypes.query.all()
+    task_statuses = TaskStatuses.query.all()
+    return render_template(
+        'tasks/design_tasks_orders.html',
+        task_types=task_types,
+        task_statuses=task_statuses,
+        active_menu='project_design'
+
+    )
+
+
+@tasks.route('/api/design_tasks_orders_list', methods=['GET'])
+@login_required
+def api_design_tasks_orders_list():
+    """
+    Возвращает данные задач и заказов в формате JSON для отображения в таблице.
+    Поддерживает фильтрацию и пагинацию.
+    """
+    # Получение параметров фильтрации из запроса
+    search = request.args.get('search', '', type=str)
+    task_type_id = request.args.get('task_type_id', type=int)
+    status_id = request.args.get('status_id', type=int)
+    customer_name = request.args.get('customer_name', '', type=str)
+    order_id = request.args.get('order_id', type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    page = request.args.get('page', 1, type=int)
+
+    # Базовый SQL-запрос без жёстких фильтров
+    sql = """
+    SELECT t.id         as taskID,
+           tt.id        as taskTypeID,
+           s.id         as taskStatusID,
+           s.name_geo   as taskStatusName,
+           tt.name      as taskTypeName,
+           o.id         as orderID,
+           c.id         as customerID,
+           c.name       as customerName,
+           ct.id        as customerTypeID,
+           ct.name      as customerTypeName,
+           o.mobile     as mobile,
+           o.alt_mobile as alt_mobile,
+           tp.id        as tariffPlanID,
+           tp.name      as tariffPlanName,
+           st.id        as settlementID,
+           st.name      as settlementName,
+           dt.id        as district,
+           dt.name      as districtName
+    FROM tasks t
+             INNER JOIN task_statuses s ON t.status_id = s.id
+             INNER JOIN orders o ON t.order_id = o.id
+             INNER JOIN task_types tt ON t.task_type_id = tt.id
+             INNER JOIN divisions d ON tt.division_id = d.id
+             INNER JOIN customers c ON o.customer_id = c.id
+             INNER JOIN customers_type ct ON c.type_id = ct.id
+             INNER JOIN tariff_plans tp ON o.tariff_plan_id = tp.id
+             INNER JOIN addresses a ON o.address_id = a.id
+             INNER JOIN settlements st ON a.settlement_id = st.id
+             INNER JOIN districts dt ON st.district_id = dt.id
+             INNER JOIN regions r ON dt.region_id = r.id
+             INNER JOIN building_types bt ON a.building_type_id = bt.id
+    WHERE t.task_type_id = 1
+      AND t.status_id = 1
+    """
+
+    # Добавление условий фильтрации
+    params = {}
+
+    if status_id:
+        sql += " AND t.status_id = :status_id"
+        params['status_id'] = status_id
+    if search:
+        sql += f" AND (c.name LIKE '%{search}%' OR o.mobile LIKE '%{search}%')"
+        params['search'] = f"%{search}%"
+
+    # Добавление сортировки и пагинации
+    sql += " ORDER BY t.id DESC"
+    offset = (page - 1) * per_page
+    sql += " LIMIT :limit OFFSET :offset"
+    params['limit'] = per_page
+    params['offset'] = offset
+
+    try:
+        # Выполнение SQL-запроса с использованием text()
+        result = db.session.execute(db.text(sql), params)
+        tasks_orders = result.mappings().all()  # Используем mappings().all()
+
+        # Подсчет общего количества записей для пагинации
+        count_sql = """
+        SELECT COUNT(*) 
+        FROM tasks t
+                 INNER JOIN task_statuses s ON t.status_id = s.id
+                 INNER JOIN orders o ON t.order_id = o.id
+                 INNER JOIN task_types tt ON t.task_type_id = tt.id
+                 INNER JOIN divisions d ON tt.division_id = d.id
+                 INNER JOIN customers c ON o.customer_id = c.id
+                 INNER JOIN customers_type ct ON c.type_id = ct.id
+                 INNER JOIN tariff_plans tp ON o.tariff_plan_id = tp.id
+                 INNER JOIN addresses a ON o.address_id = a.id
+                 INNER JOIN settlements st ON a.settlement_id = st.id
+                 INNER JOIN districts dt ON st.district_id = dt.id
+                 INNER JOIN regions r ON dt.region_id = r.id
+                 INNER JOIN building_types bt ON a.building_type_id = bt.id
+        WHERE t.task_type_id = 1
+          AND t.status_id = 1
+        """
+        if status_id:
+            count_sql += " AND t.status_id = :status_id"
+        if search:
+            count_sql += f" AND (c.name LIKE '%{search}%' OR o.mobile LIKE '%{search}%')"
+
+        count_result = db.session.execute(db.text(count_sql), params)
+        total = count_result.scalar()
+
+        # Преобразование результатов в список словарей
+        tasks_orders_data = [dict(row) for row in tasks_orders]
+
+        # Подготовка данных для ответа
+        response = {
+            "tasks_orders": tasks_orders_data,
+            "pagination": {
+                "total": total,
+                "per_page": per_page,
+                "current_page": page,
+                "pages": (total + per_page - 1) // per_page,
+                "has_prev": page > 1,
+                "has_next": page < (total + per_page - 1) // per_page
+            }
+        }
+
+    except Exception as e:
+        return jsonify({"tasks_orders": [], "pagination": {}}), 500
+
+    return jsonify(response)
+
+
+@tasks.route('/tasks/export_design_tasks_orders', methods=['GET'])
+@login_required
+def export_design_tasks_orders():
+    """
+    Экспортирует фильтрованные данные задач и заказов в файл Excel.
+    """
+    # Получение параметров фильтрации из запроса
+    search = request.args.get('search', '', type=str)
+    task_type_id = request.args.get('task_type_id', type=int)
+    status_id = request.args.get('status_id', type=int)
+    customer_name = request.args.get('customer_name', '', type=str)
+    order_id = request.args.get('order_id', type=int)
+
+    # Базовый SQL-запрос
+    sql = """
+    SELECT t.id         as taskID,
+           tt.id        as taskTypeID,
+           s.id         as taskStatusID,
+           s.name_geo   as taskStatusName,
+           tt.name      as taskTypeName,
+           o.id         as orderID,
+           c.id         as customerID,
+           c.name       as customerName,
+           ct.id        as customerTypeID,
+           ct.name      as customerTypeName,
+           o.mobile     as mobile,
+           o.alt_mobile as alt_mobile,
+           tp.id        as tariffPlanID,
+           tp.name      as tariffPlanName,
+           st.id        as settlementID,
+           st.name      as settlementName,
+           dt.id        as district,
+           dt.name      as districtName
+    FROM tasks t
+             INNER JOIN task_statuses s ON t.status_id = s.id
+             INNER JOIN orders o ON t.order_id = o.id
+             INNER JOIN task_types tt ON t.task_type_id = tt.id
+             INNER JOIN divisions d ON tt.division_id = d.id
+             INNER JOIN customers c ON o.customer_id = c.id
+             INNER JOIN customers_type ct ON c.type_id = ct.id
+             INNER JOIN tariff_plans tp ON o.tariff_plan_id = tp.id
+             INNER JOIN addresses a ON o.address_id = a.id
+             INNER JOIN settlements st ON a.settlement_id = st.id
+             INNER JOIN districts dt ON st.district_id = dt.id
+             INNER JOIN regions r ON dt.region_id = r.id
+             INNER JOIN building_types bt ON a.building_type_id = bt.id
+    WHERE 1=1
+    """
+
+    # Добавление условий фильтрации
+    params = {}
+    if task_type_id:
+        sql += " AND t.task_type_id = :task_type_id"
+        params['task_type_id'] = task_type_id
+    if status_id:
+        sql += " AND t.status_id = :status_id"
+        params['status_id'] = status_id
+    if search:
+        sql += " AND (c.name ILIKE :search OR o.mobile ILIKE :search)"
+        params['search'] = f"%{search}%"
+    if customer_name:
+        sql += " AND c.name ILIKE :customer_name"
+        params['customer_name'] = f"%{customer_name}%"
+    if order_id:
+        sql += " AND o.id = :order_id"
+        params['order_id'] = order_id
+
+    try:
+        # Выполнение SQL-запроса
+        result = db.session.execute(db.text(sql), params)
+        tasks_orders = result.fetchall()
+
+        # Преобразование результатов в DataFrame
+        tasks_orders_data = [dict(row) for row in tasks_orders]
+        df = pd.DataFrame(tasks_orders_data)
+
+        # Если DataFrame пустой, создаем пустую таблицу
+        if df.empty:
+            df = pd.DataFrame(columns=[
+                'ID დავალება', 'ID ტიპი', 'ID სტატუსი', 'სტატუსის სახელი', 'ტიპის სახელი',
+                'ID შეკვეთა', 'ID მომხმარებელი', 'სახელი მომხმარებელი', 'ID მომხმარებლის ტიპი',
+                'სახელი მომხმარებლის ტიპი', 'მობილური', 'სანამობილური', 'ID ტარიფი',
+                'ტარიფის სახელი', 'ID დასახლებულობა', 'დასახლებულობა', 'ID რაიონი',
+                'რაიონის სახელი'
+            ])
+
+        # Создание Excel файла
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Tasks_Orders')
+        output.seek(0)
+
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name='tasks_orders_list.xlsx',
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+    except Exception as e:
+        return jsonify({"message": "Ошибка при экспорте данных."}), 500

@@ -167,9 +167,9 @@ def api_orders_list():
     mobile = request.args.get('mobile', '')
     identification_number = request.args.get('identification_number', '')
     tariff_plan_id = request.args.get('tariff_plan_id', type=int)
-    status_id = request.args.get('status_id', type=int)  # New filter
-    district_id = request.args.get('district_id', type=int)  # New filter
-    building_type_id = request.args.get('building_type_id', type=int)  # New filter
+    status_id = request.args.get('status_id', type=int)
+    district_id = request.args.get('district_id', type=int)
+    building_type_id = request.args.get('building_type_id', type=int)
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     page = request.args.get('page', 1, type=int)
