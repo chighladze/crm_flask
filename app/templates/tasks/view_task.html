@@ -241,7 +241,7 @@
                             </div>
                         </div>
                         <!-- Created At -->
-                        <div class="row">
+                        <div class="row mb-3">
                             <div class="col-md-4">
                                 <span class="task-detail-label">შექმნილი:</span>
                             </div>
@@ -249,10 +249,10 @@
                                 <span>{{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
                             </div>
                         </div>
-                        <!-- Due Date -->
-                        <div class="row">
+                        <!-- End Date -->
+                        <div class="row mb-3">
                             <div class="col-md-4">
-                                <span class="task-detail-label">დასრულების თარიღი:</span>
+                                <span class="task-detail-label">დასრულებული:</span>
                             </div>
                             <div class="col-md-8">
                                 <span>{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else 'არ არის მითითებული' }}</span>
@@ -306,7 +306,7 @@
         <!-- Comments and Subtasks Sections -->
         <div class="row">
             <!-- Comments Section -->
-            <div class="col-lg-6 col-12 mb-4">
+            <div class="col-lg-8 col-12 mb-4">
                 <div class="card mb-4">
                     <div class="card-header bg-info text-white comments-header">
                         <h5 class="mb-0"><i class="fas fa-comments"></i> კომენტარები</h5>
@@ -334,38 +334,12 @@
                                 <textarea id="comment-content" name="content" class="form-control w-100" rows="3"
                                           placeholder="დაწერეთ კომენტარი..." required></textarea>
                             </div>
-                            <button type="submit" class="btn btn-success w-100"><i class="fas fa-plus"></i> დაამატეთ
-                                კომენტარი
-                            </button>
+                            <button type="submit" class="btn btn-success">კომენტარის დამატება</button>
                         </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Subtasks Section -->
-            <div class="col-lg-6 col-12 mb-4">
-                <div class="card subtasks-section">
-                    <div class="card-header bg-secondary text-white">
-                        <h5 class="mb-0"><i class="fas fa-tasks"></i> ქვეჯამაკური</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="subtasks-section">
-                            {% for subtask in subtasks %}
-                                <div class="callout callout-success">
-                                    <div class="callout-header">
-                                        <span class="comment-user">ქვეჯამაკური ID {{ subtask.id }}</span>
-                                        <span class="separator">|</span>
-                                        <span class="comment-timestamp">{{ subtask.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
-                                    </div>
-                                    <div class="comment-content">{{ subtask.description }}</div>
-                                </div>
-                            {% else %}
-                                <p>ქვეჯამაკურები არ არის.</p>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
     </div>
