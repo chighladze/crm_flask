@@ -293,6 +293,7 @@
                                             <td class="d-none d-md-table-cell">
                                                 {{ task.created_at.strftime('%d-%m-%Y') }}
                                             </td>
+                                            {#
                                             <td class="text-center">
                                                 <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
                                                     <button class="btn btn-primary"
@@ -302,6 +303,16 @@
                                                             onclick="showTaskDetails({{ task.id }})">
                                                         <i class="fas fa-eye"></i>
                                                     </button>
+                                                </div>
+                                            </td>
+                                            #}
+                                            <td class="text-center">
+                                                <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+                                                    <a class="btn btn-primary"
+                                                            title="ნახვა"
+                                                            href="/tasks/view/{{ task.id }}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>

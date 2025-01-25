@@ -17,7 +17,7 @@ from ..forms import TaskForm
 tasks = Blueprint('tasks', __name__)
 
 
-# ------------- AJAX эндпоинты для раздела задач ---------------
+# ------------- AJAX endpoints for tasks section ---------------
 
 @tasks.route('/tasks/get_csrf_token', methods=['GET'])
 def get_csrf_token():
@@ -86,7 +86,7 @@ def task_details(task_id):
             } if task.task_type and getattr(task.task_type, 'division', None) else {}
         },
         'customer_id': task.order.customer_id if task.order else None,
-        'statuses': [{'id': status.id, 'name': status.name} for status in statuses],
+        'statuses': [{'id': status.id, 'name': status.name_geo} for status in statuses],
         'task_types': [{'id': t.id, 'name': t.name} for t in task_types],
         'mac_address': mac_address
     }), 200
@@ -96,7 +96,7 @@ def task_details(task_id):
 @login_required
 def update_task(task_id):
     """
-    განახლებს დავალების სტატუსს და ქმნის ასაინერი.
+    Updates the task status and, if necessary, creates a new subtask.
     """
     task = Tasks.query.get_or_404(task_id)
     data = request.get_json()
@@ -108,21 +108,40 @@ def update_task(task_id):
         return jsonify({'message': 'სტატუსი აუცილებელია.'}), 400
 
     try:
-        # განახლება სტატუსი
+        # Process status_id
         status = TaskStatuses.query.get(status_id)
         if not status:
-            return jsonify({'message': 'სათანაზღაურებული სტატუსის ID არასწორია.'}), 400
+            return jsonify({'message': 'სტატუსის ID არასწორია.'}), 400
 
+        # Update task status
         task.status_id = status_id
 
-        # განახლება ასაინერი
+        # Process assigned_to
         if assigned_to:
+            try:
+                assigned_to = int(assigned_to)
+            except ValueError:
+                return jsonify({'message': 'შემსრულებლის ID უნდა იყოს მთელი რიცხვი.'}), 400
+
             user = Users.query.get(assigned_to)
             if not user:
-                return jsonify({'message': 'ასაინერი ID არასწორია.'}), 400
+                return jsonify({'message': 'შემსრულებლის ID არასწორია.'}), 400
             task.assigned_to = assigned_to
         else:
-            task.assigned_to = None  # ასაინერის ამოშლა
+            task.assigned_to = None  # Remove assignee
+
+        # Logic to create subtask under certain conditions
+        new_task = None
+        if status_id == '3' and task.task_type_id == 1:
+            # Create a subtask with necessary fields
+            new_task = Tasks(
+                task_type_id=2,  # Ensure task_type_id=2 exists and is correct
+                description=f"ავტომატური შექმნილი დავალება {task.id}",
+                created_by=current_user.id,
+                parent_task_id=task.id,
+                order_id=task.order_id
+            )
+            db.session.add(new_task)
 
         db.session.commit()
 
@@ -130,14 +149,31 @@ def update_task(task_id):
             'message': 'დავალება წარმატებით განახლდა!',
             'new_status': {
                 'id': task.status.id,
-                'name': task.status.name,
+                'name_geo': task.status.name_geo,
                 'bootstrap_class': task.status.bootstrap_class
             },
             'assigned_user': {
                 'id': task.assigned_user.id if task.assigned_user else None,
-                'name': task.assigned_user.name if task.assigned_user else 'გამიზენილი არაა'
+                'name': task.assigned_user.name if task.assigned_user else 'შემსრულებელი არ არის მითითებული'
             }
         }
+
+        if new_task:
+            response['new_task'] = {
+                'id': new_task.id,
+                'description': new_task.description,
+                'status': {
+                    'id': new_task.status.id,
+                    'name_geo': new_task.status.name_geo,
+                    'bootstrap_class': new_task.status.bootstrap_class
+                },
+                'task_type': {
+                    'id': new_task.task_type.id,
+                    'name_geo': new_task.task_type.name
+                },
+                'created_at': new_task.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            }
+            response['message'] += ' ქვეჯამაკური წარმატებით შექმნილია!'
 
         return jsonify(response), 200
 
@@ -150,7 +186,7 @@ def update_task(task_id):
 @login_required
 def add_comment(task_id):
     """
-    დამატება კომენტარი დავალებას.
+    Adds a comment to a task.
     """
     task = Tasks.query.get_or_404(task_id)
     data = request.get_json()
@@ -162,13 +198,15 @@ def add_comment(task_id):
     try:
         comment = TaskComments(task_id=task_id, user_id=current_user.id, content=content)
         db.session.add(comment)
+        # Update comments_count
+        task.comments_count += 1
         db.session.commit()
 
         response = {
             'message': 'კომენტარი წარმატებით დამატებულია.',
             'comment': {
                 'id': comment.id,
-                'user': current_user.name,  # დარწმუნდით, რომ Users მოდელს აქვს name ველი
+                'user': current_user.name,  # Ensure Users model has a name field
                 'content': comment.content,
                 'timestamp': comment.timestamp.strftime('%Y-%m-%d %H:%M:%S')
             }
@@ -187,22 +225,41 @@ def view_task(task_id):
     task = Tasks.query.get_or_404(task_id)
     form = TaskForm(obj=task)
 
+    # Set form choices
     form.task_type_id.choices = [(t.id, t.name) for t in TaskTypes.query.all()]
-    form.status_id.choices = [(s.id, s.name) for s in TaskStatuses.query.all()]
-    form.task_priority_id.choices = [(p.id, p.level) for p in TaskPriorities.query.all()]
+    form.status_id.choices = [(s.id, s.name_geo) for s in TaskStatuses.query.all()]  # Use name_geo
+    form.task_priority_id.choices = [(p.id, p.level_geo) for p in TaskPriorities.query.all()]  # Assuming there is level_geo
     form.assigned_to.choices = [(u.id, u.name) for u in Users.query.all()]
     form.completed_by.choices = [(u.id, u.name) for u in Users.query.all()]
 
+    # Make fields read-only
     form.task_category_id.render_kw = {'readonly': True, 'disabled': True}
     form.task_type_id.render_kw = {'readonly': True, 'disabled': True}
     form.description.render_kw = {'readonly': True, 'disabled': True}
     form.created_by.render_kw = {'readonly': True, 'disabled': True}
     form.completed_by.render_kw = {'readonly': True, 'disabled': True}
 
-    # Получаем комментарии, сортированные по дате
+    # Get comments ordered by date
     comments = task.comments.order_by(TaskComments.timestamp.asc()).all()
 
-    return render_template('tasks/view_task.html', form=form, task=task, comments=comments)
+    # Get subtasks ordered by creation date
+    subtasks = task.subtasks.order_by(Tasks.created_at.asc()).all()
+
+    # Get statuses and users to pass to template
+    statuses = TaskStatuses.query.all()
+    users = Users.query.all()
+    priorities = TaskPriorities.query.all()
+
+    return render_template(
+        'tasks/view_task.html',
+        form=form,
+        task=task,
+        comments=comments,
+        subtasks=subtasks,  # Added
+        statuses=statuses,  # Added
+        users=users,  # Added
+        priorities=priorities  # Added, if used
+    )
 
 
 @tasks.route('/tasks/edit/<int:task_id>', methods=['GET', 'POST'])
@@ -232,13 +289,13 @@ def edit_task(task_id):
     return render_template('tasks/edit_task.html', form=form, task=task)
 
 
-# ------------- Страница и API для списка задач ---------------
+# ------------- Page and API for tasks list ---------------
 
 @tasks.route('/tasks/list', methods=['GET'])
 @login_required
 def tasks_list():
     """
-    Отображает страницу со списком задач с фильтрацией и пагинацией.
+    Displays the tasks list page with filtering and pagination.
     """
     search_query = request.args.get('search', '')
     status_id = request.args.get('status_id', type=int)
@@ -283,7 +340,7 @@ def tasks_list():
     statuses = TaskStatuses.query.all()
     priorities = TaskPriorities.query.all()
     users = Users.query.all()
-    categories = TaskTypes.query.all()  # Используем TaskTypes как категории
+    categories = TaskTypes.query.all()  # Using TaskTypes as categories
     divisions = Divisions.query.all()
 
     return render_template(
@@ -386,9 +443,9 @@ def api_tasks_list():
 def export():
     """
     Exports filtered task data to an Excel file.
-    Фильтры берутся из GET-параметров, как и в маршруте для списка задач.
+    Filters are taken from GET parameters, as in the tasks list route.
     """
-    # Получаем параметры фильтрации из GET-запроса
+    # Get filtering parameters from GET request
     search_query = request.args.get('search', '')
     status_id = request.args.get('status_id', type=int)
     task_category_id = request.args.get('task_category_id', type=int)
@@ -456,10 +513,10 @@ def create_task():
     """
     Renders a page to create a new task using WTForms.
     """
-    from ..forms.tasks import TaskForm  # Импорт формы
+    from ..forms.tasks import TaskForm  # Import form
     form = TaskForm()
 
-    # Если категорий пока нет, передадим пустой список
+    # If no categories yet, pass an empty list
     categories = []
     form.task_category_id.choices = [(category.id, category.name) for category in categories]
     form.status_id.choices = [(s.id, s.name) for s in TaskStatuses.query.all()]
@@ -512,7 +569,7 @@ def create_subtask():
     try:
         if parent_task_type_id == 3 and parent_status_change_id == 3:
             if not mac_address:
-                return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ STATუსისა და TIPის დავალებისთვის.'}), 400
+                return jsonify({'message': 'MAC-მისამართი აუცილებელია ამ სტატუსისა და ტიპის დავალებისთვის.'}), 400
             duplicate_mac = CustomerAccount.query.filter_by(mac_address=mac_address).first()
             if duplicate_mac:
                 return jsonify({'message': 'MAC-მისამართი უკვე გამოყენებულია.', 'field': 'mac_address'}), 400
@@ -537,25 +594,21 @@ def create_subtask():
                 'description': subtask.description,
                 'status': {
                     'id': subtask.status.id,
-                    'name': subtask.status.name,
+                    'name_geo': subtask.status.name_geo,
                     'bootstrap_class': subtask.status.bootstrap_class
                 },
                 'task_type': {
                     'id': subtask.task_type.id,
-                    'name': subtask.task_type.name,
-                    'division': {
-                        'id': subtask.task_type.division.id,
-                        'name': subtask.task_type.division.name
-                    } if subtask.task_type and getattr(subtask.task_type, 'division', None) else {}
+                    'name_geo': subtask.task_type.name_geo
                 },
                 'created_user': {
-                    'name': subtask.created_user.name if subtask.created_user else 'Unknown'
+                    'name': subtask.created_user.name if subtask.created_user else 'უცნობი'
                 },
                 'created_at': subtask.created_at.strftime('%Y-%m-%d %H:%M:%S')
             },
             'new_status': {
                 'id': parent_task.status_id,
-                'name': parent_task.status.name,
+                'name_geo': parent_task.status.name_geo,
                 'bootstrap_class': parent_task.status.bootstrap_class
             },
             'customer_account': None

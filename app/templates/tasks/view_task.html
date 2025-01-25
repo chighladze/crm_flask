@@ -3,7 +3,7 @@
 
 {% block title %}დავალების დეტალები{% endblock %}
 
-{% block head_extra %}
+{% block styles %}
     <!-- Meta tag for responsiveness -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
@@ -51,8 +51,8 @@
             display: flex;
             align-items: center;
             margin-bottom: 8px;
-            flex-wrap: nowrap; /* Предотвращает перенос элементов */
-            justify-content: flex-start; /* Выравнивание элементов по левому краю */
+            flex-wrap: nowrap; /* Prevents wrapping of elements */
+            justify-content: flex-start; /* Align elements to the left */
         }
 
         .comment-user {
@@ -62,8 +62,8 @@
         }
 
         .separator {
-            margin: 0 10px; /* Отступы вокруг разделителя */
-            color: #6c757d; /* Цвет разделителя */
+            margin: 0 10px; /* Spacing around the separator */
+            color: #6c757d; /* Separator color */
         }
 
         .comment-timestamp {
@@ -76,7 +76,7 @@
             font-size: 0.95rem;
             color: #495057;
             line-height: 1.5;
-            white-space: pre-wrap; /* Сохраняет переносы строк */
+            white-space: pre-wrap; /* Preserves line breaks */
         }
 
         #comments-section {
@@ -137,6 +137,11 @@
             right: 20px;
             z-index: 1055;
         }
+
+        /* Новые классы для надежных селекторов */
+        .assigned-user {
+            /* Дополнительные стили при необходимости */
+        }
     </style>
     <!-- Include Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -154,12 +159,32 @@
                         <h5 class="mb-0"><i class="fas fa-tasks"></i> დეტალები</h5>
                     </div>
                     <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">განყოფილება:</span>
+                            </div>
+                            <div class="col-md-8">
+                                <p>{{ task.task_type.division.name }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">დავალების ტიპი:</span>
+                            </div>
+                            <div class="col-md-8">
+                                {# Correct the hidden input to have the correct value #}
+                                <input name="task_type_id" id="task_type_id" value="{{ task.task_type_id }}" type="hidden">
+                                <p>{{ task.task_type.name }}</p>
+                            </div>
+                        </div>
                         <!-- Task Description -->
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <span class="task-detail-label">აღწერა:</span>
                             </div>
                             <div class="col-md-8">
+                                {# Remove the duplicate hidden input #}
+                                <!-- <input type="hidden" id="task_type_id" value="{{ task.task_type_id }}"> -->
                                 <p>{{ task.description }}</p>
                             </div>
                         </div>
@@ -183,27 +208,27 @@
                                 <span class="badge bg-secondary">{{ task.priority.level_geo }}</span>
                             </div>
                         </div>
-{#                        <!-- Progress -->#}
-{#                        <div class="row mb-3">#}
-{#                            <div class="col-md-4">#}
-{#                                <span class="task-detail-label">პროდუქტიულობა:</span>#}
-{#                            </div>#}
-{#                            <div class="col-md-8">#}
-{#                                <div class="progress">#}
-{#                                    <div class="progress-bar" role="progressbar" style="width: {{ task.progress }}%;"#}
-{#                                         aria-valuenow="{{ task.progress }}" aria-valuemin="0"#}
-{#                                         aria-valuemax="100">{{ task.progress }}%#}
-{#                                    </div>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                        </div>#}
-{#                        <!-- Assigned User -->#}
+                        {# <!-- Progress --> #}
+                        {# <div class="row mb-3">
+                            <div class="col-md-4">
+                                <span class="task-detail-label">პროდუქტიულობა:</span>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ task.progress }}%;"
+                                         aria-valuenow="{{ task.progress }}" aria-valuemin="0"
+                                         aria-valuemax="100">{{ task.progress }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div> #}
+                        {# <!-- Assigned User --> #}
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <span class="task-detail-label">შემსრულებელი:</span>
                             </div>
                             <div class="col-md-8">
-                                <span>{{ task.assigned_user.name if task.assigned_user else 'შემსრულებელი არაა მითთებული' }}</span>
+                                <span class="assigned-user">{{ task.assigned_user.name if task.assigned_user else 'შემსრულებელი არ არის მითითებული' }}</span>
                             </div>
                         </div>
                         <!-- Created By -->
@@ -224,7 +249,7 @@
                                 <span>{{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
                             </div>
                         </div>
-                        <!-- Ended At -->
+                        <!-- Due Date -->
                         <div class="row">
                             <div class="col-md-4">
                                 <span class="task-detail-label">დასრულების თარიღი:</span>
@@ -252,7 +277,7 @@
                                     {% for status in statuses %}
                                         <option value="{{ status.id }}"
                                                 {% if status.id == task.status_id %}selected{% endif %}>
-                                            {{ status.name }}
+                                            {{ status.name_geo }}
                                         </option>
                                     {% endfor %}
                                 </select>
@@ -260,7 +285,7 @@
                             <div class="mb-3">
                                 <label for="assigned_to" class="form-label">შემსრულებლის მითითება</label>
                                 <select id="assigned_to" name="assigned_to" class="form-select">
-                                    <option value="">შემსრულებელი არაა მითთებული</option>
+                                    <option value="">შემსრულებელი არ არის მითითებული</option>
                                     {% for user in users %}
                                         <option value="{{ user.id }}"
                                                 {% if task.assigned_to == user.id %}selected{% endif %}>
@@ -278,20 +303,13 @@
             </div>
         </div>
 
-        <!-- Comments Section -->
+        <!-- Comments and Subtasks Sections -->
         <div class="row">
-            <!-- Adjusted Column Classes for Responsiveness -->
-            <div class="col-lg-8 col-12">
+            <!-- Comments Section -->
+            <div class="col-lg-6 col-12 mb-4">
                 <div class="card mb-4">
                     <div class="card-header bg-info text-white comments-header">
                         <h5 class="mb-0"><i class="fas fa-comments"></i> კომენტარები</h5>
-                        <!-- Optional: Add Comment Button for Modal -->
-                        <!-- Uncomment the below lines if you want to use modal for adding comments -->
-                        <!--
-                        <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addCommentModal">
-                            <i class="fas fa-plus"></i> დაამატეთ კომენტარი
-                        </button>
-                        -->
                     </div>
                     <div class="card-body">
                         <div id="comments-section">
@@ -323,6 +341,31 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Subtasks Section -->
+            <div class="col-lg-6 col-12 mb-4">
+                <div class="card subtasks-section">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="fas fa-tasks"></i> ქვეჯამაკური</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="subtasks-section">
+                            {% for subtask in subtasks %}
+                                <div class="callout callout-success">
+                                    <div class="callout-header">
+                                        <span class="comment-user">ქვეჯამაკური ID {{ subtask.id }}</span>
+                                        <span class="separator">|</span>
+                                        <span class="comment-timestamp">{{ subtask.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                                    </div>
+                                    <div class="comment-content">{{ subtask.description }}</div>
+                                </div>
+                            {% else %}
+                                <p>ქვეჯამაკურები არ არის.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -345,7 +388,7 @@
                                 {% for status in statuses %}
                                     <option value="{{ status.id }}"
                                             {% if status.id == task.status_id %}selected{% endif %}>
-                                        {{ status.name }}
+                                        {{ status.name_geo }}
                                     </option>
                                 {% endfor %}
                             </select>
@@ -353,7 +396,7 @@
                         <div class="mb-3">
                             <label for="modal-assigned_to" class="form-label">შემსრულებლის მითითება</label>
                             <select id="modal-assigned_to" name="assigned_to" class="form-select">
-                                <option value="">გამიზენილი არაა</option>
+                                <option value="">შემსრულებელი არაა მითითებული</option>
                                 {% for user in users %}
                                     <option value="{{ user.id }}"
                                             {% if task.assigned_to == user.id %}selected{% endif %}>
@@ -422,8 +465,9 @@
 
             // Function to display toast notifications
             function showToast(message, type) {
+                const toastId = 'toast-' + Date.now();
                 const toastHtml = `
-                    <div class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
                         <div class="d-flex">
                             <div class="toast-body">
                                 ${message}
@@ -433,8 +477,8 @@
                     </div>
                 `;
                 $('.toast-container').append(toastHtml);
-                const toastElement = $('.toast-container .toast').last();
-                const toast = new bootstrap.Toast(toastElement[0], {delay: 3000});
+                const toastElement = $(`#${toastId}`);
+                const toast = new bootstrap.Toast(toastElement[0], {delay: 5000});
                 toast.show();
 
                 // Remove the toast element after it hides
@@ -443,98 +487,92 @@
                 });
             }
 
-            // Обработка существующих комментариев для замены переносов строк на <br>
-            $('.comment-content').each(function() {
+            // Replace line breaks in existing comments with <br>
+            $('.comment-content').each(function () {
                 var text = $(this).text();
                 var html = text.replace(/(?:\r\n|\r|\n)/g, '<br>');
                 $(this).html(html);
             });
 
-            // Handle update task form submission (Inline form)
+            // Function to handle task update (used for both forms)
+            function handleTaskUpdate(status_id, assigned_to, modalClosed = false) {
+                // Validation
+                if (!status_id) {
+                    showToast('გთხოვთ, აირჩიოთ სტატუსი.', 'warning');
+                    return;
+                }
+
+                $.ajax({
+                    url: `/tasks/update/{{ task.id }}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        status_id: status_id,
+                        assigned_to: assigned_to
+                    }),
+                    success: function (response) {
+                        // Update status badge
+                        $('.badge-status').removeClass(function (index, className) {
+                            return (className.match(/(^|\s)bg-\S+/g) || []).join(' ');
+                        }).addClass(`bg-${response.new_status.bootstrap_class}`);
+                        $('.badge-status').text(response.new_status.name_geo);
+
+                        // Update assigned user name
+                        if (response.assigned_user.name && response.assigned_user.name !== 'შემსრულებელი არ არის მითითებული') {
+                            $('.assigned-user').text(response.assigned_user.name);
+                        } else {
+                            $('.assigned-user').text('შემსრულებელი არ არის მითითებული');
+                        }
+
+                        // Display success notification
+                        showToast(response.message, 'success');
+
+                        // If a new subtask was created, display it
+                        if (response.new_task) {
+                            const newTask = response.new_task;
+                            const newTaskHtml = `
+                                <div class="callout callout-success">
+                                    <div class="callout-header">
+                                        <span class="comment-user">ქვეჯამაკური ID ${newTask.id}</span>
+                                        <span class="separator">|</span>
+                                        <span class="comment-timestamp">${newTask.created_at}</span>
+                                    </div>
+                                    <div class="comment-content">${newTask.description.replace(/\n/g, '<br>')}</div>
+                                </div>
+                            `;
+                            $('#subtasks-section').append(newTaskHtml);
+                            showToast('ქვეჯამაკური წარმატებით შექმნილია!', 'success');
+                        }
+
+                        // Close the modal if the form was submitted from the modal
+                        if (modalClosed) {
+                            $('#updateTaskModal').modal('hide');
+                        }
+                    },
+                    error: function (xhr) {
+                        const res = xhr.responseJSON;
+                        showToast(res.message || 'დავალების განახლებისას დაფიქსირდა შეცდომა.', 'danger');
+                    }
+                });
+            }
+
+            // Handle task update form submission (inline form)
             $('#update-task-form').on('submit', function (e) {
                 e.preventDefault();
                 const status_id = $('#status_id').val();
                 const assigned_to = $('#assigned_to').val();
-
-                $.ajax({
-                    url: `/tasks/update/{{ task.id }}`,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        status_id: status_id,
-                        assigned_to: assigned_to
-                    }),
-                    success: function (response) {
-                        // Update status badge
-                        $('.badge-status').removeClass(function (index, className) {
-                            return (className.match(/(^|\s)bg-\S+/g) || []).join(' ');
-                        }).addClass(`bg-${response.new_status.bootstrap_class}`);
-                        $('.badge-status').text(response.new_status.name);
-
-                        // Update assigned user text
-                        if (assigned_to) {
-                            const selectedUser = $('#assigned_to option:selected').text();
-                            $('span:contains("გამიზენილია:")').next().html(selectedUser);
-                        } else {
-                            $('span:contains("გამიზენილია:")').next().text('გამიზენილი არაა');
-                        }
-
-                        // Display success toast
-                        showToast(response.message, 'success');
-
-                        // Close the modal if it was opened via modal
-                        $('#updateTaskModal').modal('hide');
-                    },
-                    error: function (xhr) {
-                        const res = xhr.responseJSON;
-                        showToast(res.message || 'დავალების განახლებისას მოხდა შეცდომა.', 'danger');
-                    }
-                });
+                handleTaskUpdate(status_id, assigned_to, false);
             });
 
-            // Handle update task form submission (Modal form)
+            // Handle task update form submission (modal form)
             $('#modal-update-task-form').on('submit', function (e) {
                 e.preventDefault();
                 const status_id = $('#modal-status_id').val();
                 const assigned_to = $('#modal-assigned_to').val();
-
-                $.ajax({
-                    url: `/tasks/update/{{ task.id }}`,
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        status_id: status_id,
-                        assigned_to: assigned_to
-                    }),
-                    success: function (response) {
-                        // Update status badge
-                        $('.badge-status').removeClass(function (index, className) {
-                            return (className.match(/(^|\s)bg-\S+/g) || []).join(' ');
-                        }).addClass(`bg-${response.new_status.bootstrap_class}`);
-                        $('.badge-status').text(response.new_status.name);
-
-                        // Update assigned user text
-                        if (assigned_to) {
-                            const selectedUser = $('#modal-assigned_to option:selected').text();
-                            $('span:contains("გამიზენილია:")').next().html(selectedUser);
-                        } else {
-                            $('span:contains("გამიზენილია:")').next().text('გამიზენილი არაა');
-                        }
-
-                        // Display success toast
-                        showToast(response.message, 'success');
-
-                        // Close the modal
-                        $('#updateTaskModal').modal('hide');
-                    },
-                    error: function (xhr) {
-                        const res = xhr.responseJSON;
-                        showToast(res.message || 'დავალების განახლებისას მოხდა შეცდომა.', 'danger');
-                    }
-                });
+                handleTaskUpdate(status_id, assigned_to, true);
             });
 
-            // Handle add comment form submission (Inline form)
+            // Handle add comment form submission (inline form)
             $('#add-comment-form').on('submit', function (e) {
                 e.preventDefault();
                 const content = $('#comment-content').val().trim();
@@ -554,7 +592,7 @@
                         const commentHtml = `
                             <div class="callout callout-info">
                                 <div class="callout-header">
-                                    <span class="comment-user">${comment.user.name}</span>
+                                    <span class="comment-user">${comment.user}</span>
                                     <span class="separator">|</span>
                                     <span class="comment-timestamp">${comment.timestamp}</span>
                                 </div>
@@ -562,20 +600,20 @@
                             </div>
                         `;
                         $('#comments-section').append(commentHtml);
-                        $('#comment-content').val(''); // Очистить textarea
+                        $('#comment-content').val(''); // Clear textarea
                         showToast(response.message, 'success');
 
-                        // Закрыть модальное окно, если оно было открыто через модальное окно
+                        // Close the modal if the form was submitted from the modal
                         $('#addCommentModal').modal('hide');
                     },
                     error: function (xhr) {
                         const res = xhr.responseJSON;
-                        showToast(res.message || 'კომენტარის დამატებისას მოხდა შეცდომა.', 'danger');
+                        showToast(res.message || 'კომენტარის დამატებისას დაფიქსირდა შეცდომა.', 'danger');
                     }
                 });
             });
 
-            // Handle add comment form submission (Modal form)
+            // Handle add comment form submission (modal form)
             $('#modal-add-comment-form').on('submit', function (e) {
                 e.preventDefault();
                 const content = $('#modal-comment-content').val().trim();
@@ -595,7 +633,7 @@
                         const commentHtml = `
                             <div class="callout callout-info">
                                 <div class="callout-header">
-                                    <span class="comment-user">${comment.user.name}</span>
+                                    <span class="comment-user">${comment.user}</span>
                                     <span class="separator">|</span>
                                     <span class="comment-timestamp">${comment.timestamp}</span>
                                 </div>
@@ -603,15 +641,15 @@
                             </div>
                         `;
                         $('#comments-section').append(commentHtml);
-                        $('#modal-comment-content').val(''); // Очистить textarea
+                        $('#modal-comment-content').val(''); // Clear textarea
                         showToast(response.message, 'success');
 
-                        // Закрыть модальное окно
+                        // Close the modal
                         $('#addCommentModal').modal('hide');
                     },
                     error: function (xhr) {
                         const res = xhr.responseJSON;
-                        showToast(res.message || 'კომენტარის დამატებისას მოხდა შეცდომა.', 'danger');
+                        showToast(res.message || 'კომენტარის დამატებისას დაფიქსირდა შეცდომა.', 'danger');
                     }
                 });
             });

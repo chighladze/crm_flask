@@ -2,7 +2,6 @@
 from ..extensions import db
 from datetime import datetime
 
-
 class Tasks(db.Model):
     __tablename__ = 'tasks'
 
@@ -34,6 +33,8 @@ class Tasks(db.Model):
     priority = db.relationship('TaskPriorities', backref='tasks', lazy='joined')
     task_type = db.relationship('TaskTypes', back_populates='related_tasks')
     created_user = db.relationship('Users', foreign_keys=[created_by], backref='created_tasks')
+    assigned_user = db.relationship('Users', foreign_keys=[assigned_to], backref='assigned_tasks')
+    completed_user = db.relationship('Users', foreign_keys=[completed_by], backref='completed_tasks')
 
     created_division = db.relationship('Divisions', foreign_keys=[created_division_id])
     comments = db.relationship('TaskComments', back_populates='task', lazy='dynamic')
