@@ -3,7 +3,7 @@
     <!-- Brand Logo -->
     <div class="d-flex">
         <a href="{{ url_for('dashboard.index') }}" class="brand-link">
-    <!--          <img src="{{ url_for('static', filename='dist/img/GoNET-LOGO.png') }}" alt="AdminLTE Logo"
+            <!--          <img src="{{ url_for('static', filename='dist/img/GoNET-LOGO.png') }}" alt="AdminLTE Logo"
                  class="brand-image img-rounded" style="opacity: .8;">
                   -->
         </a>
@@ -25,13 +25,14 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <style>
-              .nav-treeview a {
-                  font-size: 0.80rem;
-              }
+                .nav-treeview a {
+                    font-size: 0.80rem;
+                }
             </style>
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-item {% if active_menu == 'administration' or menu_open == 'administration' %}menu-open{% endif %}">
-                    <a href="#" class="nav-link {% if active_menu == 'administration' or menu_open == 'administration' %}active{% endif %}">
+                    <a href="#"
+                       class="nav-link {% if active_menu == 'administration' or menu_open == 'administration' %}active{% endif %}">
                         <i class="nav-icon fas fa-user-lock"></i>
                         <p>
                             ადმინისტრაცია
@@ -40,7 +41,8 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('users.users_list') }}" class="nav-link {% if request.path.split('/')[1] == 'users' %}active{% endif %}">
+                            <a href="{{ url_for('users.users_list') }}"
+                               class="nav-link {% if request.path.split('/')[1] == 'users' %}active{% endif %}">
                                 <i class="fas fa-users nav-icon"></i>
                                 <p>თანამშრომლები</p>
                             </a>
@@ -48,7 +50,8 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('departments.dep_list') }}" class="nav-link {% if request.path.split('/')[1] == 'departments' %}active{% endif %}">
+                            <a href="{{ url_for('departments.dep_list') }}"
+                               class="nav-link {% if request.path.split('/')[1] == 'departments' %}active{% endif %}">
                                 <i class="fas fa-project-diagram nav-icon"></i>
                                 <p>დეპარტამენტები</p>
                             </a>
@@ -56,7 +59,8 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('roles.roles_list') }}" class="nav-link {% if request.path.split('/')[1] == 'roles' %}active{% endif %}">
+                            <a href="{{ url_for('roles.roles_list') }}"
+                               class="nav-link {% if request.path.split('/')[1] == 'roles' %}active{% endif %}">
                                 <i class="fas fa-exclamation-circle nav-icon"></i>
                                 <p>როლები</p>
                             </a>
@@ -65,13 +69,15 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ url_for('customers.create') }}" class="nav-link {% if request.path.split('/')[2] == 'create' %}active{% endif %}">
+                    <a href="{{ url_for('customers.create') }}"
+                       class="nav-link {% if request.path.split('/')[2] == 'create' %}active{% endif %}">
                         <i class="fas fa-user-plus nav-icon"></i>
                         <p>განაცხადის მიღება</p>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ url_for('orders.orders_list_page') }}" class="nav-link {% if active_menu == 'orders' and request.path.split('/')[2] == 'orders_list' %}active{% endif %}">
+                    <a href="{{ url_for('orders.orders_list_page') }}"
+                       class="nav-link {% if active_menu == 'orders' and request.path.split('/')[2] == 'orders_list' %}active{% endif %}">
                         <i class="fas fa-window-restore nav-icon"></i>
                         <p>ყველა განაცხადი</p>
                     </a>
@@ -87,7 +93,8 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('orders.new_orders_page') }}" class="nav-link {% if active_menu == 'project_design' and request.path.split('/')[2] == 'new'  %}active{% endif %}">
+                            <a href="{{ url_for('orders.new_orders_page') }}"
+                               class="nav-link {% if active_menu == 'project_design' and request.path.split('/')[2] == 'new' %}active{% endif %}">
                                 <i class="fas fa-window-restore nav-icon"></i>
                                 <p>ახალი განაცხადები შ</p>
                             </a>
@@ -95,16 +102,64 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('tasks.design_tasks_orders') }}" class="nav-link {% if request.path.split('/')[2] == 'design_tasks_orders' %}active{% endif %}">
+                            <a href="{{ url_for('tasks.design_tasks_orders') }}"
+                               class="nav-link {% if request.path.split('/')[2] == 'design_tasks_orders' %}active{% endif %}">
                                 <i class="fas fa-window-restore nav-icon"></i>
                                 <p>ახალი განაცხადები დ</p>
                             </a>
                         </li>
                     </ul>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ url_for('tasks.researched_task_orders') }}"
+                               class="nav-link {% if request.path.split('/')[2] == 'researched_task_orders' %}active{% endif %}">
+                                <i class="fas fa-window-restore nav-icon"></i>
+                                <p>მოკვლეული განაცხადები</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
+                <li class="nav-item {% if active_menu == 'research' %}menu-open{% endif %}">
+                    <a href="#" class="nav-link {% if active_menu == 'research' %}active{% endif %}">
+                        <i class="nav-icon fas fa-search"></i>
+                        <p>
+                            მოკვლევა
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ url_for('tasks.research_orders_tasks') }}"
+                               class="nav-link {% if active_menu == 'research' and request.path.split('/')[2] == 'research_orders_tasks' %}active{% endif %}">
+                                <i class="fas fa-window-restore nav-icon"></i>
+                                <p>მოსაკვლევი განაცხადები</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item {% if active_menu == 'commercial' %}menu-open{% endif %}">
+                    <a href="#"
+                       class="nav-link {% if active_menu == 'customers' %}active{% endif %}">
+                        <i class="nav-icon fas fa-chalkboard-teacher"></i>
+                        <p>
+                            კომერციული
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ url_for('tasks.rated_orders_tasks') }}"
+                               class="nav-link {% if active_menu == 'commercial' and request.path.split('/')[2] == 'rated_orders_tasks' %}active{% endif %}">
+                                <i class="fas fa-users nav-icon"></i>
+                                <p>შეფასებელი განაცხადები</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 <li class="nav-item {% if active_menu == 'customers' and request.path.split('/')[2] != 'create' %}menu-open{% endif %}">
-                    <a href="#" class="nav-link {% if active_menu == 'customers' and request.path.split('/')[2] != 'create' %}active{% endif %}">
+                    <a href="#"
+                       class="nav-link {% if active_menu == 'customers' and request.path.split('/')[2] != 'create' %}active{% endif %}">
                         <i class="nav-icon far fa-address-card"></i>
                         <p>
                             კლიენტები
@@ -113,7 +168,8 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('customers.customers_list') }}" class="nav-link {% if active_menu == 'customers' and request.path.split('/')[2] == 'list' %}active{% endif %}">
+                            <a href="{{ url_for('customers.customers_list') }}"
+                               class="nav-link {% if active_menu == 'customers' and request.path.split('/')[2] == 'list' %}active{% endif %}">
                                 <i class="fas fa-users nav-icon"></i>
                                 <p>ყველა კლიენტები</p>
                             </a>
@@ -121,7 +177,8 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('customer_types.types_list') }}" class="nav-link {% if request.path.split('/')[2] == 'customer_types' %}active{% endif %}">
+                            <a href="{{ url_for('customer_types.types_list') }}"
+                               class="nav-link {% if request.path.split('/')[2] == 'customer_types' %}active{% endif %}">
                                 <i class="far fa-address-card nav-icon"></i>
                                 <p>კლიენტის ტიპები</p>
                             </a>
@@ -138,7 +195,8 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('customer_accounts.customer_accounts_list') }}" class="nav-link {% if active_menu == 'customer_accounts' and request.path.split('/')[2] == 'customer_accounts_list' %}active{% endif %}">
+                            <a href="{{ url_for('customer_accounts.customer_accounts_list') }}"
+                               class="nav-link {% if active_menu == 'customer_accounts' and request.path.split('/')[2] == 'customer_accounts_list' %}active{% endif %}">
                                 <i class="fas fa-users nav-icon"></i>
                                 <p>ყველა ანგარიში</p>
                             </a>
@@ -155,7 +213,8 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('task_types.list') }}" class="nav-link {% if request.path.split('/')[2] in ('task_types', ) %}active{% endif %}">
+                            <a href="{{ url_for('task_types.list') }}"
+                               class="nav-link {% if request.path.split('/')[2] in ('task_types', ) %}active{% endif %}">
                                 <i class="fas fa-window-restore nav-icon"></i>
                                 <p>დავალების ტიპები</p>
                             </a>
@@ -163,7 +222,8 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('tasks.tasks_list') }}" class="nav-link {% if request.path.split('/')[2] in ('all_tasks', ) %}active{% endif %}">
+                            <a href="{{ url_for('tasks.tasks_list') }}"
+                               class="nav-link {% if request.path.split('/')[2] in ('all_tasks', ) %}active{% endif %}">
                                 <i class="fas fa-sync nav-icon"></i>
                                 <p>დავალებები</p>
                             </a>
@@ -171,7 +231,8 @@
                     </ul>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="#" class="nav-link {% if request.path.split('/')[2] in ('my_tasks', ) %}active{% endif %}">
+                            <a href="#"
+                               class="nav-link {% if request.path.split('/')[2] in ('my_tasks', ) %}active{% endif %}">
                                 <i class="fas fa-stopwatch nav-icon"></i>
                                 <p>ჩემი დავალებები</p>
                             </a>
@@ -189,7 +250,8 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('tariff_plans.tariff_list') }}" class="nav-link {% if request.path.split('/')[2] in ('add_tariff', 'edit_tariff', 'tariff_list') %}active{% endif %}">
+                            <a href="{{ url_for('tariff_plans.tariff_list') }}"
+                               class="nav-link {% if request.path.split('/')[2] in ('add_tariff', 'edit_tariff', 'tariff_list') %}active{% endif %}">
                                 <i class="fas fa-users nav-icon"></i>
                                 <p>ყველა ტარიფი</p>
                             </a>
@@ -207,7 +269,8 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ url_for('nms.map') }}" class="nav-link {% if request.path.split('/')[2] == 'map' %}active{% endif %}">
+                            <a href="{{ url_for('nms.map') }}"
+                               class="nav-link {% if request.path.split('/')[2] == 'map' %}active{% endif %}">
                                 <i class="fas fa-map-marked-alt nav-icon"></i>
                                 <p>რუკა</p>
                             </a>

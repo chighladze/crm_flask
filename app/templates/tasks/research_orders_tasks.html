@@ -1,0 +1,356 @@
+{# file_path: crm_flask/app/templates/tasks/research_orders_tasks.html #}
+{% extends 'main/base.html' %}
+
+{% block title %}მოსქლვლევი განაცხადები{% endblock %}
+
+{% block head_extra %}
+    <!-- Мета-тег для адаптивности -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Styling for the toggle link */
+        .filter-toggle-link {
+            cursor: pointer;
+            color: #007bff;
+            text-decoration: none; /* No underline */
+            margin-bottom: 10px;
+            display: inline-block;
+            font-size: 1.5rem; /* Adjust size as needed */
+        }
+
+        /* Дополнительные стили для оптимизации ширины блоков на узких экранах */
+        @media (max-width: 768px) {
+            .filter-form-row > div[class*="col-"] {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Индикатор загрузки */
+        #loading-indicator {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        /* Стиль для общего количества записей */
+        #total-records {
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+    <!-- Ensure jQuery is loaded -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJ+Y3F5HdQ+9/9N7YT45ueoSN6VXA3OZ9E6UI="
+            crossorigin="anonymous"></script>
+    <!-- Include FontAwesome (if not already included in your base template) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+          integrity="sha512-dNrK0bF/6n9i4Ve8Zf3xNU1+NVdPdxw4Y6W/8NSPkIQmH7cwG9Cq2f0v46v37ZBpQ5zUg5YxD5Wg+MdcRIomFg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-body">
+            <!-- Toggle link for filter form using icons -->
+            <div id="filter-toggle-container">
+                <a id="toggle-filters" class="filter-toggle-link" href="javascript:void(0);">
+                    <i class="far fa-arrow-alt-circle-down" title="ფილტრის დამალვა"></i>
+                </a>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading-indicator">
+                <i class="fas fa-spinner fa-spin"></i> დამუშავება...
+            </div>
+
+            <!-- Total Records Display -->
+            <div id="total-records" class="mb-2">
+                <!-- Будет заполнено через JavaScript -->
+            </div>
+
+            <!-- Filter Form -->
+            <form id="filter-form" class="mb-3">
+                <div class="row g-2 align-items-end filter-form-row">
+                    <!-- Developer Note: Fields are arranged compactly -->
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="search">ძიება</label>
+                        <input type="text" id="search" name="search" class="form-control"
+                               placeholder="კლიენტი ან მობილური">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-2">
+                        <label for="per_page">ერთეული გვერდზე</label>
+                        <select id="per_page" name="per_page" class="form-control">
+                            <option value="10">10</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Action Buttons -->
+                <div class="row g-2 mt-3">
+                    <div class="col-12 d-flex justify-content-center">
+                        <button type="submit" class="btn btn-primary btn-sm mx-1">ფილტრაცია</button>
+                        <button type="button" id="export-btn" class="btn btn-success btn-sm mx-1">ექსპორტი</button>
+                        <button type="button" id="clear-filters" class="btn btn-secondary btn-sm mx-1">ფილტრის
+                            გასუფთავება
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tasks and Orders Table with horizontal scroll on narrow screens -->
+            <div id="tasks-orders-table-container" class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th class="text-center">ID</th>
+                        <th class="text-center">სტატუსი</th>
+                        <th class="text-center">ტიპი</th>
+                        <th class="text-center">შეკვეთა</th>
+                        <th class="text-center">მომხმარებელი</th>
+                        <th class="text-center">მომხმარებლის ტიპი</th>
+                        <th class="text-center">მობილური</th>
+                        <th class="text-center">ტარიფი</th>
+                        <th class="text-center">დასახლება</th>
+                        <th class="text-center">რაიონი</th>
+                        <th class="text-center">მოქმედება</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tasks-orders-table-body">
+                    <!-- Tasks and Orders will be injected via JavaScript -->
+                    </tbody>
+                </table>
+                <!-- Pagination Controls -->
+                <nav>
+                    <ul class="pagination justify-content-center" id="pagination">
+                        <!-- Pagination buttons will be injected here via JavaScript -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Кэшируем элементы DOM
+            const filterForm = document.getElementById('filter-form');
+            const tasksOrdersTableBody = document.getElementById('tasks-orders-table-body');
+            const paginationContainer = document.getElementById('pagination');
+            const exportBtn = document.getElementById('export-btn');
+            const clearFiltersBtn = document.getElementById('clear-filters');
+            const perPageSelect = document.getElementById('per_page');
+            const toggleFiltersBtn = document.getElementById('toggle-filters');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const totalRecordsDiv = document.getElementById('total-records');
+
+            // Определяем состояние фильтров
+            let filterState = localStorage.getItem('filterState') || 'expanded';
+
+            // Функция обновления видимости фильтра и иконки
+            function updateFilterVisibility(animate = true) {
+                if (filterState === 'collapsed') {
+                    if (animate) {
+                        $(filterForm).slideUp(300);
+                    } else {
+                        filterForm.style.display = 'none';
+                    }
+                    toggleFiltersBtn.innerHTML = '<i class="far fa-arrow-alt-circle-right" title="ფილტრის გამოჩენა"></i>';
+                } else {
+                    if (animate) {
+                        $(filterForm).slideDown(300);
+                    } else {
+                        filterForm.style.display = 'block';
+                    }
+                    toggleFiltersBtn.innerHTML = '<i class="far fa-arrow-alt-circle-down" title="ფილტრის დამალვა"></i>';
+                }
+            }
+
+            // Инициализация видимости фильтров
+            updateFilterVisibility(false);
+
+            // Обработчик клика по кнопке переключения фильтров
+            toggleFiltersBtn.addEventListener('click', function () {
+                filterState = (filterState === 'expanded') ? 'collapsed' : 'expanded';
+                localStorage.setItem('filterState', filterState);
+                updateFilterVisibility();
+            });
+
+            // Загрузка сохраненных фильтров из localStorage
+            const savedFilters = JSON.parse(localStorage.getItem('tasks_orders_filters')) || {};
+
+            // Заполнение полей формы сохраненными фильтрами
+            for (const key in savedFilters) {
+                const field = document.querySelector(`[name="${key}"]`);
+                if (field) {
+                    field.value = savedFilters[key];
+                }
+            }
+
+            // Функция для получения и отображения задач и заказов
+            function fetchTasksOrders(page = 1) {
+                loadingIndicator.style.display = 'block'; // Показываем индикатор загрузки
+                totalRecordsDiv.innerHTML = ''; // Очищаем предыдущие данные
+
+                const formData = new FormData(filterForm);
+                const params = new URLSearchParams();
+                formData.forEach((value, key) => {
+                    if (value) params.append(key, value);
+                });
+                params.append('page', page);
+                params.append('per_page', perPageSelect.value); // Dynamic per_page
+
+                fetch(`/api/research_orders_tasks_list?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Очистка существующих записей
+                        tasksOrdersTableBody.innerHTML = '';
+
+                        // Обновление общего количества записей
+                        const pagination = data.pagination;
+                        const total = pagination.total;
+                        const perPage = pagination.per_page;
+                        const currentPage = pagination.current_page;
+                        const from = (currentPage - 1) * perPage + 1;
+                        let to = currentPage * perPage;
+                        if (to > total) to = total;
+
+                        if (total === 0) {
+                            totalRecordsDiv.innerHTML = 'დავალებები და შეკვეთები არ არის ხელმისაწვდომი.';
+                        } else {
+                            totalRecordsDiv.innerHTML = `ჩანაწერების რაოდენობა ${total}.`;
+                        }
+
+                        if (data.tasks_orders.length === 0) {
+                            tasksOrdersTableBody.innerHTML = '<tr><td colspan="11" class="text-center">დავალებები და შეკვეთები არ არის ხელმისაწვდომი.</td></tr>';
+                        } else {
+                            data.tasks_orders.forEach(task => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                  <td class="text-center">${task.taskID}</td>
+                                  <td>${task.taskStatusName}</td>
+                                  <td>${task.taskTypeName}</td>
+                                  <td class="text-center"><a href="/orders/${task.orderID}/view">${task.orderID}</a></td>
+                                  <td>${task.customerName}</td>
+                                  <td>${task.customerTypeName}</td>
+                                  <td>${task.mobile}</td>
+                                  <td>${task.tariffPlanName}</td>
+                                  <td>${task.settlementName}</td>
+                                  <td>${task.districtName}</td>
+                                  <td class="text-center">
+                                    <a href="/tasks/view/${task.taskID}" class="btn btn-sm btn-info" title="ნახვა">
+                                      <i class="fa fa-eye"></i>
+                                    </a>
+                                  </td>
+                                `;
+                                tasksOrdersTableBody.appendChild(row);
+                            });
+                        }
+
+                        // Создание пагинационных кнопок
+                        paginationContainer.innerHTML = '';
+
+                        // Кнопка "უკან" (Назад)
+                        const prevLi = document.createElement('li');
+                        prevLi.classList.add('page-item');
+                        if (!pagination.has_prev) {
+                            prevLi.classList.add('disabled');
+                        }
+                        prevLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page - 1}"><i class="fas fa-chevron-left"></i></a>`;
+                        paginationContainer.appendChild(prevLi);
+
+                        // Ограничение видимых страниц (максимум 5)
+                        const maxPagesToShow = 5;
+                        let startPage = Math.max(1, pagination.current_page - Math.floor(maxPagesToShow / 2));
+                        let endPage = startPage + maxPagesToShow - 1;
+                        if (endPage > pagination.pages) {
+                            endPage = pagination.pages;
+                            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                        }
+                        for (let i = startPage; i <= endPage; i++) {
+                            const li = document.createElement('li');
+                            li.classList.add('page-item');
+                            if (i === pagination.current_page) {
+                                li.classList.add('active');
+                            }
+                            li.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                            paginationContainer.appendChild(li);
+                        }
+
+                        // Кнопка "წინ" (Вперед)
+                        const nextLi = document.createElement('li');
+                        nextLi.classList.add('page-item');
+                        if (!pagination.has_next) {
+                            nextLi.classList.add('disabled');
+                        }
+                        nextLi.innerHTML = `<a class="page-link" href="#" data-page="${pagination.current_page + 1}"><i class="fas fa-chevron-right"></i></a>`;
+                        paginationContainer.appendChild(nextLi);
+
+                        loadingIndicator.style.display = 'none'; // Скрываем индикатор загрузки
+                    })
+                    .catch(error => {
+                        console.error('Error fetching tasks and orders:', error);
+                        alert('შეცდომა მონაცემების გადმოტანაზე. გთხოვთ, სცადოთ მოგვიანებით.');
+                        loadingIndicator.style.display = 'none'; // Скрываем индикатор загрузки
+                    });
+            }
+
+            // Первоначальная загрузка задач и заказов
+            fetchTasksOrders(savedFilters.page || 1);
+
+            // Обработчик отправки формы фильтрации
+            filterForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const formData = new FormData(filterForm);
+                const filters = {};
+                formData.forEach((value, key) => {
+                    filters[key] = value;
+                });
+                filters.page = 1; // Сбрасываем на первую страницу
+                localStorage.setItem('tasks_orders_filters', JSON.stringify(filters));
+                fetchTasksOrders(1);
+            });
+
+            // Обработчик кликов по пагинации
+            paginationContainer.addEventListener('click', function (event) {
+                event.preventDefault();
+                const target = event.target;
+                if (target.tagName === 'I') { // Проверяем, если кликнутый элемент <i>, поднимаем к родителю <a>
+                    target = target.parentElement;
+                }
+                if (target.tagName === 'A' &&
+                    !target.parentElement.classList.contains('disabled') &&
+                    !target.parentElement.classList.contains('active')) {
+                    const page = parseInt(target.getAttribute('data-page'));
+                    if (!isNaN(page) && page > 0) {
+                        const filters = JSON.parse(localStorage.getItem('tasks_orders_filters')) || {};
+                        filters.page = page;
+                        localStorage.setItem('tasks_orders_filters', JSON.stringify(filters));
+                        fetchTasksOrders(page);
+                    }
+                }
+            });
+
+            // Обработчик экспорта задач и заказов
+            exportBtn.addEventListener('click', function () {
+                const formData = new FormData(filterForm);
+                const params = new URLSearchParams();
+                formData.forEach((value, key) => {
+                    if (value) params.append(key, value);
+                });
+                window.location.href = `/tasks/export_research_orders_tasks?${params.toString()}`;
+            });
+
+            // Обработчик очистки фильтров
+            clearFiltersBtn.addEventListener('click', function () {
+                localStorage.removeItem('tasks_orders_filters');
+                filterForm.reset();
+                fetchTasksOrders(1);
+            });
+        });
+    </script>
+{% endblock %}
