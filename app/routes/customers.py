@@ -14,7 +14,7 @@ import pandas as pd
 customers = Blueprint('customers', __name__)
 
 
-@customers.route('/customers/create', methods=['GET', 'POST'])
+@customers.route('/order/create', methods=['GET', 'POST'])
 @login_required
 def create():
     # Check permissions

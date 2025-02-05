@@ -91,21 +91,21 @@
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{ url_for('orders.new_orders_page') }}"
-                               class="nav-link {% if active_menu == 'project_design' and request.path.split('/')[2] == 'new' %}active{% endif %}">
-                                <i class="fas fa-window-restore nav-icon"></i>
-                                <p>ახალი განაცხადები შ</p>
-                            </a>
-                        </li>
-                    </ul>
-                    <ul class="nav nav-treeview">
+{#                    <ul class="nav nav-treeview">#}
+{#                        <li class="nav-item">#}
+{#                            <a href="{{ url_for('orders.new_orders_page') }}"#}
+{#                               class="nav-link {% if active_menu == 'project_design' and request.path.split('/')[2] == 'new' %}active{% endif %}">#}
+{#                                <i class="fas fa-window-restore nav-icon"></i>#}
+{#                                <p>ახალი განაცხადები შ</p>#}
+{#                            </a>#}
+{#                        </li>#}
+{#                    </ul>#}
+                    <ul class="nav nav-treeview" title="ახალი განაცხადების დავალებები">
                         <li class="nav-item">
                             <a href="{{ url_for('tasks.design_tasks_orders') }}"
                                class="nav-link {% if request.path.split('/')[2] == 'design_tasks_orders' %}active{% endif %}">
                                 <i class="fas fa-window-restore nav-icon"></i>
-                                <p>ახალი განაცხადები დ</p>
+                                <p>ახალი განაცხადები</p>
                             </a>
                         </li>
                     </ul>
@@ -113,34 +113,25 @@
                         <li class="nav-item">
                             <a href="{{ url_for('tasks.researched_task_orders') }}"
                                class="nav-link {% if request.path.split('/')[2] == 'researched_task_orders' %}active{% endif %}">
-                                <i class="fas fa-window-restore nav-icon"></i>
+                                <i class="fas fa-search-plus nav-icon"></i>
                                 <p>მოკვლეული განაცხადები</p>
                             </a>
                         </li>
                     </ul>
-                </li>
-
-                <li class="nav-item {% if active_menu == 'research' %}menu-open{% endif %}">
-                    <a href="#" class="nav-link {% if active_menu == 'research' %}active{% endif %}">
-                        <i class="nav-icon fas fa-search"></i>
-                        <p>
-                            მოკვლევა
-                            <i class="right fas fa-angle-left"></i>
-                        </p>
-                    </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="{{ url_for('tasks.research_orders_tasks') }}"
-                               class="nav-link {% if active_menu == 'research' and request.path.split('/')[2] == 'research_orders_tasks' %}active{% endif %}">
-                                <i class="fas fa-window-restore nav-icon"></i>
+                               class="nav-link {% if active_menu == 'project_design' and request.path.split('/')[2] == 'research_orders_tasks' %}active{% endif %}">
+                                <i class="fas fa-search-location nav-icon"></i>
                                 <p>მოსაკვლევი განაცხადები</p>
                             </a>
                         </li>
                     </ul>
                 </li>
+
                 <li class="nav-item {% if active_menu == 'commercial' %}menu-open{% endif %}">
                     <a href="#"
-                       class="nav-link {% if active_menu == 'customers' %}active{% endif %}">
+                       class="nav-link {% if active_menu == 'commercial' %}active{% endif %}">
                         <i class="nav-icon fas fa-chalkboard-teacher"></i>
                         <p>
                             კომერციული

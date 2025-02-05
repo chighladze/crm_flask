@@ -275,9 +275,7 @@
             <!-- Update Task Section -->
             <div class="col-lg-4 col-12 mb-4">
                 <div class="card update-form">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="fas fa-edit"></i> განახლება</h5>
-                    </div>
+
                     <div class="card-body">
                         <form id="update-task-form">
                             <div class="mb-3">
@@ -339,7 +337,7 @@
                         <form id="add-comment-form">
                             <div class="mb-3">
                                 <label for="comment-content" class="form-label">კომენტარის დამატება</label>
-                                <textarea id="comment-content" name="content" class="form-control w-100" rows="3"
+                                <textarea id="comment-content" name="content" class="form-control w-100" rows="4"
                                           placeholder="დაწერეთ კომენტარი..." required></textarea>
                             </div>
                             <button type="submit" class="btn btn-success">კომენტარის დამატება</button>
@@ -515,7 +513,7 @@
                             const newTaskHtml = `
                                 <div class="callout callout-success">
                                     <div class="callout-header">
-                                        <span class="comment-user">ქვეჯამაკური ID ${newTask.id}</span>
+                                        <span class="comment-user">დავალების ID ${newTask.id}</span>
                                         <span class="separator">|</span>
                                         <span class="comment-timestamp">${newTask.created_at}</span>
                                     </div>
@@ -523,7 +521,7 @@
                                 </div>
                             `;
                             $('#subtasks-section').append(newTaskHtml);
-                            showToast('ქვეჯამაკური წარმატებით შექმნილია!', 'success');
+                            showToast('დავალება წარმატებით შექმნილია!', 'success');
                         }
 
                         // Close the modal if the form was submitted from the modal
@@ -640,4 +638,5 @@
 
     <!-- Toast Container -->
     <div class="toast-container"></div>
+
 {% endblock %}

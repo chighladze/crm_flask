@@ -84,6 +84,7 @@
                     <th class="text-center">სახელი</th>
                     <th class="text-center">დეპარტამენტი</th>
                     <th class="text-center">განყოფილება</th>
+                    <th class="text-center">შექმნილია</th>
                     <th class="text-center">მოქმედება</th>
                 </tr>
                 </thead>
@@ -94,6 +95,7 @@
                         <td>{{ task_type.name }}</td>
                         <td>{{ task_type.division.department.name }}</td>
                         <td>{{ task_type.division.name }}</td>
+                        <td class="text-center">{{ task_type.id }}</td>
                         <td class="text-center">
                             <!-- Edit button -->
                             <a href="{{ url_for('task_types.edit', id=task_type.id) }}" class="btn btn-warning btn-sm">

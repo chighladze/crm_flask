@@ -194,7 +194,6 @@ def update_task(task_id):
                 },
                 'created_at': new_task.created_at.strftime('%Y-%m-%d %H:%M:%S')
             }
-            response['message'] += ' ქვეჯამაკური წარმატებით შექმნილია!'
 
         return jsonify(response), 200
 
@@ -1135,8 +1134,7 @@ def research_orders_tasks():
         'tasks/research_orders_tasks.html',
         task_types=task_types,
         task_statuses=task_statuses,
-        active_menu='research'
-
+        active_menu='project_design'
     )
 
 
