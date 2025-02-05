@@ -302,6 +302,14 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                            <div class="mb-3" style="display: none;">
+                                <label for="new_task_type" class="form-label">ახალი დავალების გაფორმება</label>
+                                <select id="new_task_type" name="new_task_type" class="form-select">
+                                    <option value="">აარჩიეთ დავალების ტიპი</option>
+                                        <option value="2">ახალი განაცხადის მოკვლევა</option>
+                                        <option value="3">საინსტალაციოთ გამზადებული</option>
+                                </select>
+                            </div>
                             <button type="submit" class="btn btn-primary">განახლება</button>
                         </form>
                     </div>
@@ -430,6 +438,8 @@
     <!-- jQuery already included in base.html, so no need to include it again -->
 
     <script>
+        const currentTaskTypeId = {{ task.task_type.id }};
+
         $(document).ready(function () {
             let csrf_token = '';
 
@@ -476,6 +486,8 @@
 
             // Function to handle task update (used for both forms)
             function handleTaskUpdate(status_id, assigned_to, modalClosed = false) {
+                const new_task_type = $('#new_task_type').val();
+
                 // Validation
                 if (!status_id) {
                     showToast('გთხოვთ, აირჩიოთ სტატუსი.', 'warning');
@@ -488,7 +500,8 @@
                     contentType: 'application/json',
                     data: JSON.stringify({
                         status_id: status_id,
-                        assigned_to: assigned_to
+                        assigned_to: assigned_to,
+                        new_task_type: new_task_type
                     }),
                     success: function (response) {
                         // Update status badge
@@ -633,6 +646,29 @@
                     }
                 });
             });
+
+            // English: Handle display of the new task type field based on status selection and task type
+            function toggleNewTaskTypeField() {
+                // Get the selected status id as an integer
+                const selectedStatusId = parseInt($('#status_id').val());
+                // Check condition: if selected status id equals 3 and task type equals 1
+                if (selectedStatusId === 3 && currentTaskTypeId === 1) {
+                    // English: Show the new task type field container
+                    $('#new_task_type').closest('.mb-3').show();
+                } else {
+                    // English: Hide the new task type field container
+                    $('#new_task_type').closest('.mb-3').hide();
+                }
+            }
+
+            // Initial check on page load
+            toggleNewTaskTypeField();
+
+            // Attach change event listener on the status select field
+            $('#status_id').on('change', function() {
+                toggleNewTaskTypeField();
+            });
+
         });
     </script>
 

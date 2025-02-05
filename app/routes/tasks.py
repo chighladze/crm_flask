@@ -103,6 +103,7 @@ def update_task(task_id):
 
     status_id = data.get('status_id')
     assigned_to = data.get('assigned_to')
+    new_task_type_id = data.get('new_task_type')
 
     if not status_id:
         return jsonify({'message': 'სტატუსი აუცილებელია.'}), 400
@@ -135,7 +136,7 @@ def update_task(task_id):
         if status_id == '3' and task.task_type_id == 1:
             # Create a subtask with necessary fields
             new_task = Tasks(
-                task_type_id=2,  # Ensure task_type_id=2 exists and is correct
+                task_type_id=new_task_type_id,  # Ensure task_type_id=2 exists and is correct
                 description=f"ავტომატური შექმნილი დავალება {task.id}",
                 created_by=current_user.id,
                 parent_task_id=task.id,

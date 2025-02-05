@@ -182,33 +182,57 @@ def edit(id):
     Checks for the required permission and validates input before updating the database.
     """
     if 'task_types_edit' not in [perm['name'] for perm in current_user.get_permissions(current_user.id)]:
-        flash("წვდომა აკრძალულია. საჭიროა ნებართვა: 'task_types_edit'", 'danger')
+        flash("წვდომა აკრძალულია. საჭიროა ნებართვა: 'task_types_edit'", 'danger')  # Access denied
         return redirect(url_for('task_types.list'))
 
     task_type = TaskTypes.query.get(id)
     if not task_type:
-        flash('დავალების ტიპი ვერ მოიძებნა!', 'danger')
+        flash('დავალების ტიპი ვერ მოიძებნა!', 'danger')  # Task type not found
         return redirect(url_for('task_types.list'))
 
+    # Initialize form with object data
     form = TaskTypeForm(obj=task_type)
 
+    # Determine current department from the existing task type
     current_division = Divisions.query.get(task_type.division_id)
     current_department_id = current_division.department_id if current_division else None
 
+    # Update department choices
+    form.department_id.choices = [(d.id, d.name) for d in Departments.query.all()]
+
+    # If POST request, get selected department from the form data,
+    # otherwise use the current_department_id
+    if form.is_submitted():
+        selected_department_id = form.department_id.data or current_department_id
+    else:
+        selected_department_id = current_department_id
+
+    # Populate division choices based on the selected department
+    if selected_department_id:
+        form.division_id.choices = [
+            (d.id, d.name) for d in Divisions.query.filter_by(department_id=selected_department_id).all()
+        ]
+    else:
+        form.division_id.choices = []
+
+    # Handle form submission
     if form.validate_on_submit():
         try:
-            # Update task type details in the database
+            # Update task type details
             task_type.name = form.name.data
-            task_type.division_id = form.division_id.data
+            task_type.division_id = form.division_id.data  # Selected division ID
             db.session.commit()
-            flash('დავალების ტიპი წარმატებით დარედაქტირდა!', 'success')
+            flash('დავალების ტიპი წარმატებით დარედაქტირდა!', 'success')  # Task type edited successfully
             return redirect(url_for('task_types.list'))
         except SQLAlchemyError as e:
             db.session.rollback()
-            flash(f"დაფიქსირდა შეცდომა: {str(e)}", 'danger')
+            flash(f"დაფიქსირდა შეცდომა: {str(e)}", 'danger')  # An error occurred
 
+    # For GET-зecution or in case of errors, prepare additional context variables
     departments = Departments.query.all()
-    divisions = Divisions.query.filter_by(department_id=current_department_id).all() if current_department_id else []
+    divisions = []
+    if current_department_id:
+        divisions = Divisions.query.filter_by(department_id=current_department_id).all()
 
     return render_template('task_types/edit.html',
                            form=form,
@@ -216,7 +240,9 @@ def edit(id):
                            departments=departments,
                            divisions=divisions,
                            current_department_id=current_department_id,
+                           current_division_id=task_type.division_id,  # Передаем также ID подразделения
                            active_menu='tasks')
+
 
 
 # Route: Fetch divisions for a selected department (AJAX endpoint)
